@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "440689392536",
+    "firebase_url": "https://eriyaz-social.firebaseio.com",
+    "project_id": "eriyaz-social",
+    "storage_bucket": "eriyaz-social.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:440689392536:android:91e94fd9291e9ac6",
+        "android_client_info": {
+          "package_name": "com.rozdoum.socialcomponents"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "440689392536-2j1rfk77402leng6nefgif7qcqe854pi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rozdoum.socialcomponents",
+            "certificate_hash": "16b6e6d2d1bb147d5f235b9479d8c6ea4d8b06fe"
+          }
+        },
+        {
+          "client_id": "440689392536-4ei8vjsorvqfjktgs5c8s3343adoud38.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAssLnHACwkNIBw-YkxiC0SGVQTDjRMqjA"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "440689392536-4ei8vjsorvqfjktgs5c8s3343adoud38.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
