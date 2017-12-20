@@ -188,4 +188,24 @@ public class Post implements Serializable, LazyLoading {
     public void setItemType(ItemType itemType) {
 
     }
+
+    @Override
+    public String toString() {
+        return "Post{" +
+                "id='" + id + '\'' +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", createdDate=" + createdDate +
+                ", imagePath='" + imagePath + '\'' +
+                ", imageTitle='" + imageTitle + '\'' +
+                ", authorId='" + authorId + '\'' +
+                ", commentsCount=" + commentsCount +
+                ", likesCount=" + likesCount +
+                ", ratingsCount=" + ratingsCount +
+                ", averageRating=" + averageRating +
+                ", watchersCount=" + watchersCount +
+                ", hasComplain=" + hasComplain +
+                ", itemType=" + itemType +
+                '}';
+    }
 }

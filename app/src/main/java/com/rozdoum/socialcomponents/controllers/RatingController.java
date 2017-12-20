@@ -74,9 +74,10 @@ public class RatingController {
 
     private void addRating(long prevValue, int ratingValue) {
         updatingRatingCounter = true;
+        int oldRatingValue = rating.getRating();
         rating.setRating(ratingValue);
         ratingCounterTextView.setText(String.valueOf(prevValue + 1));
-        ApplicationHelper.getDatabaseHelper().createOrUpdateRating(postId, postAuthorId, rating);
+        ApplicationHelper.getDatabaseHelper().createOrUpdateRating(postId, postAuthorId, rating, oldRatingValue);
     }
 
 //    private void removeLike(long prevValue) {

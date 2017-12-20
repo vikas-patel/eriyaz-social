@@ -483,8 +483,9 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         commentsCountTextView.setText(String.valueOf(commentsCount));
         commentsLabel.setText(String.format(getString(R.string.label_comments), commentsCount));
 //        likeCounterTextView.setText(String.valueOf(post.getLikesCount()));
-        ratingCounterTextView.setText(String.valueOf(post.getRatingsCount()));
-        averageRatingTextView.setText((String.valueOf(post.getAverageRating())));
+        ratingCounterTextView.setText("(" + post.getRatingsCount() + ")");
+        String avgRataingText = post.getAverageRating()>0 ? String.valueOf(post.getAverageRating()) : "";
+        averageRatingTextView.setText(avgRataingText);
 //        likeController.setUpdatingLikeCounter(false);
         ratingController.setUpdatingRatingCounter(false);
 

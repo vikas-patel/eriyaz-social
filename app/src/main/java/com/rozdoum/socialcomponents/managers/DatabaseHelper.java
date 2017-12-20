@@ -343,12 +343,13 @@ public class DatabaseHelper {
         mLikesReference.addChildEventListener(childEventListener);
     }
 
-    public void createOrUpdateRating(final String postId, final String postAuthorId, Rating rating) {
+    public void createOrUpdateRating(final String postId, final String postAuthorId, final Rating rating, final int oldRatingValue) {
         try {
             String authorId = firebaseAuth.getCurrentUser().getUid();
             DatabaseReference mLikesReference = database.getReference().child("post-ratings").child(postId).child(authorId);
-            final boolean isCreate = rating.getId() == null ? true : false;
-            if (rating.getId() == null) {
+//            final boolean isCreate = rating.getId() == null ? true : false;
+            // add rating, else update
+            if (oldRatingValue == 0) {
                 mLikesReference.push();
                 String id = mLikesReference.push().getKey();
                 rating.setId(id);
@@ -359,14 +360,42 @@ public class DatabaseHelper {
             mLikesReference.child(rating.getId()).setValue(rating, new DatabaseReference.CompletionListener() {
                 @Override
                 public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                    if (databaseError == null && isCreate) {
-                        DatabaseReference postRef = database.getReference("posts/" + postId + "/ratingsCount");
-                        incrementRatingsCount(postRef);
-                        DatabaseReference profileRef = database.getReference("profiles/" + postAuthorId + "/ratingsCount");
-                        incrementRatingsCount(profileRef);
+                    if (databaseError == null) {
+                        DatabaseReference postRef = database.getReference("posts/" + postId); //+ "/ratingsCount"
+                        updatePostRatingAverage(postRef);
+                        if (oldRatingValue == 0) {
+                            DatabaseReference profileRef = database.getReference("profiles/" + postAuthorId + "/ratingsCount");
+                            incrementRatingsCount(profileRef);
+                        }
                     } else {
                         LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
                     }
+                }
+
+                private void updatePostRatingAverage(DatabaseReference postRef) {
+                    postRef.runTransaction(new Transaction.Handler() {
+                        @Override
+                        public Transaction.Result doTransaction(MutableData mutableData) {
+                            Post post = mutableData.getValue(Post.class);
+                            LogUtil.logInfo(TAG, post.toString());
+                            double oldAvg = post.getAverageRating();
+                            if (oldRatingValue == 0) {
+                                double newAvg = (oldAvg*post.getRatingsCount() + rating.getRating())/(post.getRatingsCount() + 1);
+                                post.setAverageRating(newAvg);
+                                post.setRatingsCount(post.getRatingsCount()+1);
+                            } else {
+                                double newAvg = oldAvg + (rating.getRating() - oldRatingValue)/post.getRatingsCount();
+                                post.setAverageRating(newAvg);
+                            }
+                            mutableData.setValue(post);
+                            return Transaction.success(mutableData);
+                        }
+
+                        @Override
+                        public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+                            LogUtil.logInfo(TAG, "Updating rating count transaction is completed.");
+                        }
+                    });
                 }
 
                 private void incrementRatingsCount(DatabaseReference postRef) {
@@ -378,7 +407,7 @@ public class DatabaseHelper {
                                 mutableData.setValue(1);
                             } else {
                                 mutableData.setValue(currentValue + 1);
-                            }
+                             }
 
                             return Transaction.success(mutableData);
                         }
@@ -661,8 +690,14 @@ public class DatabaseHelper {
                         if (mapObj.containsKey("commentsCount")) {
                             post.setCommentsCount((long) mapObj.get("commentsCount"));
                         }
-                        if (mapObj.containsKey("likesCount")) {
-                            post.setLikesCount((long) mapObj.get("likesCount"));
+//                        if (mapObj.containsKey("likesCount")) {
+//                            post.setLikesCount((long) mapObj.get("likesCount"));
+//                        }
+                        if (mapObj.containsKey("ratingsCount")) {
+                            post.setRatingsCount((long) mapObj.get("ratingsCount"));
+                        }
+                        if (mapObj.containsKey("averageRating")) {
+                            post.setAverageRating((double) mapObj.get("averageRating"));
                         }
                         if (mapObj.containsKey("watchersCount")) {
                             post.setWatchersCount((long) mapObj.get("watchersCount"));

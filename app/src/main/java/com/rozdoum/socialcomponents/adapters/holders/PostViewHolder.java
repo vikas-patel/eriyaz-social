@@ -151,8 +151,9 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         String description = removeNewLinesDividers(post.getDescription());
         detailsTextView.setText(description);
 //        likeCounterTextView.setText(String.valueOf(post.getLikesCount()));
-        averageRatingTextView.setText(String.valueOf(post.getAverageRating()));
-        ratingCounterTextView.setText(String.valueOf(post.getRatingsCount()));
+        String avgRataingText = post.getAverageRating()>0 ? String.valueOf(post.getAverageRating()) : "";
+        averageRatingTextView.setText(avgRataingText);
+        ratingCounterTextView.setText("(" + post.getRatingsCount() + ")");
         if (post.getRatingsCount() > 0) {
             ratingsImageView.setImageResource(R.drawable.ic_star_active);
         } else {
