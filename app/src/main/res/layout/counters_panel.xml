@@ -29,8 +29,32 @@
 
     </LinearLayout>
 
+    <!--<LinearLayout-->
+        <!--android:id="@+id/likesContainer"-->
+        <!--android:layout_width="@dimen/post_counters_item_width"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:paddingTop="@dimen/intrinsic_padding"-->
+        <!--android:paddingBottom="@dimen/intrinsic_padding"-->
+        <!--android:gravity="center_vertical"-->
+        <!--android:orientation="horizontal">-->
+
+        <!--<ImageView-->
+            <!--android:id="@+id/likesImageView"-->
+            <!--app:srcCompat="@drawable/ic_like"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content" />-->
+
+        <!--<TextView-->
+            <!--android:id="@+id/likeCounterTextView"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:paddingLeft="@dimen/small_intrinsic_padding"-->
+            <!--android:textAppearance="@style/TextAppearance.Second.Light" />-->
+
+    <!--</LinearLayout>-->
+
     <LinearLayout
-        android:id="@+id/likesContainer"
+        android:id="@+id/ratingContainer"
         android:layout_width="@dimen/post_counters_item_width"
         android:layout_height="wrap_content"
         android:paddingTop="@dimen/intrinsic_padding"
@@ -38,14 +62,21 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
+        <TextView
+            android:id="@+id/averageRatingTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="@dimen/small_intrinsic_padding"
+            android:textAppearance="@style/TextAppearance.Second.Light" />
+
         <ImageView
-            android:id="@+id/likesImageView"
-            app:srcCompat="@drawable/ic_like"
+            android:id="@+id/ratingImageView"
+            app:srcCompat="@drawable/ic_star"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
         <TextView
-            android:id="@+id/likeCounterTextView"
+            android:id="@+id/ratingCounterTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingLeft="@dimen/small_intrinsic_padding"
@@ -100,6 +131,42 @@
             android:paddingLeft="@dimen/small_intrinsic_padding"
             android:textAppearance="@style/TextAppearance.Second.Light" />
 
+    </LinearLayout>
+
+    <Space
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <LinearLayout
+        android:id="@+id/ratingBarContainer"
+        android:layout_width="@dimen/post_counters_ratingbar_width"
+        android:layout_height="wrap_content"
+        android:paddingTop="@dimen/intrinsic_padding"
+        android:paddingBottom="@dimen/intrinsic_padding"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <RatingBar
+            android:id="@+id/ratingBar"
+            android:isIndicator="false"
+            style="?android:attr/ratingBarStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="right"
+            android:numStars="5"
+            android:rating="0"
+            android:stepSize="1.0" />
+
+        <!--<RatingBar-->
+            <!--android:id="@+id/ratingBar"-->
+            <!--style="?android:attr/ratingBarStyleSmall"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:gravity="right"-->
+            <!--android:numStars="5"-->
+            <!--android:rating="0"-->
+            <!--android:stepSize="1.0" />-->
     </LinearLayout>
 
 </LinearLayout>

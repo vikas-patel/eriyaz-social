@@ -22,6 +22,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -30,14 +31,13 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.rozdoum.socialcomponents.Constants;
 import com.rozdoum.socialcomponents.R;
-import com.rozdoum.socialcomponents.controllers.LikeController;
+import com.rozdoum.socialcomponents.controllers.RatingController;
 import com.rozdoum.socialcomponents.managers.PostManager;
 import com.rozdoum.socialcomponents.managers.ProfileManager;
 import com.rozdoum.socialcomponents.managers.listeners.OnObjectChangedListener;
-import com.rozdoum.socialcomponents.managers.listeners.OnObjectExistListener;
-import com.rozdoum.socialcomponents.model.Like;
 import com.rozdoum.socialcomponents.model.Post;
 import com.rozdoum.socialcomponents.model.Profile;
+import com.rozdoum.socialcomponents.model.Rating;
 import com.rozdoum.socialcomponents.utils.FormatterUtil;
 import com.rozdoum.socialcomponents.utils.Utils;
 
@@ -52,18 +52,23 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     private ImageView postImageView;
     private TextView titleTextView;
     private TextView detailsTextView;
-    private TextView likeCounterTextView;
-    private ImageView likesImageView;
+//    private TextView likeCounterTextView;
+//    private ImageView likesImageView;
+    private TextView averageRatingTextView;
+    private TextView ratingCounterTextView;
+    private ImageView ratingsImageView;
     private TextView commentsCountTextView;
     private TextView watcherCounterTextView;
     private TextView dateTextView;
     private ImageView authorImageView;
     private ViewGroup likeViewGroup;
+    private RatingBar ratingBar;
 
     private ProfileManager profileManager;
     private PostManager postManager;
 
-    private LikeController likeController;
+//    private LikeController likeController;
+    private RatingController ratingController;
 
     public PostViewHolder(View view, final OnClickListener onClickListener) {
         this(view, onClickListener, true);
@@ -74,15 +79,20 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         this.context = view.getContext();
 
         postImageView = (ImageView) view.findViewById(R.id.postImageView);
-        likeCounterTextView = (TextView) view.findViewById(R.id.likeCounterTextView);
-        likesImageView = (ImageView) view.findViewById(R.id.likesImageView);
+//        likeCounterTextView = (TextView) view.findViewById(R.id.likeCounterTextView);
+//        likesImageView = (ImageView) view.findViewById(R.id.likesImageView);
+        averageRatingTextView = (TextView) view.findViewById(R.id.averageRatingTextView);
+        ratingCounterTextView = (TextView) view.findViewById(R.id.ratingCounterTextView);
+        ratingsImageView = (ImageView) view.findViewById(R.id.ratingImageView);
+
         commentsCountTextView = (TextView) view.findViewById(R.id.commentsCountTextView);
         watcherCounterTextView = (TextView) view.findViewById(R.id.watcherCounterTextView);
         dateTextView = (TextView) view.findViewById(R.id.dateTextView);
         titleTextView = (TextView) view.findViewById(R.id.titleTextView);
         detailsTextView = (TextView) view.findViewById(R.id.detailsTextView);
         authorImageView = (ImageView) view.findViewById(R.id.authorImageView);
-        likeViewGroup = (ViewGroup) view.findViewById(R.id.likesContainer);
+//        likeViewGroup = (ViewGroup) view.findViewById(R.id.likesContainer);
+        ratingBar = (RatingBar) view.findViewById(R.id.ratingBar);
 
         authorImageView.setVisibility(isAuthorNeeded ? View.VISIBLE : View.GONE);
 
@@ -99,15 +109,15 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
             }
         });
 
-        likeViewGroup.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                int position = getAdapterPosition();
-                if (onClickListener != null && position != RecyclerView.NO_POSITION) {
-                    onClickListener.onLikeClick(likeController, position);
-                }
-            }
-        });
+//        likeViewGroup.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                int position = getAdapterPosition();
+//                if (onClickListener != null && position != RecyclerView.NO_POSITION) {
+//                    onClickListener.onLikeClick(likeController, position);
+//                }
+//            }
+//        });
 
         authorImageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -118,17 +128,36 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
                 }
             }
         });
+
+        //if rating value is changed.
+        ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+            public void onRatingChanged(RatingBar ratingBar, float rating,
+                                        boolean fromUser) {
+                int position = getAdapterPosition();
+                if (onClickListener != null && position != RecyclerView.NO_POSITION && fromUser) {
+                    onClickListener.onRatingClick(ratingController, position, Math.round(rating));
+                }
+            }
+        });
     }
 
     public void bindData(Post post) {
 
-        likeController = new LikeController(context, post, likeCounterTextView, likesImageView, true);
+//        likeController = new LikeController(context, post, likeCounterTextView, likesImageView, true);
+        ratingController = new RatingController(context, post, ratingCounterTextView, ratingBar, true);
 
         String title = removeNewLinesDividers(post.getTitle());
         titleTextView.setText(title);
         String description = removeNewLinesDividers(post.getDescription());
         detailsTextView.setText(description);
-        likeCounterTextView.setText(String.valueOf(post.getLikesCount()));
+//        likeCounterTextView.setText(String.valueOf(post.getLikesCount()));
+        averageRatingTextView.setText(String.valueOf(post.getAverageRating()));
+        ratingCounterTextView.setText(String.valueOf(post.getRatingsCount()));
+        if (post.getRatingsCount() > 0) {
+            ratingsImageView.setImageResource(R.drawable.ic_star_active);
+        } else {
+            ratingsImageView.setImageResource(R.drawable.ic_star);
+        }
         commentsCountTextView.setText(String.valueOf(post.getCommentsCount()));
         watcherCounterTextView.setText(String.valueOf(post.getWatchersCount()));
 
@@ -155,7 +184,8 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         if (firebaseUser != null) {
-            postManager.hasCurrentUserLikeSingleValue(post.getId(), firebaseUser.getUid(), createOnLikeObjectExistListener());
+//            postManager.hasCurrentUserLikeSingleValue(post.getId(), firebaseUser.getUid(), createOnLikeObjectExistListener());
+            postManager.getCurrentUserRatingSingleValue(post.getId(), firebaseUser.getUid(), createOnRatingObjectChangedListener());
         }
     }
 
@@ -182,11 +212,20 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         };
     }
 
-    private OnObjectExistListener<Like> createOnLikeObjectExistListener() {
-        return new OnObjectExistListener<Like>() {
+//    private OnObjectExistListener<Like> createOnLikeObjectExistListener() {
+//        return new OnObjectExistListener<Like>() {
+//            @Override
+//            public void onDataChanged(boolean exist) {
+//                likeController.initLike(exist);
+//            }
+//        };
+//    }
+
+    private OnObjectChangedListener<Rating> createOnRatingObjectChangedListener() {
+        return new OnObjectChangedListener<Rating>() {
             @Override
-            public void onDataChanged(boolean exist) {
-                likeController.initLike(exist);
+            public void onObjectChanged(Rating obj) {
+                ratingController.initRating(obj);
             }
         };
     }
@@ -194,8 +233,10 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     public interface OnClickListener {
         void onItemClick(int position, View view);
 
-        void onLikeClick(LikeController likeController, int position);
+        //void onLikeClick(LikeController likeController, int position);
 
         void onAuthorClick(int position, View view);
+
+        void onRatingClick(RatingController ratingController, int position, int rating);
     }
 }

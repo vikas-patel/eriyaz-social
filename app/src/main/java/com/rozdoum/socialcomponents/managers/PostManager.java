@@ -30,6 +30,7 @@ import com.google.firebase.storage.UploadTask;
 import com.rozdoum.socialcomponents.ApplicationHelper;
 import com.rozdoum.socialcomponents.enums.UploadImagePrefix;
 import com.rozdoum.socialcomponents.managers.listeners.OnDataChangedListener;
+import com.rozdoum.socialcomponents.managers.listeners.OnObjectChangedListener;
 import com.rozdoum.socialcomponents.managers.listeners.OnObjectExistListener;
 import com.rozdoum.socialcomponents.managers.listeners.OnPostChangedListener;
 import com.rozdoum.socialcomponents.managers.listeners.OnPostCreatedListener;
@@ -37,6 +38,7 @@ import com.rozdoum.socialcomponents.managers.listeners.OnPostListChangedListener
 import com.rozdoum.socialcomponents.managers.listeners.OnTaskCompleteListener;
 import com.rozdoum.socialcomponents.model.Like;
 import com.rozdoum.socialcomponents.model.Post;
+import com.rozdoum.socialcomponents.model.Rating;
 import com.rozdoum.socialcomponents.utils.ImageUtil;
 import com.rozdoum.socialcomponents.utils.LogUtil;
 
@@ -170,6 +172,17 @@ public class PostManager extends FirebaseListenersManager {
     public void hasCurrentUserLikeSingleValue(String postId, String userId, final OnObjectExistListener<Like> onObjectExistListener) {
         DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
         databaseHelper.hasCurrentUserLikeSingleValue(postId, userId, onObjectExistListener);
+    }
+
+    public void getCurrentUserRating(Context activityContext, String postId, String userId, final OnObjectChangedListener<Rating> onObjectChangedListener) {
+        DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
+        ValueEventListener valueEventListener = databaseHelper.getCurrentUserRating(postId, userId, onObjectChangedListener);
+        addListenerToMap(activityContext, valueEventListener);
+    }
+
+    public void getCurrentUserRatingSingleValue(String postId, String userId, final OnObjectChangedListener<Rating> onObjectChangedListener) {
+        DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
+        databaseHelper.getCurrentUserRating(postId, userId, onObjectChangedListener);
     }
 
     public void isPostExistSingleValue(String postId, final OnObjectExistListener<Post> onObjectExistListener) {

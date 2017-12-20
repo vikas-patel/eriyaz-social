@@ -25,6 +25,7 @@ import com.rozdoum.socialcomponents.R;
 import com.rozdoum.socialcomponents.activities.BaseActivity;
 import com.rozdoum.socialcomponents.adapters.holders.PostViewHolder;
 import com.rozdoum.socialcomponents.controllers.LikeController;
+import com.rozdoum.socialcomponents.controllers.RatingController;
 import com.rozdoum.socialcomponents.managers.PostManager;
 import com.rozdoum.socialcomponents.managers.listeners.OnDataChangedListener;
 import com.rozdoum.socialcomponents.model.Post;
@@ -65,15 +66,21 @@ public class PostsByUserAdapter extends BasePostsAdapter {
                 }
             }
 
-            @Override
-            public void onLikeClick(LikeController likeController, int position) {
-                Post post = getItemByPosition(position);
-                likeController.handleLikeClickAction(activity, post);
-            }
+//            @Override
+//            public void onLikeClick(LikeController likeController, int position) {
+//                Post post = getItemByPosition(position);
+//                likeController.handleLikeClickAction(activity, post);
+//            }
 
             @Override
             public void onAuthorClick(int position, View view) {
 
+            }
+
+            @Override
+            public void onRatingClick(RatingController ratingController, int position, int rating) {
+                Post post = getItemByPosition(position);
+                ratingController.handleRatingClickAction(activity, post, rating);
             }
         };
     }

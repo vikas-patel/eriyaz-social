@@ -39,6 +39,8 @@ public class Post implements Serializable, LazyLoading {
     private String authorId;
     private long commentsCount;
     private long likesCount;
+    private long ratingsCount;
+    private double averageRating;
     private long watchersCount;
     private boolean hasComplain;
     private ItemType itemType;
@@ -141,6 +143,22 @@ public class Post implements Serializable, LazyLoading {
         this.hasComplain = hasComplain;
     }
 
+    public long getRatingsCount() {
+        return ratingsCount;
+    }
+
+    public void setRatingsCount(long ratingsCount) {
+        this.ratingsCount = ratingsCount;
+    }
+
+    public double getAverageRating() {
+        return averageRating;
+    }
+
+    public void setAverageRating(double averageRating) {
+        this.averageRating = averageRating;
+    }
+
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
 
@@ -152,6 +170,8 @@ public class Post implements Serializable, LazyLoading {
         result.put("authorId", authorId);
         result.put("commentsCount", commentsCount);
         result.put("likesCount", likesCount);
+        result.put("ratingsCount", ratingsCount);
+        result.put("averageRating", averageRating);
         result.put("watchersCount", watchersCount);
         result.put("hasComplain", hasComplain);
         result.put("createdDateText", FormatterUtil.getFirebaseDateFormat().format(new Date(createdDate)));

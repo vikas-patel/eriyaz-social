@@ -28,7 +28,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.DividerItemDecoration;
@@ -50,6 +49,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RatingBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -62,7 +62,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.rozdoum.socialcomponents.R;
 import com.rozdoum.socialcomponents.adapters.CommentsAdapter;
-import com.rozdoum.socialcomponents.controllers.LikeController;
+import com.rozdoum.socialcomponents.controllers.RatingController;
 import com.rozdoum.socialcomponents.dialogs.EditCommentDialog;
 import com.rozdoum.socialcomponents.enums.PostStatus;
 import com.rozdoum.socialcomponents.enums.ProfileStatus;
@@ -72,14 +72,14 @@ import com.rozdoum.socialcomponents.managers.PostManager;
 import com.rozdoum.socialcomponents.managers.ProfileManager;
 import com.rozdoum.socialcomponents.managers.listeners.OnDataChangedListener;
 import com.rozdoum.socialcomponents.managers.listeners.OnObjectChangedListener;
-import com.rozdoum.socialcomponents.managers.listeners.OnObjectExistListener;
 import com.rozdoum.socialcomponents.managers.listeners.OnPostChangedListener;
 import com.rozdoum.socialcomponents.managers.listeners.OnTaskCompleteListener;
 import com.rozdoum.socialcomponents.model.Comment;
-import com.rozdoum.socialcomponents.model.Like;
 import com.rozdoum.socialcomponents.model.Post;
 import com.rozdoum.socialcomponents.model.Profile;
+import com.rozdoum.socialcomponents.model.Rating;
 import com.rozdoum.socialcomponents.utils.FormatterUtil;
+import com.rozdoum.socialcomponents.utils.LogUtil;
 import com.rozdoum.socialcomponents.utils.Utils;
 
 import java.util.List;
@@ -96,10 +96,16 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     @Nullable
     private Post post;
     private ScrollView scrollView;
-    private ViewGroup likesContainer;
-    private ImageView likesImageView;
+//    private ViewGroup likesContainer;
+//    private ImageView likesImageView;
+    private ViewGroup ratingsContainer;
+    private ImageView ratingsImageView;
+    private TextView ratingCounterTextView;
+    private TextView averageRatingTextView;
+    private RatingBar ratingBar;
+
     private TextView commentsLabel;
-    private TextView likeCounterTextView;
+//    private TextView likeCounterTextView;
     private TextView commentsCountTextView;
     private TextView watcherCounterTextView;
     private TextView authorTextView;
@@ -124,7 +130,8 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private PostManager postManager;
     private CommentManager commentManager;
     private ProfileManager profileManager;
-    private LikeController likeController;
+//    private LikeController likeController;
+    private RatingController ratingController;
     private boolean postRemovingProcess = false;
     private boolean isPostExist;
     private boolean authorAnimationInProgress = false;
@@ -159,11 +166,17 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         scrollView = (ScrollView) findViewById(R.id.scrollView);
         commentsLabel = (TextView) findViewById(R.id.commentsLabel);
         commentEditText = (EditText) findViewById(R.id.commentEditText);
-        likesContainer = (ViewGroup) findViewById(R.id.likesContainer);
-        likesImageView = (ImageView) findViewById(R.id.likesImageView);
+//        likesContainer = (ViewGroup) findViewById(R.id.likesContainer);
+//        likesImageView = (ImageView) findViewById(R.id.likesImageView);
+        ratingsContainer = (ViewGroup) findViewById(R.id.ratingContainer);
+        ratingsImageView = (ImageView) findViewById(R.id.ratingImageView);
+        ratingCounterTextView = (TextView) findViewById(R.id.ratingCounterTextView);
+        averageRatingTextView = (TextView) findViewById(R.id.averageRatingTextView);
+        ratingBar = (RatingBar) findViewById(R.id.ratingBar);
+
         authorImageView = (ImageView) findViewById(R.id.authorImageView);
         authorTextView = (TextView) findViewById(R.id.authorTextView);
-        likeCounterTextView = (TextView) findViewById(R.id.likeCounterTextView);
+//        likeCounterTextView = (TextView) findViewById(R.id.likeCounterTextView);
         commentsCountTextView = (TextView) findViewById(R.id.commentsCountTextView);
         watcherCounterTextView = (TextView) findViewById(R.id.watcherCounterTextView);
         dateTextView = (TextView) findViewById(R.id.dateTextView);
@@ -201,6 +214,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         postImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                LogUtil.logInfo("PostDetailsActivity", "Image Clicked.");
                 openImageDetailScreen();
             }
         });
@@ -468,8 +482,11 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         long commentsCount = post.getCommentsCount();
         commentsCountTextView.setText(String.valueOf(commentsCount));
         commentsLabel.setText(String.format(getString(R.string.label_comments), commentsCount));
-        likeCounterTextView.setText(String.valueOf(post.getLikesCount()));
-        likeController.setUpdatingLikeCounter(false);
+//        likeCounterTextView.setText(String.valueOf(post.getLikesCount()));
+        ratingCounterTextView.setText(String.valueOf(post.getRatingsCount()));
+        averageRatingTextView.setText((String.valueOf(post.getAverageRating())));
+//        likeController.setUpdatingLikeCounter(false);
+        ratingController.setUpdatingRatingCounter(false);
 
         watcherCounterTextView.setText(String.valueOf(post.getWatchersCount()));
 
@@ -551,11 +568,20 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         }
     }
 
-    private OnObjectExistListener<Like> createOnLikeObjectExistListener() {
-        return new OnObjectExistListener<Like>() {
+//    private OnObjectExistListener<Like> createOnLikeObjectExistListener() {
+//        return new OnObjectExistListener<Like>() {
+//            @Override
+//            public void onDataChanged(boolean exist) {
+//                likeController.initLike(exist);
+//            }
+//        };
+//    }
+
+    private OnObjectChangedListener<Rating> createOnRatingObjectChangedListener() {
+        return new OnObjectChangedListener<Rating>() {
             @Override
-            public void onDataChanged(boolean exist) {
-                likeController.initLike(exist);
+            public void onObjectChanged(Rating obj) {
+                ratingController.initRating(obj);
             }
         };
     }
@@ -563,39 +589,50 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private void initLikeButtonState() {
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         if (firebaseUser != null && post != null) {
-            postManager.hasCurrentUserLike(this, post.getId(), firebaseUser.getUid(), createOnLikeObjectExistListener());
+//            postManager.hasCurrentUserLike(this, post.getId(), firebaseUser.getUid(), createOnLikeObjectExistListener());
+            postManager.getCurrentUserRating(this, post.getId(), firebaseUser.getUid(), createOnRatingObjectChangedListener());
         }
     }
 
     private void initLikes() {
-        likeController = new LikeController(this, post, likeCounterTextView, likesImageView, false);
-
-        likesContainer.setOnClickListener(new View.OnClickListener() {
+//        likeController = new LikeController(this, post, likeCounterTextView, likesImageView, false);
+        ratingController = new RatingController(this, post, ratingCounterTextView, ratingBar, false);
+        //if rating value is changed.
+        ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
             @Override
-            public void onClick(View v) {
-                if (isPostExist) {
-                    likeController.handleLikeClickAction(PostDetailsActivity.this, post);
+            public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
+                if (isPostExist && fromUser) {
+                    ratingController.handleRatingClickAction(PostDetailsActivity.this, post, Math.round(rating));
                 }
             }
         });
 
-        //long click for changing animation
-        likesContainer.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                if (likeController.getLikeAnimationType() == LikeController.AnimationType.BOUNCE_ANIM) {
-                    likeController.setLikeAnimationType(LikeController.AnimationType.COLOR_ANIM);
-                } else {
-                    likeController.setLikeAnimationType(LikeController.AnimationType.BOUNCE_ANIM);
-                }
-
-                Snackbar snackbar = Snackbar
-                        .make(likesContainer, "Animation was changed", Snackbar.LENGTH_LONG);
-
-                snackbar.show();
-                return true;
-            }
-        });
+//        likesContainer.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (isPostExist) {
+//                    likeController.handleLikeClickAction(PostDetailsActivity.this, post);
+//                }
+//            }
+//        });
+//
+//        //long click for changing animation
+//        likesContainer.setOnLongClickListener(new View.OnLongClickListener() {
+//            @Override
+//            public boolean onLongClick(View v) {
+//                if (likeController.getLikeAnimationType() == LikeController.AnimationType.BOUNCE_ANIM) {
+//                    likeController.setLikeAnimationType(LikeController.AnimationType.COLOR_ANIM);
+//                } else {
+//                    likeController.setLikeAnimationType(LikeController.AnimationType.BOUNCE_ANIM);
+//                }
+//
+//                Snackbar snackbar = Snackbar
+//                        .make(likesContainer, "Animation was changed", Snackbar.LENGTH_LONG);
+//
+//                snackbar.show();
+//                return true;
+//            }
+//        });
     }
 
     private void sendComment() {

@@ -58,6 +58,7 @@ import com.rozdoum.socialcomponents.model.Like;
 import com.rozdoum.socialcomponents.model.Post;
 import com.rozdoum.socialcomponents.model.PostListResult;
 import com.rozdoum.socialcomponents.model.Profile;
+import com.rozdoum.socialcomponents.model.Rating;
 import com.rozdoum.socialcomponents.utils.LogUtil;
 
 import java.util.ArrayList;
@@ -340,6 +341,60 @@ public class DatabaseHelper {
     public void onNewLikeAddedListener(ChildEventListener childEventListener) {
         DatabaseReference mLikesReference = database.getReference().child("post-likes");
         mLikesReference.addChildEventListener(childEventListener);
+    }
+
+    public void createOrUpdateRating(final String postId, final String postAuthorId, Rating rating) {
+        try {
+            String authorId = firebaseAuth.getCurrentUser().getUid();
+            DatabaseReference mLikesReference = database.getReference().child("post-ratings").child(postId).child(authorId);
+            final boolean isCreate = rating.getId() == null ? true : false;
+            if (rating.getId() == null) {
+                mLikesReference.push();
+                String id = mLikesReference.push().getKey();
+                rating.setId(id);
+                rating.setAuthorId(authorId);
+            }
+            LogUtil.logInfo(TAG, "rating: "+rating);
+
+            mLikesReference.child(rating.getId()).setValue(rating, new DatabaseReference.CompletionListener() {
+                @Override
+                public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                    if (databaseError == null && isCreate) {
+                        DatabaseReference postRef = database.getReference("posts/" + postId + "/ratingsCount");
+                        incrementRatingsCount(postRef);
+                        DatabaseReference profileRef = database.getReference("profiles/" + postAuthorId + "/ratingsCount");
+                        incrementRatingsCount(profileRef);
+                    } else {
+                        LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
+                    }
+                }
+
+                private void incrementRatingsCount(DatabaseReference postRef) {
+                    postRef.runTransaction(new Transaction.Handler() {
+                        @Override
+                        public Transaction.Result doTransaction(MutableData mutableData) {
+                            Integer currentValue = mutableData.getValue(Integer.class);
+                            if (currentValue == null) {
+                                mutableData.setValue(1);
+                            } else {
+                                mutableData.setValue(currentValue + 1);
+                            }
+
+                            return Transaction.success(mutableData);
+                        }
+
+                        @Override
+                        public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+                            LogUtil.logInfo(TAG, "Updating rating count transaction is completed.");
+                        }
+                    });
+                }
+
+            });
+        } catch (Exception e) {
+            LogUtil.logError(TAG, "createOrUpdateLike()", e);
+        }
+
     }
 
     public void createOrUpdateLike(final String postId, final String postAuthorId) {
@@ -703,6 +758,32 @@ public class DatabaseHelper {
             }
         });
 
+        activeListeners.put(valueEventListener, databaseReference);
+        return valueEventListener;
+    }
+
+    public ValueEventListener getCurrentUserRating(String postId, String userId, final OnObjectChangedListener<Rating> listener) {
+        DatabaseReference databaseReference = database.getReference("post-ratings").child(postId).child(userId);
+        ValueEventListener valueEventListener = databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists() == false || dataSnapshot.hasChildren() == false) {
+                    listener.onObjectChanged(null);
+                    return;
+                }
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    LogUtil.logInfo(TAG, snapshot.toString());
+                    Rating rating = snapshot.getValue(Rating.class);
+                    listener.onObjectChanged(rating);
+                    return;
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                LogUtil.logError(TAG, "getProfile(), onCancelled", new Exception(databaseError.getMessage()));
+            }
+        });
         activeListeners.put(valueEventListener, databaseReference);
         return valueEventListener;
     }
