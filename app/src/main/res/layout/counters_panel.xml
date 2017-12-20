@@ -55,7 +55,7 @@
 
     <LinearLayout
         android:id="@+id/ratingContainer"
-        android:layout_width="@dimen/post_counters_item_width"
+        android:layout_width="@dimen/post_counters_ratings_width"
         android:layout_height="wrap_content"
         android:paddingTop="@dimen/intrinsic_padding"
         android:paddingBottom="@dimen/intrinsic_padding"
