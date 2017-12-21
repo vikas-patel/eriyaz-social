@@ -57,6 +57,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     private TextView averageRatingTextView;
     private TextView ratingCounterTextView;
     private ImageView ratingsImageView;
+
     private TextView commentsCountTextView;
     private TextView watcherCounterTextView;
     private TextView dateTextView;
@@ -135,7 +136,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
                                         boolean fromUser) {
                 int position = getAdapterPosition();
                 if (onClickListener != null && position != RecyclerView.NO_POSITION && fromUser) {
-                    onClickListener.onRatingClick(ratingController, position, Math.round(rating));
+                    onClickListener.onRatingClick(ratingController, position, rating);
                 }
             }
         });
@@ -144,15 +145,18 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     public void bindData(Post post) {
 
 //        likeController = new LikeController(context, post, likeCounterTextView, likesImageView, true);
-        ratingController = new RatingController(context, post, ratingCounterTextView, ratingBar, true);
+        ratingController = new RatingController(context, post, ratingCounterTextView, averageRatingTextView, ratingBar, true);
 
         String title = removeNewLinesDividers(post.getTitle());
         titleTextView.setText(title);
         String description = removeNewLinesDividers(post.getDescription());
         detailsTextView.setText(description);
 //        likeCounterTextView.setText(String.valueOf(post.getLikesCount()));
-        String avgRataingText = post.getAverageRating()>0 ? String.valueOf(post.getAverageRating()) : "";
-        averageRatingTextView.setText(avgRataingText);
+        String avgRatingText = "";
+        if (post.getAverageRating() > 0) {
+            avgRatingText = String.format( "%.1f", post.getAverageRating());
+        }
+        averageRatingTextView.setText(avgRatingText);
         ratingCounterTextView.setText("(" + post.getRatingsCount() + ")");
         if (post.getRatingsCount() > 0) {
             ratingsImageView.setImageResource(R.drawable.ic_star_active);
@@ -238,6 +242,6 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 
         void onAuthorClick(int position, View view);
 
-        void onRatingClick(RatingController ratingController, int position, int rating);
+        void onRatingClick(RatingController ratingController, int position, float rating);
     }
 }

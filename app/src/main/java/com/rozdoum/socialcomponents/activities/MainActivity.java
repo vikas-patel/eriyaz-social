@@ -172,7 +172,7 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void onClick(View v) {
                         if (hasInternetConnection()) {
-                            addPostClickAction();
+                             addPostClickAction();
                         } else {
                             showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
                         }

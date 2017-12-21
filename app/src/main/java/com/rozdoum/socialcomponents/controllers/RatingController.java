@@ -36,6 +36,7 @@ public class RatingController {
     private LikeController.AnimationType likeAnimationType = LikeController.AnimationType.BOUNCE_ANIM;
 
     private TextView ratingCounterTextView;
+    private TextView averageRatingTextView;
     private RatingBar ratingBar;
 
     private boolean isListView = false;
@@ -43,21 +44,22 @@ public class RatingController {
     private Rating rating;
     private boolean updatingRatingCounter = true;
 
-    public RatingController(Context context, Post post, TextView ratingCounterTextView,
+    public RatingController(Context context, Post post, TextView ratingCounterTextView, TextView averageRatingTextView,
                             RatingBar ratingBar, boolean isListView) {
         this.context = context;
         this.postId = post.getId();
         this.postAuthorId = post.getAuthorId();
         this.ratingCounterTextView = ratingCounterTextView;
+        this.averageRatingTextView = averageRatingTextView;
         this.ratingBar = ratingBar;
         this.isListView = isListView;
         this.rating = new Rating();
     }
 
-    public void ratingClickAction(long prevValue, int ratingValue) {
+    public void ratingClickAction(Post post, float ratingValue) {
         if (!updatingRatingCounter) {
             startAnimateLikeButton(likeAnimationType);
-            addRating(prevValue, ratingValue);
+            addRating(post, ratingValue);
 //            if (!isRated) {
 //                addLike(prevValue);
 //            } else {
@@ -66,17 +68,24 @@ public class RatingController {
         }
     }
 
-    public void ratingClickActionLocal(Post post, int ratingValue) {
+    public void ratingClickActionLocal(Post post, float ratingValue) {
         setUpdatingRatingCounter(false);
         updateLocalPostLikeCounter(post);
-        ratingClickAction(post.getLikesCount(), ratingValue);
+        ratingClickAction(post, ratingValue);
     }
 
-    private void addRating(long prevValue, int ratingValue) {
+    private void addRating(Post post, float ratingValue) {
         updatingRatingCounter = true;
-        int oldRatingValue = rating.getRating();
+        float oldRatingValue = rating.getRating();
         rating.setRating(ratingValue);
-        ratingCounterTextView.setText(String.valueOf(prevValue + 1));
+        float avgRating = post.getAverageRating();
+        if (oldRatingValue == 0) {
+            ratingCounterTextView.setText("(" + (post.getRatingsCount() + 1) + ")");
+            avgRating = (avgRating*post.getRatingsCount() + ratingValue)/(post.getRatingsCount() + 1);
+        } else {
+            avgRating = avgRating + (ratingValue - oldRatingValue)/post.getRatingsCount();
+        }
+        averageRatingTextView.setText(String.format( "%.1f", avgRating));
         ApplicationHelper.getDatabaseHelper().createOrUpdateRating(postId, postAuthorId, rating, oldRatingValue);
     }
 
@@ -186,7 +195,7 @@ public class RatingController {
         }
     }
 
-    public void handleRatingClickAction(final BaseActivity baseActivity, final Post post, final int ratingValue) {
+    public void handleRatingClickAction(final BaseActivity baseActivity, final Post post, final float ratingValue) {
         PostManager.getInstance(baseActivity.getApplicationContext()).isPostExistSingleValue(post.getId(), new OnObjectExistListener<Post>() {
             @Override
             public void onDataChanged(boolean exist) {
@@ -211,14 +220,14 @@ public class RatingController {
         }
     }
 
-    private void doHandleRatingClickAction(BaseActivity baseActivity, Post post, int ratingValue) {
+    private void doHandleRatingClickAction(BaseActivity baseActivity, Post post, float ratingValue) {
         ProfileStatus profileStatus = ProfileManager.getInstance(baseActivity).checkProfile();
 
         if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
             if (isListView) {
                 ratingClickActionLocal(post, ratingValue);
             } else {
-                ratingClickAction(post.getLikesCount(), ratingValue);
+                ratingClickAction(post, ratingValue);
             }
         } else {
             baseActivity.doAuthorization(profileStatus);

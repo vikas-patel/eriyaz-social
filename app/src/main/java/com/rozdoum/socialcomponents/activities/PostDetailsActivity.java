@@ -484,8 +484,16 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         commentsLabel.setText(String.format(getString(R.string.label_comments), commentsCount));
 //        likeCounterTextView.setText(String.valueOf(post.getLikesCount()));
         ratingCounterTextView.setText("(" + post.getRatingsCount() + ")");
-        String avgRataingText = post.getAverageRating()>0 ? String.valueOf(post.getAverageRating()) : "";
-        averageRatingTextView.setText(avgRataingText);
+        String avgRatingText = "";
+        if (post.getAverageRating() > 0) {
+            avgRatingText = String.format( "%.1f", post.getAverageRating());
+        }
+        averageRatingTextView.setText(avgRatingText);
+        if (post.getRatingsCount() > 0) {
+            ratingsImageView.setImageResource(R.drawable.ic_star_active);
+        } else {
+            ratingsImageView.setImageResource(R.drawable.ic_star);
+        }
 //        likeController.setUpdatingLikeCounter(false);
         ratingController.setUpdatingRatingCounter(false);
 
@@ -597,13 +605,13 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 
     private void initLikes() {
 //        likeController = new LikeController(this, post, likeCounterTextView, likesImageView, false);
-        ratingController = new RatingController(this, post, ratingCounterTextView, ratingBar, false);
+        ratingController = new RatingController(this, post, ratingCounterTextView, averageRatingTextView, ratingBar, false);
         //if rating value is changed.
         ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
             @Override
             public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
                 if (isPostExist && fromUser) {
-                    ratingController.handleRatingClickAction(PostDetailsActivity.this, post, Math.round(rating));
+                    ratingController.handleRatingClickAction(PostDetailsActivity.this, post, rating);
                 }
             }
         });

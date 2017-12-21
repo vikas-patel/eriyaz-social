@@ -27,7 +27,6 @@ import com.rozdoum.socialcomponents.R;
 import com.rozdoum.socialcomponents.activities.MainActivity;
 import com.rozdoum.socialcomponents.adapters.holders.LoadViewHolder;
 import com.rozdoum.socialcomponents.adapters.holders.PostViewHolder;
-import com.rozdoum.socialcomponents.controllers.LikeController;
 import com.rozdoum.socialcomponents.controllers.RatingController;
 import com.rozdoum.socialcomponents.enums.ItemType;
 import com.rozdoum.socialcomponents.managers.PostManager;
@@ -120,7 +119,7 @@ public class PostsAdapter extends BasePostsAdapter {
             }
 
             @Override
-            public void onRatingClick(RatingController ratingController, int position, int rating) {
+            public void onRatingClick(RatingController ratingController, int position, float rating) {
                 Post post = getItemByPosition(position);
                 ratingController.handleRatingClickAction(activity, post, rating);
             }

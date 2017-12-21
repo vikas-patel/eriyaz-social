@@ -343,7 +343,7 @@ public class DatabaseHelper {
         mLikesReference.addChildEventListener(childEventListener);
     }
 
-    public void createOrUpdateRating(final String postId, final String postAuthorId, final Rating rating, final int oldRatingValue) {
+    public void createOrUpdateRating(final String postId, final String postAuthorId, final Rating rating, final float oldRatingValue) {
         try {
             String authorId = firebaseAuth.getCurrentUser().getUid();
             DatabaseReference mLikesReference = database.getReference().child("post-ratings").child(postId).child(authorId);
@@ -378,13 +378,13 @@ public class DatabaseHelper {
                         public Transaction.Result doTransaction(MutableData mutableData) {
                             Post post = mutableData.getValue(Post.class);
                             LogUtil.logInfo(TAG, post.toString());
-                            double oldAvg = post.getAverageRating();
+                            float oldAvg = post.getAverageRating();
                             if (oldRatingValue == 0) {
-                                double newAvg = (oldAvg*post.getRatingsCount() + rating.getRating())/(post.getRatingsCount() + 1);
+                                float newAvg = (oldAvg*post.getRatingsCount() + rating.getRating())/(post.getRatingsCount() + 1);
                                 post.setAverageRating(newAvg);
                                 post.setRatingsCount(post.getRatingsCount()+1);
                             } else {
-                                double newAvg = oldAvg + (rating.getRating() - oldRatingValue)/post.getRatingsCount();
+                                float newAvg = oldAvg + (rating.getRating() - oldRatingValue)/post.getRatingsCount();
                                 post.setAverageRating(newAvg);
                             }
                             mutableData.setValue(post);
@@ -421,7 +421,7 @@ public class DatabaseHelper {
 
             });
         } catch (Exception e) {
-            LogUtil.logError(TAG, "createOrUpdateLike()", e);
+            LogUtil.logError(TAG, "createOrUpdateRating()", e);
         }
 
     }
@@ -697,7 +697,7 @@ public class DatabaseHelper {
                             post.setRatingsCount((long) mapObj.get("ratingsCount"));
                         }
                         if (mapObj.containsKey("averageRating")) {
-                            post.setAverageRating((double) mapObj.get("averageRating"));
+                            post.setAverageRating(Float.parseFloat("" + mapObj.get("averageRating")));
                         }
                         if (mapObj.containsKey("watchersCount")) {
                             post.setWatchersCount((long) mapObj.get("watchersCount"));

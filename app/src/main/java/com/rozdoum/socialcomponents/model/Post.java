@@ -40,7 +40,7 @@ public class Post implements Serializable, LazyLoading {
     private long commentsCount;
     private long likesCount;
     private long ratingsCount;
-    private double averageRating;
+    private float averageRating;
     private long watchersCount;
     private boolean hasComplain;
     private ItemType itemType;
@@ -151,11 +151,11 @@ public class Post implements Serializable, LazyLoading {
         this.ratingsCount = ratingsCount;
     }
 
-    public double getAverageRating() {
+    public float getAverageRating() {
         return averageRating;
     }
 
-    public void setAverageRating(double averageRating) {
+    public void setAverageRating(float averageRating) {
         this.averageRating = averageRating;
     }
 

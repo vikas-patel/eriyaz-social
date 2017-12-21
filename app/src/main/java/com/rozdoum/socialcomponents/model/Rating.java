@@ -10,7 +10,7 @@ public class Rating {
     private String id;
     private String authorId;
     private long createdDate;
-    private int rating;
+    private float rating;
 
     public Rating() {
         // Default constructor required for calls to DataSnapshot.getValue(Rating.class)
@@ -36,11 +36,11 @@ public class Rating {
         return createdDate;
     }
 
-    public int getRating() {
+    public float getRating() {
         return rating;
     }
 
-    public void setRating(int rating) {
+    public void setRating(float rating) {
         this.rating = rating;
     }
 

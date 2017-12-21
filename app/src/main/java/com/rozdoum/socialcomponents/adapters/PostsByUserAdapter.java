@@ -78,7 +78,7 @@ public class PostsByUserAdapter extends BasePostsAdapter {
             }
 
             @Override
-            public void onRatingClick(RatingController ratingController, int position, int rating) {
+            public void onRatingClick(RatingController ratingController, int position, float rating) {
                 Post post = getItemByPosition(position);
                 ratingController.handleRatingClickAction(activity, post, rating);
             }
