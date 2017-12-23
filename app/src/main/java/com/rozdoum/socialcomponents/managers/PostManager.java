@@ -127,6 +127,41 @@ public class PostManager extends FirebaseListenersManager {
         }
     }
 
+    public void createOrUpdatePostWithAudio(Uri audioUri, final OnPostCreatedListener onPostCreatedListener, final Post post) {
+        // Register observers to listen for when the download is done or if it fails
+        DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
+        if (post.getId() == null) {
+            post.setId(databaseHelper.generatePostId());
+        }
+
+        final String imageTitle = ImageUtil.generateImageTitle(UploadImagePrefix.POST, post.getId());
+        UploadTask uploadTask = databaseHelper.uploadAudio(audioUri, imageTitle);
+
+        if (uploadTask != null) {
+            uploadTask.addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception exception) {
+                    // Handle unsuccessful uploads
+                    onPostCreatedListener.onPostSaved(false);
+
+                }
+            }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
+                    Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                    LogUtil.logDebug(TAG, "successful upload audio, audio url: " + String.valueOf(downloadUrl));
+
+                    post.setImagePath(String.valueOf(downloadUrl));
+                    post.setImageTitle(imageTitle);
+                    createOrUpdatePost(post);
+
+                    onPostCreatedListener.onPostSaved(true);
+                }
+            });
+        }
+    }
+
     public Task<Void> removeImage(String imageTitle) {
         final DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
         return databaseHelper.removeImage(imageTitle);

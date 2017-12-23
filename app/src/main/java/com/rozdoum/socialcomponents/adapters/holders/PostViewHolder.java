@@ -17,8 +17,10 @@
 
 package com.rozdoum.socialcomponents.adapters.holders;
 
+import android.app.Activity;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -32,12 +34,14 @@ import com.google.firebase.auth.FirebaseUser;
 import com.rozdoum.socialcomponents.Constants;
 import com.rozdoum.socialcomponents.R;
 import com.rozdoum.socialcomponents.controllers.RatingController;
+import com.rozdoum.socialcomponents.fragments.PlaybackFragment;
 import com.rozdoum.socialcomponents.managers.PostManager;
 import com.rozdoum.socialcomponents.managers.ProfileManager;
 import com.rozdoum.socialcomponents.managers.listeners.OnObjectChangedListener;
 import com.rozdoum.socialcomponents.model.Post;
 import com.rozdoum.socialcomponents.model.Profile;
 import com.rozdoum.socialcomponents.model.Rating;
+import com.rozdoum.socialcomponents.model.RecordingItem;
 import com.rozdoum.socialcomponents.utils.FormatterUtil;
 import com.rozdoum.socialcomponents.utils.Utils;
 
@@ -49,9 +53,11 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     public static final String TAG = PostViewHolder.class.getSimpleName();
 
     private Context context;
-    private ImageView postImageView;
+//    private ImageView postImageView;
+    private TextView fileName;
+    private View fileCotainerView;
     private TextView titleTextView;
-    private TextView detailsTextView;
+//    private TextView detailsTextView;
 //    private TextView likeCounterTextView;
 //    private ImageView likesImageView;
     private TextView averageRatingTextView;
@@ -79,9 +85,11 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         super(view);
         this.context = view.getContext();
 
-        postImageView = (ImageView) view.findViewById(R.id.postImageView);
+//        postImageView = (ImageView) view.findViewById(R.id.postImageView);
 //        likeCounterTextView = (TextView) view.findViewById(R.id.likeCounterTextView);
 //        likesImageView = (ImageView) view.findViewById(R.id.likesImageView);
+        fileName = (TextView) view.findViewById(R.id.file_name_text);
+        fileCotainerView = view.findViewById(R.id.fileViewContainer);
         averageRatingTextView = (TextView) view.findViewById(R.id.averageRatingTextView);
         ratingCounterTextView = (TextView) view.findViewById(R.id.ratingCounterTextView);
         ratingsImageView = (ImageView) view.findViewById(R.id.ratingImageView);
@@ -90,7 +98,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         watcherCounterTextView = (TextView) view.findViewById(R.id.watcherCounterTextView);
         dateTextView = (TextView) view.findViewById(R.id.dateTextView);
         titleTextView = (TextView) view.findViewById(R.id.titleTextView);
-        detailsTextView = (TextView) view.findViewById(R.id.detailsTextView);
+//        detailsTextView = (TextView) view.findViewById(R.id.detailsTextView);
         authorImageView = (ImageView) view.findViewById(R.id.authorImageView);
 //        likeViewGroup = (ViewGroup) view.findViewById(R.id.likesContainer);
         ratingBar = (RatingBar) view.findViewById(R.id.ratingBar);
@@ -142,15 +150,16 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         });
     }
 
-    public void bindData(Post post) {
+    public void bindData(final Post post) {
 
 //        likeController = new LikeController(context, post, likeCounterTextView, likesImageView, true);
         ratingController = new RatingController(context, post, ratingCounterTextView, averageRatingTextView, ratingBar, true);
 
-        String title = removeNewLinesDividers(post.getTitle());
+        final String title = removeNewLinesDividers(post.getTitle());
         titleTextView.setText(title);
-        String description = removeNewLinesDividers(post.getDescription());
-        detailsTextView.setText(description);
+        fileName.setText(title);
+//        String description = removeNewLinesDividers(post.getDescription());
+//        detailsTextView.setText(description);
 //        likeCounterTextView.setText(String.valueOf(post.getLikesCount()));
         String avgRatingText = "";
         if (post.getAverageRating() > 0) {
@@ -174,14 +183,33 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         int height = (int) context.getResources().getDimension(R.dimen.post_detail_image_height);
 
         // Displayed and saved to cache image, as needs for post detail.
-        Glide.with(context)
-                .load(imageUrl)
-                .centerCrop()
-                .override(width, height)
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .crossFade()
-                .error(R.drawable.ic_stub)
-                .into(postImageView);
+//        Glide.with(context)
+//                .load(imageUrl)
+//                .centerCrop()
+//                .override(width, height)
+//                .diskCacheStrategy(DiskCacheStrategy.ALL)
+//                .crossFade()
+//                .error(R.drawable.ic_stub)
+//                .into(postImageView);
+
+        // define an on click listener to open PlaybackFragment
+        fileCotainerView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    RecordingItem item = new RecordingItem();
+                    item.setName(title);
+                    item.setFilePath(post.getImagePath());
+                    PlaybackFragment playbackFragment =
+                            new PlaybackFragment().newInstance(item);
+                    android.app.FragmentTransaction transaction = ((Activity)context).getFragmentManager()
+                            .beginTransaction();
+                    playbackFragment.show(transaction, "dialog_playback");
+                } catch (Exception e) {
+                    Log.e(TAG, "exception", e);
+                }
+            }
+        });
 
         if (post.getAuthorId() != null) {
             profileManager.getProfileSingleValue(post.getAuthorId(), createProfileChangeListener(authorImageView));

@@ -23,7 +23,7 @@ buildscript {
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
+    compileSdkVersion 26
     buildToolsVersion '25.0.0'
 
     defaultConfig {
@@ -62,6 +62,7 @@ dependencies {
     compile 'com.google.firebase:firebase-auth:9.8.0'
     compile 'com.google.android.gms:play-services-auth:9.8.0'
     compile 'com.facebook.android:facebook-android-sdk:4.17.0'
+    compile 'com.melnykov:floatingactionbutton:1.1.0'
 }
 
 apply plugin: 'com.google.gms.google-services'

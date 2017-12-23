@@ -76,10 +76,10 @@ public class EditPostActivity extends CreatePostActivity {
         }
     }
 
-    @Override
-    protected void savePost(final String title, final String description) {
-        doSavePost(title, description);
-    }
+//    @Override
+//    protected void savePost(final String title, final String description) {
+//        doSavePost(title, description);
+//    }
 
     private void addCheckIsPostChangedListener() {
         PostManager.getInstance(this).getPost(this, post.getId(), new OnPostChangedListener() {
@@ -142,17 +142,17 @@ public class EditPostActivity extends CreatePostActivity {
         post.setTitle(title);
         post.setDescription(description);
 
-        if (imageUri != null) {
-            postManager.createOrUpdatePostWithImage(imageUri, EditPostActivity.this, post);
-        } else {
-            postManager.createOrUpdatePost(post);
-            onPostSaved(true);
-        }
+//        if (imageUri != null) {
+//            postManager.createOrUpdatePostWithImage(imageUri, EditPostActivity.this, post);
+//        } else {
+//            postManager.createOrUpdatePost(post);
+//            onPostSaved(true);
+//        }
     }
 
     private void fillUIFields() {
-        titleEditText.setText(post.getTitle());
-        descriptionEditText.setText(post.getDescription());
+//        titleEditText.setText(post.getTitle());
+//        descriptionEditText.setText(post.getDescription());
         loadPostDetailsImage();
         hideProgress();
     }
@@ -193,7 +193,7 @@ public class EditPostActivity extends CreatePostActivity {
             case R.id.save:
                 if (!creatingPost) {
                     if (hasInternetConnection()) {
-                        attemptCreatePost();
+//                        attemptCreatePost();
                     } else {
                         showSnackBar(R.string.internet_connection_failed);
                     }

@@ -550,6 +550,18 @@ public class DatabaseHelper {
         return riversRef.putFile(uri, metadata);
     }
 
+    public UploadTask uploadAudio(Uri uri, String audioTitle) {
+        StorageReference storageRef = storage.getReferenceFromUrl(context.getResources().getString(R.string.storage_link));
+        StorageReference riversRef = storageRef.child("audios/" + audioTitle);
+        // Create file metadata including the content type
+        StorageMetadata metadata = new StorageMetadata.Builder()
+                .setCacheControl("max-age=7776000, Expires=7776000, public, must-revalidate")
+                .setContentType("audio/mpeg")
+                .build();
+
+        return riversRef.putFile(uri, metadata);
+    }
+
     public void getPostList(final OnPostListChangedListener<Post> onDataChangedListener, long date) {
         DatabaseReference databaseReference = database.getReference("posts");
         Query postsQuery;
@@ -724,11 +736,10 @@ public class DatabaseHelper {
 
     private boolean isPostValid(Map<String, Object> post) {
         return post.containsKey("title")
-                && post.containsKey("description")
                 && post.containsKey("imagePath")
                 && post.containsKey("imageTitle")
-                && post.containsKey("authorId")
-                && post.containsKey("description");
+                && post.containsKey("authorId");
+//                && post.containsKey("description");
     }
 
     public void getProfileSingleValue(String id, final OnObjectChangedListener<Profile> listener) {
