@@ -63,6 +63,7 @@ dependencies {
     compile 'com.google.android.gms:play-services-auth:9.8.0'
     compile 'com.facebook.android:facebook-android-sdk:4.17.0'
     compile 'com.melnykov:floatingactionbutton:1.1.0'
+    compile 'com.xw.repo:bubbleseekbar:3.10-lite'
 }
 
 apply plugin: 'com.google.gms.google-services'

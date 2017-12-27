@@ -54,13 +54,13 @@
                     android:fontFamily="sans-serif-condensed"
                     android:layout_marginTop="7dp"/>
 
-                <TextView
-                    android:id="@+id/file_date_added_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="mmm dd yyyy - hh:mm a"
-                    android:textSize="12sp"
-                    android:fontFamily="sans-serif-condensed"/>
+                <!--<TextView-->
+                    <!--android:id="@+id/file_date_added_text"-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:text="mmm dd yyyy - hh:mm a"-->
+                    <!--android:textSize="12sp"-->
+                    <!--android:fontFamily="sans-serif-condensed"/>-->
             </LinearLayout>
 
         </LinearLayout>

@@ -10,7 +10,6 @@ public class RecordingItem implements Parcelable {
     private String mName; // file name
     private String mFilePath; //file path
     private long mLength; // length of recording in seconds
-    private long mTime; // date/time of the recording
 
     public RecordingItem()
     {
@@ -20,14 +19,12 @@ public class RecordingItem implements Parcelable {
         this.mName = mName;
         this.mFilePath = mFilePath;
         this.mLength = mLength;
-        this.mTime = System.currentTimeMillis();
     }
 
     public RecordingItem(Parcel in) {
         mName = in.readString();
         mFilePath = in.readString();
         mLength = in.readInt();
-        mTime = in.readLong();
     }
 
     public String getFilePath() {
@@ -54,14 +51,6 @@ public class RecordingItem implements Parcelable {
         mName = name;
     }
 
-    public long getTime() {
-        return mTime;
-    }
-
-    public void setTime(long time) {
-        mTime = time;
-    }
-
     public static final Parcelable.Creator<RecordingItem> CREATOR = new Parcelable.Creator<RecordingItem>() {
         public RecordingItem createFromParcel(Parcel in) {
             return new RecordingItem(in);
@@ -75,7 +64,6 @@ public class RecordingItem implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeLong(mLength);
-        dest.writeLong(mTime);
         dest.writeString(mFilePath);
         dest.writeString(mName);
     }

@@ -6,54 +6,6 @@
     android:gravity="center_vertical">
 
     <LinearLayout
-        android:id="@+id/watchersContainer"
-        android:layout_width="@dimen/post_counters_item_width"
-        android:layout_height="wrap_content"
-        android:paddingTop="@dimen/intrinsic_padding"
-        android:paddingBottom="@dimen/intrinsic_padding"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <ImageView
-            android:id="@+id/watcherImageView"
-            app:srcCompat="@drawable/ic_watchers"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:id="@+id/watcherCounterTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingLeft="@dimen/small_intrinsic_padding"
-            android:textAppearance="@style/TextAppearance.Second.Light" />
-
-    </LinearLayout>
-
-    <!--<LinearLayout-->
-        <!--android:id="@+id/likesContainer"-->
-        <!--android:layout_width="@dimen/post_counters_item_width"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:paddingTop="@dimen/intrinsic_padding"-->
-        <!--android:paddingBottom="@dimen/intrinsic_padding"-->
-        <!--android:gravity="center_vertical"-->
-        <!--android:orientation="horizontal">-->
-
-        <!--<ImageView-->
-            <!--android:id="@+id/likesImageView"-->
-            <!--app:srcCompat="@drawable/ic_like"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content" />-->
-
-        <!--<TextView-->
-            <!--android:id="@+id/likeCounterTextView"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:paddingLeft="@dimen/small_intrinsic_padding"-->
-            <!--android:textAppearance="@style/TextAppearance.Second.Light" />-->
-
-    <!--</LinearLayout>-->
-
-    <LinearLayout
         android:id="@+id/ratingContainer"
         android:layout_width="@dimen/post_counters_ratings_width"
         android:layout_height="wrap_content"
@@ -107,6 +59,54 @@
             android:textAppearance="@style/TextAppearance.Second.Light" />
 
     </LinearLayout>
+    <LinearLayout
+        android:id="@+id/watchersContainer"
+        android:layout_width="@dimen/post_counters_item_width"
+        android:layout_height="wrap_content"
+        android:paddingTop="@dimen/intrinsic_padding"
+        android:paddingBottom="@dimen/intrinsic_padding"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/watcherImageView"
+            app:srcCompat="@drawable/ic_watchers"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/watcherCounterTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="@dimen/small_intrinsic_padding"
+            android:textAppearance="@style/TextAppearance.Second.Light" />
+
+    </LinearLayout>
+
+    <!--<LinearLayout-->
+        <!--android:id="@+id/likesContainer"-->
+        <!--android:layout_width="@dimen/post_counters_item_width"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:paddingTop="@dimen/intrinsic_padding"-->
+        <!--android:paddingBottom="@dimen/intrinsic_padding"-->
+        <!--android:gravity="center_vertical"-->
+        <!--android:orientation="horizontal">-->
+
+        <!--<ImageView-->
+            <!--android:id="@+id/likesImageView"-->
+            <!--app:srcCompat="@drawable/ic_like"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content" />-->
+
+        <!--<TextView-->
+            <!--android:id="@+id/likeCounterTextView"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:paddingLeft="@dimen/small_intrinsic_padding"-->
+            <!--android:textAppearance="@style/TextAppearance.Second.Light" />-->
+
+    <!--</LinearLayout>-->
+
 
     <LinearLayout
         android:id="@+id/dateContainer"
@@ -133,33 +133,23 @@
 
     </LinearLayout>
 
-    <Space
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+    <!--<Space-->
+        <!--android:layout_width="0dp"-->
+        <!--android:layout_height="0dp"-->
+        <!--android:layout_weight="1" />-->
 
-    <LinearLayout
-        android:id="@+id/ratingBarContainer"
-        android:layout_width="@dimen/post_counters_ratingbar_width"
-        android:layout_height="wrap_content"
-        android:paddingTop="@dimen/intrinsic_padding"
-        android:paddingBottom="@dimen/intrinsic_padding"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <RatingBar
-            android:id="@+id/ratingBar"
-            android:isIndicator="false"
-            style="?android:attr/ratingBarStyleSmall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="right"
-            android:numStars="5"
-            android:rating="0"
-            android:stepSize="1.0" />
+    <!--<LinearLayout-->
+        <!--android:id="@+id/ratingBarContainer"-->
+        <!--android:layout_width="@dimen/post_counters_ratingbar_width"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:paddingTop="@dimen/intrinsic_padding"-->
+        <!--android:paddingBottom="@dimen/intrinsic_padding"-->
+        <!--android:gravity="center_vertical"-->
+        <!--android:orientation="horizontal">-->
 
         <!--<RatingBar-->
             <!--android:id="@+id/ratingBar"-->
+            <!--android:isIndicator="false"-->
             <!--style="?android:attr/ratingBarStyleSmall"-->
             <!--android:layout_width="wrap_content"-->
             <!--android:layout_height="wrap_content"-->
@@ -167,6 +157,16 @@
             <!--android:numStars="5"-->
             <!--android:rating="0"-->
             <!--android:stepSize="1.0" />-->
-    </LinearLayout>
+
+        <!--&lt;!&ndash;<RatingBar&ndash;&gt;-->
+            <!--&lt;!&ndash;android:id="@+id/ratingBar"&ndash;&gt;-->
+            <!--&lt;!&ndash;style="?android:attr/ratingBarStyleSmall"&ndash;&gt;-->
+            <!--&lt;!&ndash;android:layout_width="wrap_content"&ndash;&gt;-->
+            <!--&lt;!&ndash;android:layout_height="wrap_content"&ndash;&gt;-->
+            <!--&lt;!&ndash;android:gravity="right"&ndash;&gt;-->
+            <!--&lt;!&ndash;android:numStars="5"&ndash;&gt;-->
+            <!--&lt;!&ndash;android:rating="0"&ndash;&gt;-->
+            <!--&lt;!&ndash;android:stepSize="1.0" />&ndash;&gt;-->
+    <!--</LinearLayout>-->
 
 </LinearLayout>

@@ -33,4 +33,7 @@
     <color name="google_button_color">#d44837</color>
     <color name="google_button_color_pressed">#FFA43528</color>
     <color name="button_pressed_text_color">#bcbcbc</color>
+    <color name="light_green">#8BC34A</color>
+    <color name="dark_green">#33691E</color>
+    <color name="red">#F44336</color>
 </resources>

@@ -35,7 +35,6 @@ public class FileViewerFragment extends Fragment {
     private TextView vName;
     private String filePath;
     private TextView vLength;
-    private TextView vDateAdded;
     private View cardView;
 
     protected EditText titleEditText;
@@ -64,13 +63,6 @@ public class FileViewerFragment extends Fragment {
 
         vName.setText(item.getName());
         vLength.setText(String.format("%02d:%02d", minutes, seconds));
-        vDateAdded.setText(
-                DateUtils.formatDateTime(
-                        getActivity(),
-                        item.getTime(),
-                        DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_SHOW_YEAR
-                )
-        );
         filePath = item.getFilePath();
 
         // define an on click listener to open PlaybackFragment
@@ -109,7 +101,6 @@ public class FileViewerFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_file_viewer, container, false);
         vName = (TextView) v.findViewById(R.id.file_name_text);
         vLength = (TextView) v.findViewById(R.id.file_length_text);
-        vDateAdded = (TextView) v.findViewById(R.id.file_date_added_text);
         cardView = v.findViewById(R.id.card_view);
         titleEditText = (EditText) v.findViewById(R.id.titleEditText);
         bindData();
@@ -162,6 +153,10 @@ public class FileViewerFragment extends Fragment {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    public RecordingItem getRecordingItem() {
+        return item;
     }
 }
 

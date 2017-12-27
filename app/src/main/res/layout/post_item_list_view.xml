@@ -22,6 +22,14 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
+            <include
+                android:id="@+id/countersContainer"
+                layout="@layout/counters_panel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="@dimen/intrinsic_padding"
+                android:layout_marginLeft="@dimen/intrinsic_padding"
+                android:layout_alignParentRight="true" />
 
             <!--<ImageView-->
                 <!--android:id="@+id/postImageView"-->
@@ -33,6 +41,7 @@
                 android:id="@+id/fileViewContainer"
                 android:layout_width="match_parent"
                 android:layout_height="100dp"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
                 android:orientation="horizontal">
 
                 <ImageView
@@ -68,13 +77,6 @@
                         android:fontFamily="sans-serif-condensed"
                         android:layout_marginTop="7dp"/>
 
-                    <TextView
-                        android:id="@+id/file_date_added_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="mmm dd yyyy - hh:mm a"
-                        android:textSize="12sp"
-                        android:fontFamily="sans-serif-condensed"/>
                 </LinearLayout>
 
             </LinearLayout>
@@ -98,6 +100,7 @@
                 android:layout_height="wrap_content"
                 android:paddingLeft="@dimen/intrinsic_padding"
                 android:paddingRight="@dimen/intrinsic_padding"
+                android:text="Post Title"
                 android:layout_marginBottom="@dimen/intrinsic_padding"
                 android:layout_below="@+id/fileViewContainer"
                 android:layout_alignParentStart="true"
@@ -105,29 +108,28 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textAppearance="@style/TextAppearance.Title" />
+`
+            <!--<TextView-->
+                <!--android:id="@+id/detailsTextView"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:paddingLeft="@dimen/intrinsic_padding"-->
+                <!--android:paddingRight="@dimen/intrinsic_padding"-->
+                <!--android:layout_below="@+id/titleTextView"-->
+                <!--android:layout_alignParentStart="true"-->
+                <!--android:layout_toStartOf="@+id/authorImageView"-->
+                <!--android:ellipsize="end"-->
+                <!--android:maxLines="2"-->
+                <!--android:textAppearance="@style/TextAppearance.Second"-->
+                <!--android:layout_alignParentEnd="true" />-->
 
-            <TextView
-                android:id="@+id/detailsTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingLeft="@dimen/intrinsic_padding"
-                android:paddingRight="@dimen/intrinsic_padding"
-                android:layout_below="@+id/titleTextView"
-                android:layout_alignParentStart="true"
-                android:layout_toStartOf="@+id/authorImageView"
-                android:ellipsize="end"
-                android:maxLines="2"
-                android:textAppearance="@style/TextAppearance.Second"
-                android:layout_alignParentEnd="true" />
 
             <include
-                android:id="@+id/countersContainer"
-                layout="@layout/counters_panel"
+                android:id="@+id/seekbarContainer"
+                layout="@layout/seekbar_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginRight="@dimen/intrinsic_padding"
-                android:layout_marginLeft="@dimen/intrinsic_padding"
-                android:layout_below="@+id/detailsTextView" />
+                android:layout_below="@+id/titleTextView" />
 
         </RelativeLayout>
 

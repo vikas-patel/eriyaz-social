@@ -30,6 +30,7 @@ import android.widget.ProgressBar;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.rozdoum.socialcomponents.R;
+import com.rozdoum.socialcomponents.fragments.FileViewerFragment;
 import com.rozdoum.socialcomponents.fragments.RecordFragment;
 import com.rozdoum.socialcomponents.managers.PostManager;
 import com.rozdoum.socialcomponents.managers.listeners.OnPostCreatedListener;
@@ -141,6 +142,8 @@ public class CreatePostActivity extends BaseActivity implements OnPostCreatedLis
         post.setTitle(title);
 //        post.setDescription(description);
         post.setAuthorId(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        FileViewerFragment fileFragment = (FileViewerFragment) getFragmentManager().findFragmentById(R.id.record_fragment);
+        post.setAudioDuration(fileFragment.getRecordingItem().getLength());
         Uri audioUri = Uri.fromFile(new File(audioFilePath));
         postManager.createOrUpdatePostWithAudio(audioUri, CreatePostActivity.this, post);
     }

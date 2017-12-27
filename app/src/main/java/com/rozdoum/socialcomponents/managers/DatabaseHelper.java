@@ -347,9 +347,9 @@ public class DatabaseHelper {
         try {
             String authorId = firebaseAuth.getCurrentUser().getUid();
             DatabaseReference mLikesReference = database.getReference().child("post-ratings").child(postId).child(authorId);
-//            final boolean isCreate = rating.getId() == null ? true : false;
+            final boolean isCreate = rating.getId() == null ? true : false;
             // add rating, else update
-            if (oldRatingValue == 0) {
+            if (isCreate) {
                 mLikesReference.push();
                 String id = mLikesReference.push().getKey();
                 rating.setId(id);
@@ -363,7 +363,7 @@ public class DatabaseHelper {
                     if (databaseError == null) {
                         DatabaseReference postRef = database.getReference("posts/" + postId); //+ "/ratingsCount"
                         updatePostRatingAverage(postRef);
-                        if (oldRatingValue == 0) {
+                        if (isCreate) {
                             DatabaseReference profileRef = database.getReference("profiles/" + postAuthorId + "/ratingsCount");
                             incrementRatingsCount(profileRef);
                         }
@@ -379,7 +379,7 @@ public class DatabaseHelper {
                             Post post = mutableData.getValue(Post.class);
                             LogUtil.logInfo(TAG, post.toString());
                             float oldAvg = post.getAverageRating();
-                            if (oldRatingValue == 0) {
+                            if (isCreate) {
                                 float newAvg = (oldAvg*post.getRatingsCount() + rating.getRating())/(post.getRatingsCount() + 1);
                                 post.setAverageRating(newAvg);
                                 post.setRatingsCount(post.getRatingsCount()+1);
@@ -707,6 +707,9 @@ public class DatabaseHelper {
 //                        }
                         if (mapObj.containsKey("ratingsCount")) {
                             post.setRatingsCount((long) mapObj.get("ratingsCount"));
+                        }
+                        if (mapObj.containsKey("audioDuration")) {
+                            post.setAudioDuration((long) mapObj.get("audioDuration"));
                         }
                         if (mapObj.containsKey("averageRating")) {
                             post.setAverageRating(Float.parseFloat("" + mapObj.get("averageRating")));

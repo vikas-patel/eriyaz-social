@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_marginTop="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <View
+            android:layout_width="wrap_content"
+            android:layout_height="4dp"
+            android:layout_weight="0.25"
+            android:background="@color/red" />
+
+        <View
+            android:layout_width="wrap_content"
+            android:layout_height="4dp"
+            android:layout_weight="0.25"
+            android:background="@color/accent" />
+
+        <View
+            android:layout_width="wrap_content"
+            android:layout_height="4dp"
+            android:layout_weight="0.25"
+            android:background="@color/light_green" />
+
+        <View
+            android:layout_width="wrap_content"
+            android:layout_height="4dp"
+            android:layout_weight="0.25"
+            android:background="@color/dark_green" />
+
+    </LinearLayout>
+    <!--<com.xw.repo.BubbleSeekBar-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--app:bsb_bubble_color="@color/primary_dark"-->
+        <!--app:bsb_bubble_text_color="@color/colorPrimaryDark"-->
+        <!--app:bsb_max="20"-->
+        <!--app:bsb_min="0"-->
+        <!--app:bsb_progress="0"-->
+        <!--app:bsb_section_count="20"-->
+        <!--app:bsb_section_text_position="bottom_sides"-->
+        <!--app:bsb_show_progress_in_float="false"-->
+        <!--app:bsb_show_section_mark="true"-->
+        <!--app:bsb_show_section_text="true"-->
+        <!--app:bsb_show_thumb_text="true"/>-->
+
+    <com.xw.repo.BubbleSeekBar
+        android:id="@+id/ratingBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:bsb_max="20"
+        app:bsb_min="0"
+        app:bsb_progress="0"
+        app:bsb_second_track_size="5dp"
+        app:bsb_track_size="1dp"
+        android:layout_marginTop="0dp"
+        app:bsb_show_thumb_text="true"
+        app:bsb_seek_by_section="false"
+        app:bsb_show_section_mark="true"
+        app:bsb_second_track_color="@color/primary_dark"
+        app:bsb_section_count="8"
+        app:bsb_section_text_position="below_section_mark"
+        app:bsb_touch_to_seek="true"/>
+
+    <!--<org.adw.library.widgets.discreteseekbar.DiscreteSeekBar-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--app:dsb_max="20"-->
+        <!--app:dsb_min="0"-->
+        <!--app:dsb_value="0" />-->
+    <!--<SeekBar-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:max="20"-->
+    <!--android:progress="0"-->
+    <!--android:maxHeight="3dp"-->
+    <!--android:minHeight="3dp"-->
+    <!--android:contentDescription="42"-->
+    <!--android:thumbTint="@color/com_facebook_button_background_color_pressed"-->
+    <!--android:progressDrawable="@color/com_facebook_button_background_color_disabled"-->
+    <!--/>-->
+
+</RelativeLayout>

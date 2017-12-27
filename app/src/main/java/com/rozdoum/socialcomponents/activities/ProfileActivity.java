@@ -30,6 +30,7 @@ import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.TextAppearanceSpan;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -241,16 +242,16 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
         Intent intent = new Intent(ProfileActivity.this, PostDetailsActivity.class);
         intent.putExtra(PostDetailsActivity.POST_ID_EXTRA_KEY, post.getId());
         intent.putExtra(PostDetailsActivity.AUTHOR_ANIMATION_NEEDED_EXTRA_KEY, true);
-
+        LogUtil.logInfo("", "OpenPostDetailsActivity");
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 
-            View imageView = v.findViewById(R.id.postImageView);
+            View imageView = v.findViewById(R.id.fileViewContainer);
 
             ActivityOptions options = ActivityOptions.
                     makeSceneTransitionAnimation(ProfileActivity.this,
                             new android.util.Pair<>(imageView, getString(R.string.post_image_transition_name))
                     );
-            startActivityForResult(intent, PostDetailsActivity.UPDATE_POST_REQUEST, options.toBundle());
+            startActivityForResult(intent, PostDetailsActivity.UPDATE_POST_REQUEST);
         } else {
             startActivityForResult(intent, PostDetailsActivity.UPDATE_POST_REQUEST);
         }

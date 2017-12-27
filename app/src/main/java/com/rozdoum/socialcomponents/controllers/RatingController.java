@@ -21,6 +21,7 @@ import com.rozdoum.socialcomponents.managers.listeners.OnObjectExistListener;
 import com.rozdoum.socialcomponents.model.Post;
 import com.rozdoum.socialcomponents.model.Rating;
 import com.rozdoum.socialcomponents.utils.LogUtil;
+import com.xw.repo.BubbleSeekBar;
 
 /**
  * Created by vikas on 18/12/17.
@@ -37,7 +38,7 @@ public class RatingController {
 
     private TextView ratingCounterTextView;
     private TextView averageRatingTextView;
-    private RatingBar ratingBar;
+    private BubbleSeekBar ratingBar;
 
     private boolean isListView = false;
 
@@ -45,7 +46,7 @@ public class RatingController {
     private boolean updatingRatingCounter = true;
 
     public RatingController(Context context, Post post, TextView ratingCounterTextView, TextView averageRatingTextView,
-                            RatingBar ratingBar, boolean isListView) {
+                            BubbleSeekBar ratingBar, boolean isListView) {
         this.context = context;
         this.postId = post.getId();
         this.postAuthorId = post.getAuthorId();
@@ -70,7 +71,7 @@ public class RatingController {
 
     public void ratingClickActionLocal(Post post, float ratingValue) {
         setUpdatingRatingCounter(false);
-        updateLocalPostLikeCounter(post);
+        //updateLocalPostLikeCounter(post);
         ratingClickAction(post, ratingValue);
     }
 
@@ -79,12 +80,14 @@ public class RatingController {
         float oldRatingValue = rating.getRating();
         rating.setRating(ratingValue);
         float avgRating = post.getAverageRating();
-        if (oldRatingValue == 0) {
+        if (rating.getId() == null || rating.getId().isEmpty()) {
             ratingCounterTextView.setText("(" + (post.getRatingsCount() + 1) + ")");
             avgRating = (avgRating*post.getRatingsCount() + ratingValue)/(post.getRatingsCount() + 1);
+            post.setRatingsCount(post.getRatingsCount()+1);
         } else {
             avgRating = avgRating + (ratingValue - oldRatingValue)/post.getRatingsCount();
         }
+        post.setAverageRating(avgRating);
         averageRatingTextView.setText(String.format( "%.1f", avgRating));
         ApplicationHelper.getDatabaseHelper().createOrUpdateRating(postId, postAuthorId, rating, oldRatingValue);
     }
@@ -183,7 +186,7 @@ public class RatingController {
     public void initRating(Rating rating) {
         if (rating != null) {
             LogUtil.logInfo("RatingController", String.valueOf(rating.getRating()));
-            ratingBar.setRating(rating.getRating());
+            ratingBar.setProgress(rating.getRating());
             this.rating = rating;
         }
     }

@@ -276,7 +276,7 @@ public class MainActivity extends BaseActivity {
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 
-            View imageView = v.findViewById(R.id.postImageView);
+            View imageView = v.findViewById(R.id.fileViewContainer);
             View authorImageView = v.findViewById(R.id.authorImageView);
 
             ActivityOptions options = ActivityOptions.

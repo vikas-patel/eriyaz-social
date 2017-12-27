@@ -19,6 +19,7 @@ package com.rozdoum.socialcomponents.activities;
 
 import android.animation.Animator;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -27,7 +28,9 @@ import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.DividerItemDecoration;
@@ -36,6 +39,8 @@ import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.transition.Transition;
+import android.util.Log;
+import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -66,6 +71,7 @@ import com.rozdoum.socialcomponents.controllers.RatingController;
 import com.rozdoum.socialcomponents.dialogs.EditCommentDialog;
 import com.rozdoum.socialcomponents.enums.PostStatus;
 import com.rozdoum.socialcomponents.enums.ProfileStatus;
+import com.rozdoum.socialcomponents.fragments.PlaybackFragment;
 import com.rozdoum.socialcomponents.listeners.CustomTransitionListener;
 import com.rozdoum.socialcomponents.managers.CommentManager;
 import com.rozdoum.socialcomponents.managers.PostManager;
@@ -78,9 +84,11 @@ import com.rozdoum.socialcomponents.model.Comment;
 import com.rozdoum.socialcomponents.model.Post;
 import com.rozdoum.socialcomponents.model.Profile;
 import com.rozdoum.socialcomponents.model.Rating;
+import com.rozdoum.socialcomponents.model.RecordingItem;
 import com.rozdoum.socialcomponents.utils.FormatterUtil;
 import com.rozdoum.socialcomponents.utils.LogUtil;
 import com.rozdoum.socialcomponents.utils.Utils;
+import com.xw.repo.BubbleSeekBar;
 
 import java.util.List;
 
@@ -102,7 +110,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private ImageView ratingsImageView;
     private TextView ratingCounterTextView;
     private TextView averageRatingTextView;
-    private RatingBar ratingBar;
+    private BubbleSeekBar ratingBar;
 
     private TextView commentsLabel;
 //    private TextView likeCounterTextView;
@@ -112,7 +120,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private TextView dateTextView;
     private ImageView authorImageView;
     private ProgressBar progressBar;
-    private ImageView postImageView;
+    private View fileCotainerView;
     private TextView titleTextView;
     private TextView descriptionEditText;
     private ProgressBar commentsProgressBar;
@@ -160,7 +168,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 
         titleTextView = (TextView) findViewById(R.id.titleTextView);
         descriptionEditText = (TextView) findViewById(R.id.descriptionEditText);
-        postImageView = (ImageView) findViewById(R.id.postImageView);
+        fileCotainerView = findViewById(R.id.fileViewContainer);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         commentsRecyclerView = (RecyclerView) findViewById(R.id.commentsRecyclerView);
         scrollView = (ScrollView) findViewById(R.id.scrollView);
@@ -172,7 +180,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         ratingsImageView = (ImageView) findViewById(R.id.ratingImageView);
         ratingCounterTextView = (TextView) findViewById(R.id.ratingCounterTextView);
         averageRatingTextView = (TextView) findViewById(R.id.averageRatingTextView);
-        ratingBar = (RatingBar) findViewById(R.id.ratingBar);
+        ratingBar = (BubbleSeekBar) findViewById(R.id.ratingBar);
 
         authorImageView = (ImageView) findViewById(R.id.authorImageView);
         authorTextView = (TextView) findViewById(R.id.authorTextView);
@@ -211,11 +219,29 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         postManager.getPost(this, postId, createOnPostChangeListener());
 
 
-        postImageView.setOnClickListener(new View.OnClickListener() {
+//        postImageView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                LogUtil.logInfo("PostDetailsActivity", "Image Clicked.");
+//                openImageDetailScreen();
+//            }
+//        });
+
+        fileCotainerView.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                LogUtil.logInfo("PostDetailsActivity", "Image Clicked.");
-                openImageDetailScreen();
+            public void onClick(View view) {
+                try {
+                    RecordingItem item = new RecordingItem();
+                    item.setName(post.getTitle());
+                    item.setFilePath(post.getImagePath());
+                    PlaybackFragment playbackFragment =
+                            new PlaybackFragment().newInstance(item);
+                    android.app.FragmentTransaction transaction = getFragmentManager()
+                            .beginTransaction();
+                    playbackFragment.show(transaction, "dialog_playback");
+                } catch (Exception e) {
+                    Log.e("", "exception", e);
+                }
             }
         });
 
@@ -388,6 +414,8 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         updateCounters();
         initLikeButtonState();
         updateOptionMenuVisibility();
+        progressBar.setVisibility(View.GONE);
+
     }
 
     private void incrementWatchersCount() {
@@ -420,42 +448,42 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             titleTextView.setText(post.getTitle());
             descriptionEditText.setText(post.getDescription());
 
-            loadPostDetailsImage();
+//            loadPostDetailsImage();
             loadAuthorImage();
         }
     }
 
-    private void loadPostDetailsImage() {
-        if (post == null) {
-            return;
-        }
-
-        String imageUrl = post.getImagePath();
-        int width = Utils.getDisplayWidth(this);
-        int height = (int) getResources().getDimension(R.dimen.post_detail_image_height);
-        Glide.with(this)
-                .load(imageUrl)
-                .centerCrop()
-                .override(width, height)
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .error(R.drawable.ic_stub)
-                .listener(new RequestListener<String, GlideDrawable>() {
-                    @Override
-                    public boolean onException(Exception e, String model, Target<GlideDrawable> target, boolean isFirstResource) {
-                        scheduleStartPostponedTransition(postImageView);
-                        return false;
-                    }
-
-                    @Override
-                    public boolean onResourceReady(GlideDrawable resource, String model, Target<GlideDrawable> target, boolean isFromMemoryCache, boolean isFirstResource) {
-                        scheduleStartPostponedTransition(postImageView);
-                        progressBar.setVisibility(View.GONE);
-                        return false;
-                    }
-                })
-                .crossFade()
-                .into(postImageView);
-    }
+//    private void loadPostDetailsImage() {
+//        if (post == null) {
+//            return;
+//        }
+//
+//        String imageUrl = post.getImagePath();
+//        int width = Utils.getDisplayWidth(this);
+//        int height = (int) getResources().getDimension(R.dimen.post_detail_image_height);
+//        Glide.with(this)
+//                .load(imageUrl)
+//                .centerCrop()
+//                .override(width, height)
+//                .diskCacheStrategy(DiskCacheStrategy.ALL)
+//                .error(R.drawable.ic_stub)
+//                .listener(new RequestListener<String, GlideDrawable>() {
+//                    @Override
+//                    public boolean onException(Exception e, String model, Target<GlideDrawable> target, boolean isFirstResource) {
+//                        scheduleStartPostponedTransition(postImageView);
+//                        return false;
+//                    }
+//
+//                    @Override
+//                    public boolean onResourceReady(GlideDrawable resource, String model, Target<GlideDrawable> target, boolean isFromMemoryCache, boolean isFirstResource) {
+//                        scheduleStartPostponedTransition(postImageView);
+//                        progressBar.setVisibility(View.GONE);
+//                        return false;
+//                    }
+//                })
+//                .crossFade()
+//                .into(postImageView);
+//    }
 
     private void scheduleStartPostponedTransition(final ImageView imageView) {
         imageView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
@@ -607,14 +635,53 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 //        likeController = new LikeController(this, post, likeCounterTextView, likesImageView, false);
         ratingController = new RatingController(this, post, ratingCounterTextView, averageRatingTextView, ratingBar, false);
         //if rating value is changed.
-        ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+//        ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+//            @Override
+//            public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
+//                if (isPostExist && fromUser) {
+//                    ratingController.handleRatingClickAction(PostDetailsActivity.this, post, rating);
+//                }
+//            }
+//        });
+        // customize section texts
+        ratingBar.setCustomSectionTextArray(new BubbleSeekBar.CustomSectionTextArray() {
+            @NonNull
             @Override
-            public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
-                if (isPostExist && fromUser) {
-                    ratingController.handleRatingClickAction(PostDetailsActivity.this, post, rating);
+            public SparseArray<String> onCustomize(int sectionCount, @NonNull SparseArray<String> array) {
+                array.clear();
+                array.put(1, "not ok");
+                array.put(3, "ok");
+                array.put(5, "good");
+                array.put(7, "magical");
+                return array;
+            }
+        });
+        ratingBar.setOnProgressChangedListener(new BubbleSeekBar.OnProgressChangedListenerAdapter() {
+            @Override
+            public void onProgressChanged(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
+                int color;
+                if (progress <= 5) {
+                    color = ContextCompat.getColor(PostDetailsActivity.this, R.color.red);
+                } else if (progress <= 10) {
+                    color = ContextCompat.getColor(PostDetailsActivity.this, R.color.accent);
+                } else if (progress <= 15) {
+                    color = ContextCompat.getColor(PostDetailsActivity.this, R.color.light_green);
+                } else {
+                    color = ContextCompat.getColor(PostDetailsActivity.this, R.color.dark_green);
+                }
+                bubbleSeekBar.setSecondTrackColor(color);
+                bubbleSeekBar.setThumbColor(color);
+                bubbleSeekBar.setBubbleColor(color);
+            }
+
+            @Override
+            public void getProgressOnActionUp(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
+                if (isPostExist && true) {
+                    ratingController.handleRatingClickAction(PostDetailsActivity.this, post, progress);
                 }
             }
         });
+
 
 //        likesContainer.setOnClickListener(new View.OnClickListener() {
 //            @Override
