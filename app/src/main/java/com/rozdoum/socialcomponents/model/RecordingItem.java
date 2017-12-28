@@ -39,7 +39,7 @@ public class RecordingItem implements Parcelable {
         return mLength;
     }
 
-    public void setLength(int length) {
+    public void setLength(long length) {
         mLength = length;
     }
 

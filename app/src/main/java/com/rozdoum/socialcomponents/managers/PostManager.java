@@ -167,9 +167,14 @@ public class PostManager extends FirebaseListenersManager {
         return databaseHelper.removeImage(imageTitle);
     }
 
+    public Task<Void> removeAudio(String audioTitle) {
+        final DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
+        return databaseHelper.removeAudio(audioTitle);
+    }
+
     public void removePost(final Post post, final OnTaskCompleteListener onTaskCompleteListener) {
         final DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
-        Task<Void> removeImageTask = removeImage(post.getImageTitle());
+        Task<Void> removeImageTask = removeAudio(post.getImageTitle());
 
         removeImageTask.addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override

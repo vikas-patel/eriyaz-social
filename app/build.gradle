@@ -28,7 +28,7 @@ android {
 
     defaultConfig {
         applicationId "com.rozdoum.socialcomponents"
-        minSdkVersion 17
+        minSdkVersion 15
         targetSdkVersion 25
         versionCode 21
         versionName "1.0"

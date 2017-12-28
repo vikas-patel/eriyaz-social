@@ -3,39 +3,39 @@ var functions = require('firebase-functions');
 const admin = require('firebase-admin');
 admin.initializeApp(functions.config().firebase);
 
-const actionTypeNewLike = "new_like"
+const actionTypeNewRating = "new_rating"
 const actionTypeNewComment = "new_comment"
 const actionTypeNewPost = "new_post"
 const notificationTitle = "Social App"
 
 const postsTopic = "postsTopic"
 
-exports.pushNotificationLikes = functions.database.ref('/post-likes/{postId}/{authorId}/{likeId}').onWrite(event => {
+exports.pushNotificationRatings = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onWrite(event => {
 
-    console.log('New like was added');
+    console.log('New rating was added');
 
-    const likeAuthorId = event.params.authorId;
+    const ratingAuthorId = event.params.authorId;
     const postId = event.params.postId;
 
-    // Get liked post.
+    // Get rated post.
     const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
 
     return getPostTask.then(post => {
 
-        if (likeAuthorId == post.val().authorId) {
-            return console.log('User liked own post');
+        if (ratingAuthorId == post.val().authorId) {
+            return console.log('User rated own post');
         }
 
         // Get the list of device notification tokens.
         const getDeviceTokensTask = admin.database().ref(`/profiles/${post.val().authorId}/notificationTokens`).once('value');
         console.log('getDeviceTokensTask path: ', `/profiles/${post.val().authorId}/notificationTokens`)
 
-        // Get like author.
-        const getLikeAuthorProfileTask = admin.database().ref(`/profiles/${likeAuthorId}`).once('value');
+        // Get rating author.
+        const getRatingAuthorProfileTask = admin.database().ref(`/profiles/${ratingAuthorId}`).once('value');
 
-        Promise.all([getDeviceTokensTask, getLikeAuthorProfileTask]).then(results => {
+        Promise.all([getDeviceTokensTask, getRatingAuthorProfileTask]).then(results => {
             const tokensSnapshot = results[0];
-            const likeAuthorProfile = results[1].val();
+            const ratingAuthorProfile = results[1].val();
 
             // Check if there are any device tokens.
             if (!tokensSnapshot.hasChildren()) {
@@ -43,14 +43,14 @@ exports.pushNotificationLikes = functions.database.ref('/post-likes/{postId}/{au
             }
 
             console.log('There are', tokensSnapshot.numChildren(), 'tokens to send notifications to.');
-            console.log('Fetched like Author profile', likeAuthorProfile);
+            console.log('Fetched rating Author profile', ratingAuthorProfile);
 
             // Create a notification
             const payload = {
                 data : {
-                    actionType: actionTypeNewLike,
+                    actionType: actionTypeNewRating,
                     title: notificationTitle,
-                    body: `${likeAuthorProfile.username} liked your post`,
+                    body: `${ratingAuthorProfile.username} rated your post`,
                     icon: post.val().imagePath,
                     postId: postId,
 

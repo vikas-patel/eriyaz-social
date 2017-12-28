@@ -240,6 +240,13 @@ public class DatabaseHelper {
         return desertRef.delete();
     }
 
+    public Task<Void> removeAudio(String audioTitle) {
+        StorageReference storageRef = storage.getReferenceFromUrl(context.getResources().getString(R.string.storage_link));
+        StorageReference desertRef = storageRef.child("audios/" + audioTitle);
+
+        return desertRef.delete();
+    }
+
     public void createComment(String commentText, final String postId, final OnTaskCompleteListener onTaskCompleteListener) {
         try {
             String authorId = firebaseAuth.getCurrentUser().getUid();

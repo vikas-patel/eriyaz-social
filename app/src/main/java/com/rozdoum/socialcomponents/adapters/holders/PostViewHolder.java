@@ -27,9 +27,7 @@ import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.RatingBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -64,7 +62,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 //    private ImageView postImageView;
     private TextView fileName;
     private TextView audioLength;
-    private View fileCotainerView;
+    private View fileContainerView;
     private TextView titleTextView;
 //    private TextView detailsTextView;
 //    private TextView likeCounterTextView;
@@ -99,7 +97,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 //        likesImageView = (ImageView) view.findViewById(R.id.likesImageView);
         fileName = view.findViewById(R.id.file_name_text);
         audioLength = view.findViewById(R.id.file_length_text);
-        fileCotainerView = view.findViewById(R.id.fileViewContainer);
+        fileContainerView = view.findViewById(R.id.fileViewContainer);
         averageRatingTextView = (TextView) view.findViewById(R.id.averageRatingTextView);
         ratingCounterTextView = (TextView) view.findViewById(R.id.ratingCounterTextView);
         ratingsImageView = (ImageView) view.findViewById(R.id.ratingImageView);
@@ -247,12 +245,13 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 //                .into(postImageView);
 
         // define an on click listener to open PlaybackFragment
-        fileCotainerView.setOnClickListener(new View.OnClickListener() {
+        fileContainerView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 try {
                     RecordingItem item = new RecordingItem();
                     item.setName(title);
+                    item.setLength(post.getAudioDuration());
                     item.setFilePath(post.getImagePath());
                     PlaybackFragment playbackFragment =
                             new PlaybackFragment().newInstance(item);

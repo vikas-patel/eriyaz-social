@@ -19,7 +19,6 @@ package com.rozdoum.socialcomponents.activities;
 
 import android.animation.Animator;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -54,15 +53,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.RatingBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.resource.drawable.GlideDrawable;
-import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.target.Target;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.rozdoum.socialcomponents.R;
@@ -86,11 +81,10 @@ import com.rozdoum.socialcomponents.model.Profile;
 import com.rozdoum.socialcomponents.model.Rating;
 import com.rozdoum.socialcomponents.model.RecordingItem;
 import com.rozdoum.socialcomponents.utils.FormatterUtil;
-import com.rozdoum.socialcomponents.utils.LogUtil;
-import com.rozdoum.socialcomponents.utils.Utils;
 import com.xw.repo.BubbleSeekBar;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class PostDetailsActivity extends BaseActivity implements EditCommentDialog.CommentDialogCallback {
 
@@ -120,7 +114,9 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private TextView dateTextView;
     private ImageView authorImageView;
     private ProgressBar progressBar;
-    private View fileCotainerView;
+    private TextView fileName;
+    private TextView audioLength;
+    private View fileContainerView;
     private TextView titleTextView;
     private TextView descriptionEditText;
     private ProgressBar commentsProgressBar;
@@ -168,7 +164,9 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 
         titleTextView = (TextView) findViewById(R.id.titleTextView);
         descriptionEditText = (TextView) findViewById(R.id.descriptionEditText);
-        fileCotainerView = findViewById(R.id.fileViewContainer);
+        fileName = (TextView) findViewById(R.id.file_name_text);
+        audioLength = (TextView) findViewById(R.id.file_length_text);
+        fileContainerView = findViewById(R.id.fileViewContainer);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         commentsRecyclerView = (RecyclerView) findViewById(R.id.commentsRecyclerView);
         scrollView = (ScrollView) findViewById(R.id.scrollView);
@@ -227,12 +225,13 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 //            }
 //        });
 
-        fileCotainerView.setOnClickListener(new View.OnClickListener() {
+        fileContainerView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 try {
                     RecordingItem item = new RecordingItem();
                     item.setName(post.getTitle());
+                    item.setLength(post.getAudioDuration());
                     item.setFilePath(post.getImagePath());
                     PlaybackFragment playbackFragment =
                             new PlaybackFragment().newInstance(item);
@@ -447,7 +446,11 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         if (post != null) {
             titleTextView.setText(post.getTitle());
             descriptionEditText.setText(post.getDescription());
-
+            fileName.setText(post.getTitle());
+            long minutes = TimeUnit.MILLISECONDS.toMinutes(post.getAudioDuration());
+            long seconds = TimeUnit.MILLISECONDS.toSeconds(post.getAudioDuration())
+                    - TimeUnit.MINUTES.toSeconds(minutes);
+            audioLength.setText(String.format("%02d:%02d", minutes, seconds));
 //            loadPostDetailsImage();
             loadAuthorImage();
         }
