@@ -70,7 +70,7 @@
         app:bsb_second_track_color="@color/primary_dark"
         app:bsb_section_count="8"
         app:bsb_section_text_position="below_section_mark"
-        app:bsb_touch_to_seek="true"/>
+        app:bsb_touch_to_seek="false"/>
 
     <!--<org.adw.library.widgets.discreteseekbar.DiscreteSeekBar-->
         <!--android:layout_width="match_parent"-->

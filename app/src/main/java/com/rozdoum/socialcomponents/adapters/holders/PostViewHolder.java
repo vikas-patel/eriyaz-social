@@ -62,7 +62,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 //    private ImageView postImageView;
     private TextView fileName;
     private TextView audioLength;
-    private View fileContainerView;
+    private View imageView;
     private TextView titleTextView;
 //    private TextView detailsTextView;
 //    private TextView likeCounterTextView;
@@ -97,7 +97,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 //        likesImageView = (ImageView) view.findViewById(R.id.likesImageView);
         fileName = view.findViewById(R.id.file_name_text);
         audioLength = view.findViewById(R.id.file_length_text);
-        fileContainerView = view.findViewById(R.id.fileViewContainer);
+        imageView = view.findViewById(R.id.imageView);
         averageRatingTextView = (TextView) view.findViewById(R.id.averageRatingTextView);
         ratingCounterTextView = (TextView) view.findViewById(R.id.ratingCounterTextView);
         ratingsImageView = (ImageView) view.findViewById(R.id.ratingImageView);
@@ -245,7 +245,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 //                .into(postImageView);
 
         // define an on click listener to open PlaybackFragment
-        fileContainerView.setOnClickListener(new View.OnClickListener() {
+        imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 try {

@@ -62,6 +62,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.rozdoum.socialcomponents.R;
 import com.rozdoum.socialcomponents.adapters.CommentsAdapter;
+import com.rozdoum.socialcomponents.adapters.RatingsAdapter;
 import com.rozdoum.socialcomponents.controllers.RatingController;
 import com.rozdoum.socialcomponents.dialogs.EditCommentDialog;
 import com.rozdoum.socialcomponents.enums.PostStatus;
@@ -118,10 +119,16 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private TextView audioLength;
     private View fileContainerView;
     private TextView titleTextView;
-    private TextView descriptionEditText;
+//    private TextView descriptionEditText;
     private ProgressBar commentsProgressBar;
     private RecyclerView commentsRecyclerView;
     private TextView warningCommentsTextView;
+
+    private TextView ratingsLabel;
+    private ProgressBar ratingsProgressBar;
+    private RecyclerView ratingsRecyclerView;
+    private TextView warningRatingsTextView;
+    private boolean attemptToLoadRatings = false;
 
     private boolean attemptToLoadComments = false;
 
@@ -142,6 +149,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 
     private boolean isAuthorAnimationRequired;
     private CommentsAdapter commentsAdapter;
+    private RatingsAdapter ratingsAdapter;
     private ActionMode mActionMode;
     private boolean isEnterTransitionFinished = false;
 
@@ -163,7 +171,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         incrementWatchersCount();
 
         titleTextView = (TextView) findViewById(R.id.titleTextView);
-        descriptionEditText = (TextView) findViewById(R.id.descriptionEditText);
+//        descriptionEditText = (TextView) findViewById(R.id.descriptionEditText);
         fileName = (TextView) findViewById(R.id.file_name_text);
         audioLength = (TextView) findViewById(R.id.file_length_text);
         fileContainerView = findViewById(R.id.fileViewContainer);
@@ -172,6 +180,12 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         scrollView = (ScrollView) findViewById(R.id.scrollView);
         commentsLabel = (TextView) findViewById(R.id.commentsLabel);
         commentEditText = (EditText) findViewById(R.id.commentEditText);
+
+        ratingsRecyclerView = (RecyclerView) findViewById(R.id.ratingsRecyclerView);
+        ratingsLabel = (TextView) findViewById(R.id.ratingsLabel);
+        ratingsProgressBar = (ProgressBar) findViewById(R.id.ratingsProgressBar);
+        warningRatingsTextView = (TextView) findViewById(R.id.warningRatingsTextView);
+
 //        likesContainer = (ViewGroup) findViewById(R.id.likesContainer);
 //        likesImageView = (ImageView) findViewById(R.id.likesImageView);
         ratingsContainer = (ViewGroup) findViewById(R.id.ratingContainer);
@@ -213,6 +227,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         final Button sendButton = (Button) findViewById(R.id.sendButton);
 
         initRecyclerView();
+        initRatingRecyclerView();
 
         postManager.getPost(this, postId, createOnPostChangeListener());
 
@@ -364,6 +379,28 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         commentManager.getCommentsList(this, postId, createOnCommentsChangedDataListener());
     }
 
+    private void initRatingRecyclerView() {
+        ratingsAdapter = new RatingsAdapter();
+        ratingsAdapter.setCallback(new RatingsAdapter.Callback() {
+            @Override
+            public void onLongItemClick(View view, int position) {
+                Rating selectedRating = ratingsAdapter.getItemByPosition(position);
+//                startActionMode(selectedRating);
+            }
+
+            @Override
+            public void onAuthorClick(String authorId, View view) {
+                openProfileActivity(authorId, view);
+            }
+        });
+        ratingsRecyclerView.setAdapter(ratingsAdapter);
+        ratingsRecyclerView.setNestedScrollingEnabled(false);
+        ratingsRecyclerView.addItemDecoration(new DividerItemDecoration(ratingsRecyclerView.getContext(),
+                ((LinearLayoutManager) ratingsRecyclerView.getLayoutManager()).getOrientation()));
+
+        postManager.getRatingsList(this, postId, createOnRatingsChangedDataListener());
+    }
+
     private void startActionMode(Comment selectedComment) {
         if (mActionMode != null) {
             return;
@@ -445,7 +482,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private void fillPostFields() {
         if (post != null) {
             titleTextView.setText(post.getTitle());
-            descriptionEditText.setText(post.getDescription());
+//            descriptionEditText.setText(post.getDescription());
             fileName.setText(post.getTitle());
             long minutes = TimeUnit.MILLISECONDS.toMinutes(post.getAudioDuration());
             long seconds = TimeUnit.MILLISECONDS.toSeconds(post.getAudioDuration())
@@ -554,6 +591,33 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
                 }
 
                 authorTextView.setText(obj.getUsername());
+            }
+        };
+    }
+
+    private OnDataChangedListener<Rating> createOnRatingsChangedDataListener() {
+        attemptToLoadRatings = true;
+
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (attemptToLoadRatings) {
+                    ratingsProgressBar.setVisibility(View.GONE);
+                    warningRatingsTextView.setVisibility(View.VISIBLE);
+                }
+            }
+        }, TIME_OUT_LOADING_COMMENTS);
+
+
+        return new OnDataChangedListener<Rating>() {
+            @Override
+            public void onListChanged(List<Rating> list) {
+                attemptToLoadRatings = false;
+                ratingsProgressBar.setVisibility(View.GONE);
+                ratingsRecyclerView.setVisibility(View.VISIBLE);
+                warningRatingsTextView.setVisibility(View.GONE);
+                ratingsAdapter.setList(list);
             }
         };
     }

@@ -56,7 +56,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     private static final String TITLE_KEY = "title";
     private static final String BODY_KEY = "body";
     private static final String ICON_KEY = "icon";
-    private static final String ACTION_TYPE_NEW_LIKE = "new_like";
+    private static final String ACTION_TYPE_NEW_RATING = "new_rating";
     private static final String ACTION_TYPE_NEW_COMMENT = "new_comment";
     private static final String ACTION_TYPE_NEW_POST = "new_post";
 
@@ -72,10 +72,10 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private void handleRemoteMessage(RemoteMessage remoteMessage) {
         String receivedActionType = remoteMessage.getData().get(ACTION_TYPE_KEY);
-        LogUtil.logDebug(TAG, "Message Notification Action Type: " + receivedActionType);
+        LogUtil.logInfo(TAG, "Message Notification Action Type: " + receivedActionType);
 
         switch (receivedActionType) {
-            case ACTION_TYPE_NEW_LIKE:
+            case ACTION_TYPE_NEW_RATING:
                 parseCommentOrLike(remoteMessage);
                 break;
             case ACTION_TYPE_NEW_COMMENT:
@@ -107,7 +107,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         Intent intent = new Intent(this, PostDetailsActivity.class);
         intent.putExtra(PostDetailsActivity.POST_ID_EXTRA_KEY, postId);
 
-        Bitmap bitmap = getBitmapFromUrl(notificationImageUrl);
+        Bitmap bitmap = null;//getBitmapFromUrl(notificationImageUrl);
 
         sendNotification(notificationTitle, notificationBody, bitmap, intent, backIntent);
 
@@ -154,7 +154,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 .setContentIntent(pendingIntent)
                 .setContentTitle(notificationTitle)
                 .setContentText(notificationBody)
-                .setLargeIcon(bitmap)
+                //.setLargeIcon(bitmap)
                 .setSound(defaultSoundUri);
 
 

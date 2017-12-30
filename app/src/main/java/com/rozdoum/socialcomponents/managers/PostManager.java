@@ -225,6 +225,11 @@ public class PostManager extends FirebaseListenersManager {
         databaseHelper.getCurrentUserRating(postId, userId, onObjectChangedListener);
     }
 
+    public void getRatingsList(Context activityContext, String postId, OnDataChangedListener<Rating> onDataChangedListener) {
+        ValueEventListener valueEventListener = ApplicationHelper.getDatabaseHelper().getRatingsList(postId, onDataChangedListener);
+        addListenerToMap(activityContext, valueEventListener);
+    }
+
     public void isPostExistSingleValue(String postId, final OnObjectExistListener<Post> onObjectExistListener) {
         DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
         databaseHelper.isPostExistSingleValue(postId, onObjectExistListener);

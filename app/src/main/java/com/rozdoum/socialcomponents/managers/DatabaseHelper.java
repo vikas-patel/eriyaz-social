@@ -818,6 +818,39 @@ public class DatabaseHelper {
         return valueEventListener;
     }
 
+    public ValueEventListener getRatingsList(String postId, final OnDataChangedListener<Rating> onDataChangedListener) {
+        DatabaseReference databaseReference = database.getReference("post-ratings").child(postId);
+        ValueEventListener valueEventListener = databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                List<Rating> list = new ArrayList<>();
+                for (DataSnapshot authorSnapshot : dataSnapshot.getChildren()) {
+                    DataSnapshot snapshot = authorSnapshot.getChildren().iterator().next();
+                    Rating rating = snapshot.getValue(Rating.class);
+                    list.add(rating);
+                }
+
+                Collections.sort(list, new Comparator<Rating>() {
+                    @Override
+                    public int compare(Rating lhs, Rating rhs) {
+                        return ((Long) rhs.getCreatedDate()).compareTo((Long) lhs.getCreatedDate());
+                    }
+                });
+
+                onDataChangedListener.onListChanged(list);
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                LogUtil.logError(TAG, "getRatingssList(), onCancelled", new Exception(databaseError.getMessage()));
+            }
+        });
+
+        activeListeners.put(valueEventListener, databaseReference);
+        return valueEventListener;
+    }
+
     public ValueEventListener getCurrentUserRating(String postId, String userId, final OnObjectChangedListener<Rating> listener) {
         DatabaseReference databaseReference = database.getReference("post-ratings").child(postId).child(userId);
         ValueEventListener valueEventListener = databaseReference.addValueEventListener(new ValueEventListener() {

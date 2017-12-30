@@ -284,7 +284,8 @@ public class MainActivity extends BaseActivity {
                             new android.util.Pair<>(imageView, getString(R.string.post_image_transition_name)),
                             new android.util.Pair<>(authorImageView, getString(R.string.post_author_image_transition_name))
                     );
-            startActivityForResult(intent, PostDetailsActivity.UPDATE_POST_REQUEST, options.toBundle());
+//            startActivityForResult(intent, PostDetailsActivity.UPDATE_POST_REQUEST, options.toBundle());
+            startActivityForResult(intent, PostDetailsActivity.UPDATE_POST_REQUEST);
         } else {
             startActivityForResult(intent, PostDetailsActivity.UPDATE_POST_REQUEST);
         }
