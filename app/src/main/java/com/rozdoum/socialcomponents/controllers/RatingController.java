@@ -190,7 +190,6 @@ public class RatingController {
 
     public void initRating(Rating rating) {
         if (rating != null) {
-            LogUtil.logInfo("RatingController", String.valueOf(rating.getRating()));
             ratingBar.setProgress(rating.getRating());
             this.rating = rating;
         } else {

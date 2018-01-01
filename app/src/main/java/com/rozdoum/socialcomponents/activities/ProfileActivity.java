@@ -242,7 +242,6 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
         Intent intent = new Intent(ProfileActivity.this, PostDetailsActivity.class);
         intent.putExtra(PostDetailsActivity.POST_ID_EXTRA_KEY, post.getId());
         intent.putExtra(PostDetailsActivity.AUTHOR_ANIMATION_NEEDED_EXTRA_KEY, true);
-        LogUtil.logInfo("", "OpenPostDetailsActivity");
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 
             View imageView = v.findViewById(R.id.fileViewContainer);

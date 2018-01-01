@@ -72,7 +72,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private void handleRemoteMessage(RemoteMessage remoteMessage) {
         String receivedActionType = remoteMessage.getData().get(ACTION_TYPE_KEY);
-        LogUtil.logInfo(TAG, "Message Notification Action Type: " + receivedActionType);
 
         switch (receivedActionType) {
             case ACTION_TYPE_NEW_RATING:

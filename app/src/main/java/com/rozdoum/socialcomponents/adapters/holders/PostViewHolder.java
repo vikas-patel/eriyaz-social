@@ -158,7 +158,6 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 
             @Override
             public void getProgressOnActionUp(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
-                LogUtil.logInfo(TAG, "action up"+ progress);
                 int position = getAdapterPosition();
                 if (onClickListener != null && position != RecyclerView.NO_POSITION && true) {
                     onClickListener.onRatingClick(ratingController, position, progress);

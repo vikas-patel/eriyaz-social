@@ -157,7 +157,6 @@ public class RecordFragment extends Fragment {
     private void startRecording() {
         Intent intent = new Intent(getActivity(), RecordingService.class);
         //remove log
-        LogUtil.logInfo("RecordFragment", "startRecording"+mStartRecording);
         if (mStartRecording) {
             // start recording
             mRecordButton.setImageResource(R.drawable.ic_media_stop);
@@ -234,7 +233,6 @@ public class RecordFragment extends Fragment {
 
     @Override
     public void onDestroy() {
-        LogUtil.logInfo("", "onDestroy RecordFragment");
         if (mConnection != null && !mStartRecording) {
             Intent intent = new Intent(getActivity(), RecordingService.class);
             getActivity().stopService(intent);

@@ -99,7 +99,6 @@ public class RecordingService extends Service {
     }
 
     public void startRecording() {
-        LogUtil.logInfo("RecordingService", "startRecording");
         setFileNameAndPath();
 
         mRecorder = new MediaRecorder();
@@ -137,7 +136,6 @@ public class RecordingService extends Service {
                     //+ "_" + (mDatabase.getCount() + count)
                     + ".mp4";
             mFilePath = Environment.getExternalStorageDirectory().getAbsolutePath();
-            LogUtil.logInfo("RecordingService", mFilePath);
             mFilePath += "/SoundRecorder/" + mFileName;
 
             f = new File(mFilePath);
@@ -145,7 +143,6 @@ public class RecordingService extends Service {
     }
 
     public void stopRecording() {
-        LogUtil.logInfo("RecordingService", "Stopped.");
         mRecorder.stop();
         mElapsedMillis = (System.currentTimeMillis() - mStartingTimeMillis);
         mRecorder.release();

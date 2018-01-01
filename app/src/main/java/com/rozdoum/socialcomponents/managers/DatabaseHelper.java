@@ -283,7 +283,6 @@ public class DatabaseHelper {
 
                         @Override
                         public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-                            LogUtil.logInfo(TAG, "Updating comments count transaction is completed.");
                             if (onTaskCompleteListener != null) {
                                 onTaskCompleteListener.onTaskComplete(true);
                             }
@@ -331,7 +330,6 @@ public class DatabaseHelper {
 
             @Override
             public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-                LogUtil.logInfo(TAG, "Updating comments count transaction is completed.");
                 if (onTaskCompleteListener != null) {
                     onTaskCompleteListener.onTaskComplete(true);
                 }
@@ -362,7 +360,6 @@ public class DatabaseHelper {
                 rating.setId(id);
                 rating.setAuthorId(authorId);
             }
-            LogUtil.logInfo(TAG, "rating: "+rating);
 
             mLikesReference.child(rating.getId()).setValue(rating, new DatabaseReference.CompletionListener() {
                 @Override
@@ -384,7 +381,6 @@ public class DatabaseHelper {
                         @Override
                         public Transaction.Result doTransaction(MutableData mutableData) {
                             Post post = mutableData.getValue(Post.class);
-                            LogUtil.logInfo(TAG, post.toString());
                             float oldAvg = post.getAverageRating();
                             if (isCreate) {
                                 float newAvg = (oldAvg*post.getRatingsCount() + rating.getRating())/(post.getRatingsCount() + 1);
@@ -544,7 +540,6 @@ public class DatabaseHelper {
                     @Override
                     public Transaction.Result doTransaction(MutableData mutableData) {
                         Post post = mutableData.getValue(Post.class);
-                        LogUtil.logInfo(TAG, post.toString());
                         if (post.getRatingsCount() > 0) {
                             float oldAvg = post.getAverageRating();
                             float newAvg = (oldAvg*post.getRatingsCount() - ratingValue)/(post.getRatingsCount() - 1);
@@ -879,7 +874,6 @@ public class DatabaseHelper {
                     return;
                 }
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    LogUtil.logInfo(TAG, snapshot.toString());
                     Rating rating = snapshot.getValue(Rating.class);
                     listener.onObjectChanged(rating);
                     return;
