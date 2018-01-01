@@ -57,6 +57,7 @@
     <string name="button_post_comment">Post comment</string>
 
     <string name="label_comments">Comments (%1$d):</string>
+    <string name="label_ratings">Ratings (%1$d):</string>
 
     <string name="create_post_menu_label">Post</string>
     <string name="create_post_full_menu_label">Create post</string>

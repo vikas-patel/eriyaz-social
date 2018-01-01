@@ -576,6 +576,15 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         } else if (commentsLabel.getVisibility() != View.VISIBLE) {
             commentsLabel.setVisibility(View.VISIBLE);
         }
+
+        ratingsLabel.setText(String.format(getString(R.string.label_ratings), post.getRatingsCount()));
+
+        if (post.getRatingsCount() == 0) {
+            ratingsLabel.setVisibility(View.GONE);
+            ratingsProgressBar.setVisibility(View.GONE);
+        } else if (ratingsLabel.getVisibility() != View.VISIBLE) {
+            ratingsLabel.setVisibility(View.VISIBLE);
+        }
     }
 
     private OnObjectChangedListener<Profile> createProfileChangeListener() {

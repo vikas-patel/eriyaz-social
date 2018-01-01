@@ -370,10 +370,10 @@ public class DatabaseHelper {
                     if (databaseError == null) {
                         DatabaseReference postRef = database.getReference("posts/" + postId); //+ "/ratingsCount"
                         updatePostRatingAverage(postRef);
-                        if (isCreate) {
-                            DatabaseReference profileRef = database.getReference("profiles/" + postAuthorId + "/ratingsCount");
-                            incrementRatingsCount(profileRef);
-                        }
+//                        if (isCreate) {
+//                            DatabaseReference profileRef = database.getReference("profiles/" + postAuthorId + "/ratingsCount");
+//                            incrementRatingsCount(profileRef);
+//                        }
                     } else {
                         LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
                     }
@@ -395,27 +395,6 @@ public class DatabaseHelper {
                                 post.setAverageRating(newAvg);
                             }
                             mutableData.setValue(post);
-                            return Transaction.success(mutableData);
-                        }
-
-                        @Override
-                        public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-                            LogUtil.logInfo(TAG, "Updating rating count transaction is completed.");
-                        }
-                    });
-                }
-
-                private void incrementRatingsCount(DatabaseReference postRef) {
-                    postRef.runTransaction(new Transaction.Handler() {
-                        @Override
-                        public Transaction.Result doTransaction(MutableData mutableData) {
-                            Integer currentValue = mutableData.getValue(Integer.class);
-                            if (currentValue == null) {
-                                mutableData.setValue(1);
-                            } else {
-                                mutableData.setValue(currentValue + 1);
-                             }
-
                             return Transaction.success(mutableData);
                         }
 
@@ -504,7 +483,7 @@ public class DatabaseHelper {
                 LogUtil.logInfo(TAG, "Updating Watchers count transaction is completed.");
             }
         });
-    }
+     }
 
     public void removeLike(final String postId, final String postAuthorId) {
         String authorId = firebaseAuth.getCurrentUser().getUid();
@@ -540,6 +519,45 @@ public class DatabaseHelper {
                     @Override
                     public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
                         LogUtil.logInfo(TAG, "Updating likes count transaction is completed.");
+                    }
+                });
+            }
+        });
+    }
+
+    public void removeRating(final String postId, final String postAuthorId, final float ratingValue) {
+        String authorId = firebaseAuth.getCurrentUser().getUid();
+        DatabaseReference mLikesReference = database.getReference().child("post-ratings").child(postId).child(authorId);
+        mLikesReference.removeValue(new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                if (databaseError == null) {
+                    DatabaseReference postRef = database.getReference("posts/" + postId);
+                    updatePostRatingAverage(postRef);
+                } else {
+                    LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
+                }
+            }
+
+            private void updatePostRatingAverage(DatabaseReference postRef) {
+                postRef.runTransaction(new Transaction.Handler() {
+                    @Override
+                    public Transaction.Result doTransaction(MutableData mutableData) {
+                        Post post = mutableData.getValue(Post.class);
+                        LogUtil.logInfo(TAG, post.toString());
+                        if (post.getRatingsCount() > 0) {
+                            float oldAvg = post.getAverageRating();
+                            float newAvg = (oldAvg*post.getRatingsCount() - ratingValue)/(post.getRatingsCount() - 1);
+                            post.setAverageRating(newAvg);
+                            post.setRatingsCount(post.getRatingsCount()-1);
+                        }
+                        mutableData.setValue(post);
+                        return Transaction.success(mutableData);
+                    }
+
+                    @Override
+                    public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+                        LogUtil.logInfo(TAG, "Remove rating count transaction is completed.");
                     }
                 });
             }

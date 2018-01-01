@@ -166,7 +166,7 @@ public class RecordingService extends Service {
 //
 //        } catch (Exception e){
 //            Log.e(LOG_TAG, "exception", e);
-//        }
+//        }+
     }
 
     private void startTimer() {

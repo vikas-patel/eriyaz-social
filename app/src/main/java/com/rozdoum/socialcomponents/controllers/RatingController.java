@@ -60,7 +60,8 @@ public class RatingController {
     public void ratingClickAction(Post post, float ratingValue) {
         if (!updatingRatingCounter) {
             startAnimateLikeButton(likeAnimationType);
-            addRating(post, ratingValue);
+            if (ratingValue > 0) addRating(post, ratingValue);
+            else removeRating(post);
 //            if (!isRated) {
 //                addLike(prevValue);
 //            } else {
@@ -92,12 +93,16 @@ public class RatingController {
         ApplicationHelper.getDatabaseHelper().createOrUpdateRating(postId, postAuthorId, rating, oldRatingValue);
     }
 
-//    private void removeLike(long prevValue) {
-//        updatingRatingCounter = true;
-//        isRated = false;
-//        ratingCounterTextView.setText(String.valueOf(prevValue - 1));
-//        ApplicationHelper.getDatabaseHelper().removeLike(postId, postAuthorId);
-//    }
+    private void removeRating(Post post) {
+        updatingRatingCounter = true;
+        float avgRating = post.getAverageRating();
+        avgRating = (avgRating*post.getRatingsCount() - this.rating.getRating())/(post.getRatingsCount() - 1);
+        post.setRatingsCount(post.getRatingsCount() - 1);
+        ratingCounterTextView.setText("(" + post.getRatingsCount() + ")");
+        averageRatingTextView.setText(String.format( "%.1f", avgRating));
+//        rating = new Rating();
+        ApplicationHelper.getDatabaseHelper().removeRating(postId, postAuthorId, this.rating.getRating());
+    }
 
     private void startAnimateLikeButton(LikeController.AnimationType animationType) {
         switch (animationType) {
@@ -188,6 +193,8 @@ public class RatingController {
             LogUtil.logInfo("RatingController", String.valueOf(rating.getRating()));
             ratingBar.setProgress(rating.getRating());
             this.rating = rating;
+        } else {
+            this.rating = new Rating();
         }
     }
 

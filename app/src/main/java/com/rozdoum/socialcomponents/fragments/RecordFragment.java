@@ -224,12 +224,23 @@ public class RecordFragment extends Fragment {
 //        } catch (Exception e) {
 //            Log.e(LOG_TAG, "exception", e);
 //        }
-        FileViewerFragment fileViewerFragment = FileViewerFragment.newInstance(item);
-        getFragmentManager()
-                .beginTransaction()
-                .replace(R.id.record_fragment, fileViewerFragment)
-                .disallowAddToBackStack()
-                .commit();
+        if (getFragmentManager() != null) {
+            FileViewerFragment fileViewerFragment = FileViewerFragment.newInstance(item);
+            getFragmentManager().beginTransaction().replace(R.id.record_fragment, fileViewerFragment)
+                    .disallowAddToBackStack()
+                    .commit();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        LogUtil.logInfo("", "onDestroy RecordFragment");
+        if (mConnection != null && !mStartRecording) {
+            Intent intent = new Intent(getActivity(), RecordingService.class);
+            getActivity().stopService(intent);
+            getActivity().unbindService(mConnection);
+        }
+        super.onDestroy();
     }
 
     // Recording Start/Stop
