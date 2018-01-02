@@ -134,7 +134,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
                 array.put(1, "not ok");
                 array.put(3, "ok");
                 array.put(5, "good");
-                array.put(7, "magical");
+                array.put(7, "amazing");
                 return array;
             }
         });
