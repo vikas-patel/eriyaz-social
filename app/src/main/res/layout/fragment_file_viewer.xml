@@ -3,7 +3,7 @@
     android:id="@+id/fragment_file_viewer"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    tools:context="com.rozdoum.socialcomponents.fragments.FileViewerFragment">
+    tools:context="com.eriyaz.social.fragments.FileViewerFragment">
 
     <android.support.v7.widget.CardView xmlns:card_view="http://schemas.android.com/apk/res-auto"
         android:id="@+id/card_view"

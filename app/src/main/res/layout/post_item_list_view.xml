@@ -81,7 +81,7 @@
 
             </LinearLayout>
 
-            <com.rozdoum.socialcomponents.views.CircularImageView
+            <com.eriyaz.social.views.CircularImageView
                 android:id="@+id/authorImageView"
                 android:layout_width="@dimen/post_list_item_author_image_side"
                 android:layout_height="@dimen/post_list_item_author_image_side"
