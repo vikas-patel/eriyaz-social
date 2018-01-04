@@ -241,7 +241,8 @@ public class DatabaseHelper {
     }
 
     public Task<Void> removeAudio(String audioTitle) {
-        StorageReference storageRef = storage.getReferenceFromUrl(context.getResources().getString(R.string.storage_link));
+//        StorageReference storageRef = storage.getReferenceFromUrl(context.getResources().getString(R.string.storage_link));
+        StorageReference storageRef = storage.getReference();
         StorageReference desertRef = storageRef.child("audios/" + audioTitle);
 
         return desertRef.delete();
@@ -560,7 +561,8 @@ public class DatabaseHelper {
     }
 
     public UploadTask uploadImage(Uri uri, String imageTitle) {
-        StorageReference storageRef = storage.getReferenceFromUrl(context.getResources().getString(R.string.storage_link));
+//        StorageReference storageRef = storage.getReferenceFromUrl(context.getResources().getString(R.string.storage_link));
+        StorageReference storageRef = storage.getReference();
         StorageReference riversRef = storageRef.child("images/" + imageTitle);
         // Create file metadata including the content type
         StorageMetadata metadata = new StorageMetadata.Builder()
@@ -571,7 +573,8 @@ public class DatabaseHelper {
     }
 
     public UploadTask uploadAudio(Uri uri, String audioTitle) {
-        StorageReference storageRef = storage.getReferenceFromUrl(context.getResources().getString(R.string.storage_link));
+//        StorageReference storageRef = storage.getReferenceFromUrl(context.getResources().getString(R.string.storage_link));
+        StorageReference storageRef = storage.getReference();
         StorageReference riversRef = storageRef.child("audios/" + audioTitle);
         // Create file metadata including the content type
         StorageMetadata metadata = new StorageMetadata.Builder()

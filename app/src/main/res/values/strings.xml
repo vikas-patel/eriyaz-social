@@ -16,7 +16,7 @@
   -->
 
 <resources>
-    <string name="app_name">Rate My Singing</string>
+    <string name="app_name">RateMySinging</string>
     <string name="label_create_post_activity">Create post</string>
     <string name="label_post_detail_activity">Post detail</string>
     <string name="label_image_detail_activity">Image</string>

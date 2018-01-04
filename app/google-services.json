@@ -8,50 +8,6 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:440689392536:android:91e94fd9291e9ac6",
-        "android_client_info": {
-          "package_name": "com.rozdoum.socialcomponents"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "440689392536-2j1rfk77402leng6nefgif7qcqe854pi.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.rozdoum.socialcomponents",
-            "certificate_hash": "16b6e6d2d1bb147d5f235b9479d8c6ea4d8b06fe"
-          }
-        },
-        {
-          "client_id": "440689392536-4ei8vjsorvqfjktgs5c8s3343adoud38.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAssLnHACwkNIBw-YkxiC0SGVQTDjRMqjA"
-        }
-      ],
-      "services": {
-        "analytics_service": {
-          "status": 1
-        },
-        "appinvite_service": {
-          "status": 2,
-          "other_platform_oauth_client": [
-            {
-              "client_id": "440689392536-4ei8vjsorvqfjktgs5c8s3343adoud38.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        },
-        "ads_service": {
-          "status": 2
-        }
-      }
-    },
-    {
-      "client_info": {
         "mobilesdk_app_id": "1:440689392536:android:6e608e89785d5afe",
         "android_client_info": {
           "package_name": "com.eriyaz.social"
@@ -59,11 +15,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "440689392536-v5a5uc11sjo0ntsnrrfqk75ht1aa8vlb.apps.googleusercontent.com",
+          "client_id": "440689392536-fk0ggj1mtki8sb6uhvft522va899fe54.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.eriyaz.social",
-            "certificate_hash": "16b6e6d2d1bb147d5f235b9479d8c6ea4d8b06fe"
+            "certificate_hash": "1345a319fda511cf661a8654cc562e3b740c9f26"
           }
         },
         {
