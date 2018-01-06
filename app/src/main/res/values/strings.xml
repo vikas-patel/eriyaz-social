@@ -160,4 +160,6 @@
     <!--Firebase errors-->
     <string name="permission_denied_error">Please check your rules to access the Firebase Realtime Database</string>
 
+    <string name="facebook_app_id">165281787534501</string>
+    <string name="fb_login_protocol_scheme">fb165281787534501</string>
 </resources>
