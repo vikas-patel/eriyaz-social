@@ -202,4 +202,16 @@ exports.pushNotificationNewPost = functions.database.ref('/posts/{postId}').onWr
 
 });
 
+exports.pushNotificationCreatePost = functions.database.ref("/posts/{postId}").onCreate(event => {
+    // Send notifications with FCM...
+	const postId = event.params.postId;
+	console.log('New post was created ', postId);
+});
+
+exports.pushNotificationUpdatePost = functions.database.ref("/posts/{postId}").onUpdate(event => {
+    // Send notifications with FCM...
+	const postId = event.params.postId;
+	console.log('post was updated ', postId);
+});
+
 

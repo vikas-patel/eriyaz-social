@@ -541,11 +541,16 @@ public class DatabaseHelper {
                     @Override
                     public Transaction.Result doTransaction(MutableData mutableData) {
                         Post post = mutableData.getValue(Post.class);
-                        if (post.getRatingsCount() > 0) {
+                        LogUtil.logInfo(TAG, post.toString());
+                        if (post.getRatingsCount() > 1) {
+                            LogUtil.logInfo(TAG, "RatingCount>0");
                             float oldAvg = post.getAverageRating();
                             float newAvg = (oldAvg*post.getRatingsCount() - ratingValue)/(post.getRatingsCount() - 1);
                             post.setAverageRating(newAvg);
                             post.setRatingsCount(post.getRatingsCount()-1);
+                        } else {
+                            post.setAverageRating(0);
+                            post.setRatingsCount(0);
                         }
                         mutableData.setValue(post);
                         return Transaction.success(mutableData);

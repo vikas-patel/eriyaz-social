@@ -94,11 +94,16 @@ public class RatingController {
     private void removeRating(Post post) {
         updatingRatingCounter = true;
         float avgRating = post.getAverageRating();
-        avgRating = (avgRating*post.getRatingsCount() - this.rating.getRating())/(post.getRatingsCount() - 1);
-        post.setRatingsCount(post.getRatingsCount() - 1);
+        if (post.getRatingsCount() > 1) {
+            avgRating = (avgRating*post.getRatingsCount() - this.rating.getRating())/(post.getRatingsCount() - 1);
+            post.setRatingsCount(post.getRatingsCount() - 1);
+            post.setAverageRating(avgRating);
+        } else {
+            post.setRatingsCount(0);
+            post.setAverageRating(0);
+        }
         ratingCounterTextView.setText("(" + post.getRatingsCount() + ")");
-        averageRatingTextView.setText(String.format( "%.1f", avgRating));
-//        rating = new Rating();
+        averageRatingTextView.setText(String.format( "%.1f", post.getAverageRating()));
         ApplicationHelper.getDatabaseHelper().removeRating(postId, postAuthorId, this.rating.getRating());
     }
 
