@@ -19,7 +19,11 @@
     <!--<string name="storage_link">gs://eriyaz-social.appspot.com</string>-->
     <!--<string name="google_web_client_id">440689392536-4ei8vjsorvqfjktgs5c8s3343adoud38.apps.googleusercontent.com</string>-->
     <string name="google_web_client_id">184021599433-5hichg8tmh6b46kc6327uj8a09qpkjgq.apps.googleusercontent.com</string>
-    <string name="facebook_app_id">328625700949266</string>
+    <!--<string name="facebook_app_id">328625700949266</string>-->
     <string name="facebook_large_image_url_pattern">https://graph.facebook.com/%1$s/picture?type=large</string>
     <string name="google_large_image_url_pattern">%1$s?sz=%2$d</string>
+
+
+
+
 </resources>
