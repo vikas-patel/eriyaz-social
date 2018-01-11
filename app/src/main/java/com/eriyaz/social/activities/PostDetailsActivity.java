@@ -253,6 +253,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
                     android.app.FragmentTransaction transaction = getFragmentManager()
                             .beginTransaction();
                     playbackFragment.show(transaction, "dialog_playback");
+                    analytics.logOpenAudio();
                 } catch (Exception e) {
                     Log.e("", "exception", e);
                 }

@@ -31,6 +31,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.eriyaz.social.utils.Analytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.eriyaz.social.Constants;
@@ -82,6 +83,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 
 //    private LikeController likeController;
     private RatingController ratingController;
+    private Analytics analytics;
 
     public PostViewHolder(View view, final OnClickListener onClickListener) {
         this(view, onClickListener, true);
@@ -90,6 +92,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     public PostViewHolder(View view, final OnClickListener onClickListener, boolean isAuthorNeeded) {
         super(view);
         this.context = view.getContext();
+        analytics = new Analytics(this.context);
 
 //        postImageView = (ImageView) view.findViewById(R.id.postImageView);
 //        likeCounterTextView = (TextView) view.findViewById(R.id.likeCounterTextView);
@@ -256,6 +259,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
                     android.app.FragmentTransaction transaction = ((Activity)context).getFragmentManager()
                             .beginTransaction();
                     playbackFragment.show(transaction, "dialog_playback");
+                    analytics.logOpenAudio();
                 } catch (Exception e) {
                     Log.e(TAG, "exception", e);
                 }

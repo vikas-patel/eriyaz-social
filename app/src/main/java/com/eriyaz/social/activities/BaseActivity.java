@@ -33,6 +33,8 @@ import android.view.inputmethod.InputMethodManager;
 
 import com.eriyaz.social.R;
 import com.eriyaz.social.enums.ProfileStatus;
+import com.eriyaz.social.utils.Analytics;
+import com.google.firebase.analytics.FirebaseAnalytics;
 
 /**
  * Created by alexey on 05.12.16.
@@ -42,12 +44,19 @@ public class BaseActivity extends AppCompatActivity {
 
     public ProgressDialog progressDialog;
     public ActionBar actionBar;
+    protected Analytics analytics;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         actionBar = getSupportActionBar();
+        analytics = new Analytics(this);
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        analytics.logActivity(this);
     }
 
     public void doAuthorization(ProfileStatus status) {
@@ -142,5 +151,9 @@ public class BaseActivity extends AppCompatActivity {
                 onBackPressed();
         }
         return (super.onOptionsItemSelected(menuItem));
+    }
+
+    public Analytics getAnalytics() {
+        return analytics;
     }
 }

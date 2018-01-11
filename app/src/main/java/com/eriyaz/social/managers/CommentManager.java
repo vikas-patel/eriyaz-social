@@ -21,6 +21,7 @@ package com.eriyaz.social.managers;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
+import com.eriyaz.social.utils.Analytics;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ValueEventListener;

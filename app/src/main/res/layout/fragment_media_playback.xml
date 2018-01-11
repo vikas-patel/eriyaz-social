@@ -27,17 +27,17 @@
                 android:id="@+id/file_name_text_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="7dp"
                 android:layout_marginLeft="10dp"
                 android:layout_marginTop="7dp"
-                android:layout_marginBottom="7dp"
+                android:fontFamily="sans-serif-condensed"
                 android:text="file_name.mp4"
-                android:textSize="18sp"
-                android:fontFamily="sans-serif-condensed"/>
+                android:textSize="18sp" />
 
             <SeekBar
                 android:id="@+id/seekbar"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content" />
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -45,36 +45,43 @@
 
                 <TextView
                     android:id="@+id/current_progress_text_view"
-                    android:text="00:00"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="10dp"
-                    android:layout_alignParentTop="true"
                     android:layout_alignParentLeft="true"
-                    android:layout_alignParentStart="true" />
+                    android:layout_alignParentStart="true"
+                    android:layout_alignParentTop="true"
+                    android:layout_marginLeft="10dp"
+                    android:text="00:00" />
+                <TextView
+                    android:id="@+id/txtPercentage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:textColor="@color/primary"
+                    android:text=""/>
 
                 <com.melnykov.fab.FloatingActionButton
                     android:id="@+id/fab_play"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/ic_media_play"
                     android:layout_centerHorizontal="true"
                     android:layout_marginBottom="10dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="20dp"
+                    android:src="@drawable/ic_media_play"
                     app:fab_colorNormal="@color/primary"
                     app:fab_colorPressed="@color/primary"
-                    app:fab_shadow="false"/>
+                    app:fab_shadow="false" />
 
 
                 <TextView
                     android:id="@+id/file_length_text_view"
-                    android:text="00:00"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginRight="10dp"
-                    android:layout_alignParentTop="true"
+                    android:layout_alignParentEnd="true"
                     android:layout_alignParentRight="true"
-                    android:layout_alignParentEnd="true" />
+                    android:layout_alignParentTop="true"
+                    android:layout_marginRight="10dp"
+                    android:text="00:00" />
 
             </RelativeLayout>
 

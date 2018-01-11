@@ -19,6 +19,7 @@ import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectExistListener;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Rating;
+import com.eriyaz.social.utils.Analytics;
 import com.xw.repo.BubbleSeekBar;
 
 /**

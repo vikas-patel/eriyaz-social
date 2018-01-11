@@ -21,6 +21,8 @@ import android.widget.Chronometer;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.eriyaz.social.activities.BaseActivity;
+import com.eriyaz.social.utils.Analytics;
 import com.melnykov.fab.FloatingActionButton;
 import com.eriyaz.social.R;
 import com.eriyaz.social.model.RecordingItem;
@@ -93,6 +95,8 @@ public class RecordFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        BaseActivity activity = (BaseActivity) getActivity();
+        activity.getAnalytics().logRecording();
         //position = getArguments().getInt(ARG_POSITION);
     }
 

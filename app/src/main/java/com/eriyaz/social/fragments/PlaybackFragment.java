@@ -15,7 +15,9 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.eriyaz.social.utils.LogUtil;
 import com.melnykov.fab.FloatingActionButton;
 import com.eriyaz.social.R;
 import com.eriyaz.social.model.RecordingItem;
@@ -42,6 +44,7 @@ public class PlaybackFragment extends DialogFragment {
     private TextView mCurrentProgressTextView = null;
     private TextView mFileNameTextView = null;
     private TextView mFileLengthTextView = null;
+    private TextView txtPercentage;
 
     //stores whether or not the mediaplayer is currently playing audio
     private boolean isPlaying = false;
@@ -68,6 +71,7 @@ public class PlaybackFragment extends DialogFragment {
         minutes = TimeUnit.MILLISECONDS.toMinutes(itemDuration);
         seconds = TimeUnit.MILLISECONDS.toSeconds(itemDuration)
                 - TimeUnit.MINUTES.toSeconds(minutes);
+
     }
 
     @Override
@@ -87,12 +91,13 @@ public class PlaybackFragment extends DialogFragment {
         mFileNameTextView = (TextView) view.findViewById(R.id.file_name_text_view);
         mFileLengthTextView = (TextView) view.findViewById(R.id.file_length_text_view);
         mCurrentProgressTextView = (TextView) view.findViewById(R.id.current_progress_text_view);
+        txtPercentage = (TextView) view.findViewById(R.id.txtPercentage);
 
         mSeekBar = (SeekBar) view.findViewById(R.id.seekbar);
         ColorFilter filter = new LightingColorFilter
                 (getResources().getColor(R.color.primary), getResources().getColor(R.color.primary));
-        mSeekBar.getProgressDrawable().setColorFilter(filter);
-        mSeekBar.getThumb().setColorFilter(filter);
+//        mSeekBar.getProgressDrawable().setColorFilter(filter);
+//        mSeekBar.getThumb().setColorFilter(filter);
 
         mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -211,28 +216,45 @@ public class PlaybackFragment extends DialogFragment {
         mMediaPlayer = new MediaPlayer();
 
         try {
+            txtPercentage.setText("Loading...");
             mMediaPlayer.setDataSource(item.getFilePath());
-            mMediaPlayer.prepare();
-            mSeekBar.setMax(mMediaPlayer.getDuration());
+
+            mMediaPlayer.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
+                public void onBufferingUpdate(MediaPlayer mp, int percent)
+                {
+                    double ratio = percent / 100.0;
+//                    int bufferingLevel = (int)(mp.getDuration() * ratio);
+//                    mSeekBar.setSecondaryProgress(bufferingLevel);
+                    LogUtil.logInfo("", ratio + "onBufferingUpdate");
+                    if (percent == 100) {
+                        txtPercentage.setText("");
+                    } else {
+                        txtPercentage.setText(percent + "%");
+                    }
+                }
+            });
 
             mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
+//                    txtPercentage.setText("");
+                    mSeekBar.setMax(mMediaPlayer.getDuration());
                     mMediaPlayer.start();
+                    updateSeekBar();
                 }
             });
+
+            mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    stopPlaying();
+                }
+            });
+
+            mMediaPlayer.prepareAsync();
         } catch (IOException e) {
             Log.e(LOG_TAG, "prepare() failed");
         }
-
-        mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                stopPlaying();
-            }
-        });
-
-        updateSeekBar();
 
         //keep screen on while playing audio
         getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -318,3 +340,4 @@ public class PlaybackFragment extends DialogFragment {
         mHandler.postDelayed(mRunnable, 1000);
     }
 }
+

@@ -74,6 +74,8 @@ public class FileViewerFragment extends Fragment {
                     android.app.FragmentTransaction transaction = getActivity().getFragmentManager()
                             .beginTransaction();
                     playbackFragment.show(transaction, "dialog_playback");
+                    BaseActivity activity = (BaseActivity) getActivity();
+                    activity.getAnalytics().logOpenRecordedAudio();
                 } catch (Exception e) {
                     Log.e(LOG_TAG, "exception", e);
                 }

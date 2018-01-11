@@ -22,6 +22,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.eriyaz.social.utils.Analytics;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -82,6 +83,7 @@ public class DatabaseHelper {
     private FirebaseDatabase database;
     FirebaseStorage storage;
     FirebaseAuth firebaseAuth;
+    private Analytics analytics;
     private Map<ValueEventListener, DatabaseReference> activeListeners = new HashMap<>();
 
     public static DatabaseHelper getInstance(Context context) {
@@ -94,6 +96,7 @@ public class DatabaseHelper {
 
     public DatabaseHelper(Context context) {
         this.context = context;
+        analytics = new Analytics(context);
         firebaseAuth = FirebaseAuth.getInstance();
     }
 
@@ -199,6 +202,7 @@ public class DatabaseHelper {
             childUpdates.put("/posts/" + post.getId(), postValues);
 
             databaseReference.updateChildren(childUpdates);
+            analytics.logPost(firebaseAuth.getCurrentUser().getUid());
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
         }
@@ -256,6 +260,7 @@ public class DatabaseHelper {
             Comment comment = new Comment(commentText);
             comment.setId(commentId);
             comment.setAuthorId(authorId);
+            analytics.logComment(authorId);
 
             mCommentsReference.child(commentId).setValue(comment, new DatabaseReference.CompletionListener() {
                 @Override
@@ -360,6 +365,7 @@ public class DatabaseHelper {
                 String id = mLikesReference.push().getKey();
                 rating.setId(id);
                 rating.setAuthorId(authorId);
+                analytics.logRating(authorId, Math.round(rating.getRating()));
             }
 
             mLikesReference.child(rating.getId()).setValue(rating, new DatabaseReference.CompletionListener() {
