@@ -213,6 +213,8 @@ public class PlaybackFragment extends DialogFragment {
 
     private void startPlaying() {
         mPlayButton.setImageResource(R.drawable.ic_media_pause);
+        //Fix: app crashes when button is pressed multiple times on loading
+        mPlayButton.setEnabled(false);
         mMediaPlayer = new MediaPlayer();
 
         try {
@@ -240,6 +242,7 @@ public class PlaybackFragment extends DialogFragment {
 //                    txtPercentage.setText("");
                     mSeekBar.setMax(mMediaPlayer.getDuration());
                     mMediaPlayer.start();
+                    mPlayButton.setEnabled(true);
                     updateSeekBar();
                 }
             });
