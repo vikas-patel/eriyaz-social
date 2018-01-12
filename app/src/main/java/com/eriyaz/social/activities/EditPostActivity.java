@@ -153,7 +153,7 @@ public class EditPostActivity extends CreatePostActivity {
     private void fillUIFields() {
 //        titleEditText.setText(post.getTitle());
 //        descriptionEditText.setText(post.getDescription());
-        loadPostDetailsImage();
+        //loadPostDetailsImage();
         hideProgress();
     }
 

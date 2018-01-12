@@ -830,8 +830,8 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     }
 
     private void updateOptionMenuVisibility() {
-        if (editActionMenuItem != null && deleteActionMenuItem != null && hasAccessToModifyPost()) {
-            editActionMenuItem.setVisible(true);
+        if (deleteActionMenuItem != null && deleteActionMenuItem != null && hasAccessToModifyPost()) {
+//            editActionMenuItem.setVisible(true);
             deleteActionMenuItem.setVisible(true);
         }
 
@@ -845,7 +845,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.post_details_menu, menu);
         complainActionMenuItem = menu.findItem(R.id.complain_action);
-        editActionMenuItem = menu.findItem(R.id.edit_post_action);
+//        editActionMenuItem = menu.findItem(R.id.edit_post_action);
         deleteActionMenuItem = menu.findItem(R.id.delete_post_action);
 
         if (post != null) {
@@ -866,11 +866,11 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
                 doComplainAction();
                 return true;
 
-            case R.id.edit_post_action:
-                if (hasAccessToModifyPost()) {
-                    openEditPostActivity();
-                }
-                return true;
+//            case R.id.edit_post_action:
+//                if (hasAccessToModifyPost()) {
+//                    openEditPostActivity();
+//                }
+//                return true;
 
             case R.id.delete_post_action:
                 if (hasAccessToModifyPost()) {
