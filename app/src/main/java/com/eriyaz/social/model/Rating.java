@@ -24,6 +24,12 @@ public class Rating {
         this.createdDate = Calendar.getInstance().getTimeInMillis();
     }
 
+    public void reinit() {
+        this.id = null;
+        this.authorId = null;
+        this.rating = 0;
+    }
+
     public String getId() {
         return id;
     }

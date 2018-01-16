@@ -105,7 +105,8 @@ public class RatingController {
         }
         ratingCounterTextView.setText("(" + post.getRatingsCount() + ")");
         averageRatingTextView.setText(String.format( "%.1f", post.getAverageRating()));
-        ApplicationHelper.getDatabaseHelper().removeRating(postId, postAuthorId, this.rating.getRating());
+        ApplicationHelper.getDatabaseHelper().removeRating(postId, postAuthorId, this.rating);
+        rating.reinit();
     }
 
     private void startAnimateLikeButton(LikeController.AnimationType animationType) {
@@ -198,6 +199,7 @@ public class RatingController {
             this.rating = rating;
         } else {
             this.rating = new Rating();
+            ratingBar.setProgress(0);
         }
     }
 

@@ -223,7 +223,7 @@ public class PostManager extends FirebaseListenersManager {
 
     public void getCurrentUserRatingSingleValue(String postId, String userId, final OnObjectChangedListener<Rating> onObjectChangedListener) {
         DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
-        databaseHelper.getCurrentUserRating(postId, userId, onObjectChangedListener);
+        databaseHelper.getCurrentUserRatingSingleValue(postId, userId, onObjectChangedListener);
     }
 
     public void getRatingsList(Context activityContext, String postId, OnDataChangedListener<Rating> onDataChangedListener) {

@@ -239,7 +239,7 @@ public class PlaybackFragment extends DialogFragment {
             mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
-//                    txtPercentage.setText("");
+                    txtPercentage.setText("");
                     mSeekBar.setMax(mMediaPlayer.getDuration());
                     mMediaPlayer.start();
                     mPlayButton.setEnabled(true);

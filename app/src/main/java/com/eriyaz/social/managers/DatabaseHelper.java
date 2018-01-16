@@ -528,9 +528,10 @@ public class DatabaseHelper {
         });
     }
 
-    public void removeRating(final String postId, final String postAuthorId, final float ratingValue) {
+    public void removeRating(final String postId, final String postAuthorId, final Rating rating) {
         String authorId = firebaseAuth.getCurrentUser().getUid();
         DatabaseReference mLikesReference = database.getReference().child("post-ratings").child(postId).child(authorId);
+        final float ratingValue = rating.getRating();
         mLikesReference.removeValue(new DatabaseReference.CompletionListener() {
             @Override
             public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
@@ -901,6 +902,29 @@ public class DatabaseHelper {
         });
         activeListeners.put(valueEventListener, databaseReference);
         return valueEventListener;
+    }
+
+    public void getCurrentUserRatingSingleValue(String postId, String userId, final OnObjectChangedListener<Rating> listener) {
+        DatabaseReference databaseReference = database.getReference("post-ratings").child(postId).child(userId);
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists() == false || dataSnapshot.hasChildren() == false) {
+                    listener.onObjectChanged(null);
+                    return;
+                }
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Rating rating = snapshot.getValue(Rating.class);
+                    listener.onObjectChanged(rating);
+                    return;
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                LogUtil.logError(TAG, "getCurrentUserRating(), onCancelled", new Exception(databaseError.getMessage()));
+            }
+        });
     }
 
     public ValueEventListener hasCurrentUserLike(String postId, String userId, final OnObjectExistListener<Like> onObjectExistListener) {
