@@ -354,61 +354,19 @@ public class DatabaseHelper {
         mLikesReference.addChildEventListener(childEventListener);
     }
 
-    public void createOrUpdateRating(final String postId, final String postAuthorId, final Rating rating, final float oldRatingValue) {
+    public void createOrUpdateRating(final String postId, final String postAuthorId, final Rating rating) {
         try {
             String authorId = firebaseAuth.getCurrentUser().getUid();
             DatabaseReference mLikesReference = database.getReference().child("post-ratings").child(postId).child(authorId);
-            final boolean isCreate = rating.getId() == null ? true : false;
             // add rating, else update
-            if (isCreate) {
+            if (rating.getId() == null) {
                 mLikesReference.push();
                 String id = mLikesReference.push().getKey();
                 rating.setId(id);
                 rating.setAuthorId(authorId);
                 analytics.logRating(authorId, Math.round(rating.getRating()));
             }
-
-            mLikesReference.child(rating.getId()).setValue(rating, new DatabaseReference.CompletionListener() {
-                @Override
-                public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                    if (databaseError == null) {
-                        DatabaseReference postRef = database.getReference("posts/" + postId); //+ "/ratingsCount"
-                        updatePostRatingAverage(postRef);
-//                        if (isCreate) {
-//                            DatabaseReference profileRef = database.getReference("profiles/" + postAuthorId + "/ratingsCount");
-//                            incrementRatingsCount(profileRef);
-//                        }
-                    } else {
-                        LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
-                    }
-                }
-
-                private void updatePostRatingAverage(DatabaseReference postRef) {
-                    postRef.runTransaction(new Transaction.Handler() {
-                        @Override
-                        public Transaction.Result doTransaction(MutableData mutableData) {
-                            Post post = mutableData.getValue(Post.class);
-                            float oldAvg = post.getAverageRating();
-                            if (isCreate) {
-                                float newAvg = (oldAvg*post.getRatingsCount() + rating.getRating())/(post.getRatingsCount() + 1);
-                                post.setAverageRating(newAvg);
-                                post.setRatingsCount(post.getRatingsCount()+1);
-                            } else {
-                                float newAvg = oldAvg + (rating.getRating() - oldRatingValue)/post.getRatingsCount();
-                                post.setAverageRating(newAvg);
-                            }
-                            mutableData.setValue(post);
-                            return Transaction.success(mutableData);
-                        }
-
-                        @Override
-                        public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-                            LogUtil.logInfo(TAG, "Updating rating count transaction is completed.");
-                        }
-                    });
-                }
-
-            });
+            mLikesReference.child(rating.getId()).setValue(rating);
         } catch (Exception e) {
             LogUtil.logError(TAG, "createOrUpdateRating()", e);
         }
@@ -529,47 +487,10 @@ public class DatabaseHelper {
     }
 
     public void removeRating(final String postId, final String postAuthorId, final Rating rating) {
+        if (rating.getId() == null) return;
         String authorId = firebaseAuth.getCurrentUser().getUid();
         DatabaseReference mLikesReference = database.getReference().child("post-ratings").child(postId).child(authorId);
-        final float ratingValue = rating.getRating();
-        mLikesReference.removeValue(new DatabaseReference.CompletionListener() {
-            @Override
-            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                if (databaseError == null) {
-                    DatabaseReference postRef = database.getReference("posts/" + postId);
-                    updatePostRatingAverage(postRef);
-                } else {
-                    LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
-                }
-            }
-
-            private void updatePostRatingAverage(DatabaseReference postRef) {
-                postRef.runTransaction(new Transaction.Handler() {
-                    @Override
-                    public Transaction.Result doTransaction(MutableData mutableData) {
-                        Post post = mutableData.getValue(Post.class);
-                        LogUtil.logInfo(TAG, post.toString());
-                        if (post.getRatingsCount() > 1) {
-                            LogUtil.logInfo(TAG, "RatingCount>0");
-                            float oldAvg = post.getAverageRating();
-                            float newAvg = (oldAvg*post.getRatingsCount() - ratingValue)/(post.getRatingsCount() - 1);
-                            post.setAverageRating(newAvg);
-                            post.setRatingsCount(post.getRatingsCount()-1);
-                        } else {
-                            post.setAverageRating(0);
-                            post.setRatingsCount(0);
-                        }
-                        mutableData.setValue(post);
-                        return Transaction.success(mutableData);
-                    }
-
-                    @Override
-                    public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-                        LogUtil.logInfo(TAG, "Remove rating count transaction is completed.");
-                    }
-                });
-            }
-        });
+        mLikesReference.removeValue();
     }
 
     public UploadTask uploadImage(Uri uri, String imageTitle) {

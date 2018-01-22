@@ -59,8 +59,10 @@ public class RatingController {
     public void ratingClickAction(Post post, float ratingValue) {
         if (!updatingRatingCounter) {
             startAnimateLikeButton(likeAnimationType);
-            if (ratingValue > 0) addRating(post, ratingValue);
-            else removeRating(post);
+            if (ratingValue > 0)
+                addRating(post, ratingValue);
+            else
+                removeRating(post);
 //            if (!isRated) {
 //                addLike(prevValue);
 //            } else {
@@ -71,40 +73,23 @@ public class RatingController {
 
     public void ratingClickActionLocal(Post post, float ratingValue) {
         setUpdatingRatingCounter(false);
-        //updateLocalPostLikeCounter(post);
+        if (ratingValue > 0) {
+            updateLocalPostRatingCounter(post, ratingValue);
+        } else {
+            removeLocalPostRatingCounter(post);
+        }
         ratingClickAction(post, ratingValue);
     }
 
     private void addRating(Post post, float ratingValue) {
         updatingRatingCounter = true;
-        float oldRatingValue = rating.getRating();
         rating.setRating(ratingValue);
-        float avgRating = post.getAverageRating();
-        if (rating.getId() == null || rating.getId().isEmpty()) {
-            ratingCounterTextView.setText("(" + (post.getRatingsCount() + 1) + ")");
-            avgRating = (avgRating*post.getRatingsCount() + ratingValue)/(post.getRatingsCount() + 1);
-            post.setRatingsCount(post.getRatingsCount()+1);
-        } else {
-            avgRating = avgRating + (ratingValue - oldRatingValue)/post.getRatingsCount();
-        }
-        post.setAverageRating(avgRating);
-        averageRatingTextView.setText(String.format( "%.1f", avgRating));
-        ApplicationHelper.getDatabaseHelper().createOrUpdateRating(postId, postAuthorId, rating, oldRatingValue);
+        ApplicationHelper.getDatabaseHelper().createOrUpdateRating(postId, postAuthorId, rating);
     }
 
     private void removeRating(Post post) {
+        if (this.rating == null || this.rating.getId() == null) return;
         updatingRatingCounter = true;
-        float avgRating = post.getAverageRating();
-        if (post.getRatingsCount() > 1) {
-            avgRating = (avgRating*post.getRatingsCount() - this.rating.getRating())/(post.getRatingsCount() - 1);
-            post.setRatingsCount(post.getRatingsCount() - 1);
-            post.setAverageRating(avgRating);
-        } else {
-            post.setRatingsCount(0);
-            post.setAverageRating(0);
-        }
-        ratingCounterTextView.setText("(" + post.getRatingsCount() + ")");
-        averageRatingTextView.setText(String.format( "%.1f", post.getAverageRating()));
         ApplicationHelper.getDatabaseHelper().removeRating(postId, postAuthorId, this.rating);
         rating.reinit();
     }
@@ -203,11 +188,31 @@ public class RatingController {
         }
     }
 
-    private void updateLocalPostLikeCounter(Post post) {
-        // first time rated by user
-        if (this.rating == null || this.rating.getRating() == 0) {
-            post.setRatingsCount(post.getRatingsCount() + 1);
+    private void updateLocalPostRatingCounter(Post post, float ratingValue) {
+        float avgRating = post.getAverageRating();
+        if (rating.getId() == null || rating.getId().isEmpty()) {
+            ratingCounterTextView.setText("(" + (post.getRatingsCount() + 1) + ")");
+            avgRating = (avgRating*post.getRatingsCount() + ratingValue)/(post.getRatingsCount() + 1);
+            post.setRatingsCount(post.getRatingsCount()+1);
+        } else {
+            avgRating = avgRating + (ratingValue - rating.getRating())/post.getRatingsCount();
         }
+        post.setAverageRating(avgRating);
+        averageRatingTextView.setText(String.format( "%.1f", avgRating));
+    }
+
+    private void removeLocalPostRatingCounter(Post post) {
+        float avgRating = post.getAverageRating();
+        if (post.getRatingsCount() > 1) {
+            avgRating = (avgRating*post.getRatingsCount() - this.rating.getRating())/(post.getRatingsCount() - 1);
+            post.setRatingsCount(post.getRatingsCount() - 1);
+            post.setAverageRating(avgRating);
+        } else {
+            post.setRatingsCount(0);
+            post.setAverageRating(0);
+        }
+        ratingCounterTextView.setText("(" + post.getRatingsCount() + ")");
+        averageRatingTextView.setText(String.format( "%.1f", post.getAverageRating()));
     }
 
     public void handleRatingClickAction(final BaseActivity baseActivity, final Post post, final float ratingValue) {

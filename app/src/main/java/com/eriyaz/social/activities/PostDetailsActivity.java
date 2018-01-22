@@ -19,7 +19,6 @@ package com.eriyaz.social.activities;
 
 import android.animation.Animator;
 import android.annotation.TargetApi;
-import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -58,8 +57,6 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.CommentsAdapter;
 import com.eriyaz.social.adapters.RatingsAdapter;
@@ -82,6 +79,8 @@ import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.utils.FormatterUtil;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.xw.repo.BubbleSeekBar;
 
 import java.util.List;

@@ -6,7 +6,7 @@ admin.initializeApp(functions.config().firebase);
 const actionTypeNewRating = "new_rating"
 const actionTypeNewComment = "new_comment"
 const actionTypeNewPost = "new_post"
-const notificationTitle = "Social App"
+const notificationTitle = "YourSingingScore"
 
 const postsTopic = "postsTopic"
 
@@ -202,16 +202,36 @@ exports.pushNotificationNewPost = functions.database.ref('/posts/{postId}').onWr
 
 });
 
-exports.pushNotificationCreatePost = functions.database.ref("/posts/{postId}").onCreate(event => {
-    // Send notifications with FCM...
-	const postId = event.params.postId;
-	console.log('New post was created ', postId);
+// Keeps track of the length of the 'likes' child list in a separate property.
+exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onWrite(event => {
+    const postRatingRef = event.data.ref.parent.parent;
+    const postId = event.params.postId;
+    console.log('Rating changed on post ', postId);
+	
+    return postRatingRef.once('value').then(snapshot => {
+        let ratingTotal = 0;
+        let ratingNum = snapshot.numChildren();
+        const updates = {};
+        snapshot.forEach(function(authorSnap) {
+	      console.log("author obj", authorSnap.val());
+	      authorSnap.forEach(function(ratingSnap) {
+		     console.log("rating obj", ratingSnap.val());
+		     ratingTotal = ratingTotal + ratingSnap.val().rating;
+	      });
+        });
+      console.log("ratingTotal ", ratingTotal);
+        // Get the rated post
+        const postRef = admin.database().ref(`/posts/${postId}`);
+        return postRef.transaction(current => {
+            current.ratingsCount = ratingNum;
+            if (ratingNum > 0) {
+                current.averageRating = ratingTotal/ratingNum;
+            } else {
+                current.averageRating = 0;
+            }
+            return current;
+        }).then(() => {
+            console.log('Post counters updated.');
+        });
+   });
 });
-
-exports.pushNotificationUpdatePost = functions.database.ref("/posts/{postId}").onUpdate(event => {
-    // Send notifications with FCM...
-	const postId = event.params.postId;
-	console.log('post was updated ', postId);
-});
-
-
