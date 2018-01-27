@@ -184,7 +184,7 @@ public class PostManager extends FirebaseListenersManager {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         onTaskCompleteListener.onTaskComplete(task.isSuccessful());
-                        databaseHelper.updateProfileLikeCountAfterRemovingPost(post);
+//                        databaseHelper.updateProfileLikeCountAfterRemovingPost(post);
                         LogUtil.logDebug(TAG, "removePost(), is success: " + task.isSuccessful());
                     }
                 });

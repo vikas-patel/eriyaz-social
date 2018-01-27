@@ -27,7 +27,7 @@ public class Profile implements Serializable {
     private String username;
     private String email;
     private String photoUrl;
-    private long likesCount;
+    private long points;
     private String registrationToken;
 
     public Profile() {
@@ -70,12 +70,12 @@ public class Profile implements Serializable {
         this.photoUrl = photoUrl;
     }
 
-    public long getLikesCount() {
-        return likesCount;
+    public long getPoints() {
+        return points;
     }
 
-    public void setLikesCount(long likesCount) {
-        this.likesCount = likesCount;
+    public void setPoints(long points) {
+        this.points = points;
     }
 
     public String getRegistrationToken() {

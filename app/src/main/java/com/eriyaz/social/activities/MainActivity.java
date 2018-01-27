@@ -23,7 +23,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SimpleItemAnimator;
@@ -38,6 +40,10 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
+import com.eriyaz.social.model.Point;
+import com.eriyaz.social.model.Profile;
+import com.eriyaz.social.utils.LogUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -66,6 +72,7 @@ public class MainActivity extends BaseActivity {
     private TextView newPostsCounterTextView;
     private PostManager.PostCounterWatcher postCounterWatcher;
     private boolean counterAnimationInProgress = false;
+    private Integer userPoints;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,15 +95,74 @@ public class MainActivity extends BaseActivity {
 
         postManager.setPostCounterWatcher(postCounterWatcher);
 
+        profileManager.getUserPoints(MainActivity.this, createOnUserPointsChangedListener());
+
+        setOnPointAddedListener();
+
 //        setOnLikeAddedListener();
+    }
+
+    private OnObjectChangedListener<Integer> createOnUserPointsChangedListener() {
+        return new OnObjectChangedListener<Integer>() {
+            @Override
+            public void onObjectChanged(Integer obj) {
+                userPoints = obj;
+                LogUtil.logInfo("MainActivity", "user points "+ userPoints);
+            }
+        };
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         updateNewPostCounter();
+        updateKarmaWarning();
     }
 
+    private void setOnPointAddedListener() {
+        DatabaseHelper.getInstance(this).onNewPointAddedListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Point point = dataSnapshot.getValue(Point.class);
+                Toast toast;
+                int absValue = Math.abs(point.getValue());
+                String pointsLabel = getResources().getQuantityString(R.plurals.points_counter_format, absValue, absValue);
+                if (point.getValue()>0){
+                    String msg = absValue + " " + pointsLabel + " earned for " + point.getType() + " " + point.getAction();
+                    toast = Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG);
+                    toast.getView().setBackgroundColor(getResources().getColor(R.color.light_green));
+                } else {
+                    String msg = absValue + " " + pointsLabel + " lost for " + point.getType() + " " + point.getAction();
+                    toast = Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG);
+                    toast.getView().setBackgroundColor(getResources().getColor(R.color.red));
+                }
+                TextView text = (TextView) toast.getView().findViewById(android.R.id.message);
+                text.setTextColor(getResources().getColor(R.color.icons));
+                toast.show();
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+/*
     private void setOnLikeAddedListener() {
         DatabaseHelper.getInstance(this).onNewLikeAddedListener(new ChildEventListener() {
             @Override
@@ -126,7 +192,7 @@ public class MainActivity extends BaseActivity {
             }
         });
     }
-
+*/
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -350,6 +416,41 @@ public class MainActivity extends BaseActivity {
                 }
             }
         });
+    }
+
+    private void updateKarmaWarning() {
+        Handler mainHandler = new Handler(this.getMainLooper());
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (userPoints != null && userPoints < 0) {
+                    showKarmaWarning();
+                }
+            }
+        });
+    }
+
+    private void showKarmaDetails() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(String.format(getString(R.string.karma_text),
+                FirebaseAuth.getInstance().getCurrentUser().getDisplayName()));
+        builder.setPositiveButton(R.string.button_ok, null);
+        builder.show();
+    }
+
+    private void showKarmaWarning() {
+        Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content),
+                "Warning. You are in negative karma", Snackbar.LENGTH_INDEFINITE);
+        snackbar.setAction("Know more..", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showKarmaDetails();
+            }
+        });
+        snackbar.setActionTextColor(getResources().getColor(R.color.accent));
+        View snackBarView = snackbar.getView();
+        snackBarView.setBackgroundColor(getResources().getColor(R.color.red));
+        snackbar.show();
     }
 
     @Override

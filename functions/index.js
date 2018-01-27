@@ -156,20 +156,8 @@ exports.pushNotificationComments = functions.database.ref('/post-comments/{postI
     })
 });
 
-exports.pushNotificationNewPost = functions.database.ref('/posts/{postId}').onWrite(event => {
+exports.pushNotificationPostNew = functions.database.ref('/posts/{postId}').onCreate(event => {
     const postId = event.params.postId;
-
-    // Only edit data when it is first created.
-    if (event.data.previous.exists()) {
-        console.log('Post was changed');
-        return;
-    }
-    // Exit when the data is deleted.
-    if (!event.data.exists()) {
-        console.log('Post was removed');
-        return;
-    }
-
     console.log('New post was created');
 
     // Get post authorID.
@@ -219,7 +207,7 @@ exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{aut
 		     ratingTotal = ratingTotal + ratingSnap.val().rating;
 	      });
         });
-      console.log("ratingTotal ", ratingTotal);
+        console.log("ratingTotal ", ratingTotal);
         // Get the rated post
         const postRef = admin.database().ref(`/posts/${postId}`);
         return postRef.transaction(current => {
@@ -234,4 +222,143 @@ exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{aut
             console.log('Post counters updated.');
         });
    });
+});
+
+exports.commentsPoints = functions.database.ref('/post-comments/{postId}/{commentId}').onWrite(event => {
+
+    if (event.data.exists() && event.data.previous.exists()) {
+        return console.log("no points for comment updates");
+    }
+    const commentId = event.params.commentId;
+    const postId = event.params.postId;
+    const comment = event.data.exists() ? event.data.val() : event.data.previous.val();
+    const commentAuthorId = comment.authorId;
+
+    console.log('New comment was added, post id: ', postId);
+
+    // Get the commented post .
+    const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
+
+    return getPostTask.then(post => {
+
+        if (commentAuthorId == post.val().authorId) {
+            return console.log('User commented on own post');
+        }
+
+        // Get user points ref
+        const userPointsRef = admin.database().ref(`/user-points/${commentAuthorId}`);
+        var newPointRef = userPointsRef.push();
+        newPointRef.set({
+            'action': event.data.exists() ? "add":"remove",
+            'type': 'comment',
+            'value': event.data.exists() ? 1:-1,
+            'creationDate': admin.database.ServerValue.TIMESTAMP
+        });
+
+        // Get rating author.
+        const authorProfilePointsRef = admin.database().ref(`/profiles/${commentAuthorId}/points`);
+        return authorProfilePointsRef.transaction(current => {
+            if (event.data.exists()) {
+              return (current || 0) + 1;
+            } else {
+              return (current || 0) - 1;
+            }
+        }).then(() => {
+            console.log('User comment points updated.');
+        });
+
+    })
+});
+
+// Two different fuctions for post add and remove, because there were too many post update request
+// and firebase has restriction on frequency of function calls.
+exports.postAddedPoints = functions.database.ref('/posts/{postId}').onCreate(event => {
+    const postId = event.params.postId;
+    const post = event.data.val();
+    const postAuthorId = post.authorId;
+    console.log('Post created. ', postId);
+    // Get user points ref
+    const userPointsRef = admin.database().ref(`/user-points/${postAuthorId}`);
+    var newPointRef = userPointsRef.push();
+    newPointRef.set({
+        'action': "add",
+        'type': 'post',
+        'value': -5,
+        'creationDate': admin.database.ServerValue.TIMESTAMP
+    });
+
+    // Get rating author.
+    const authorProfilePointsRef = admin.database().ref(`/profiles/${postAuthorId}/points`);
+    return authorProfilePointsRef.transaction(current => {
+          return (current || 0) - 5;
+    }).then(() => {
+        console.log('User post added points updated.');
+    });
+});
+
+exports.postDeletePoints = functions.database.ref('/posts/{postId}').onDelete(event => {
+    const postId = event.params.postId;
+    const post = event.data.previous.val();
+    const postAuthorId = post.authorId;
+    console.log('Post removed. ', postId);
+    // Get user points ref
+    const userPointsRef = admin.database().ref(`/user-points/${postAuthorId}`);
+    var newPointRef = userPointsRef.push();
+    newPointRef.set({
+        'action': "remove",
+        'type': 'post',
+        'value': 5,
+        'creationDate': admin.database.ServerValue.TIMESTAMP
+    });
+
+    // Get rating author.
+    const authorProfilePointsRef = admin.database().ref(`/profiles/${postAuthorId}/points`);
+    return authorProfilePointsRef.transaction(current => {
+          return (current || 0) + 5;
+    }).then(() => {
+        console.log('User post points updated.');
+    });
+});
+
+exports.ratingPoints = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onWrite(event => {
+    if (event.data.exists() && event.data.previous.exists()) {
+        return console.log("no points for rating updates");
+    }
+    console.log('Points for new/remove rating');
+
+    const ratingAuthorId = event.params.authorId;
+    const postId = event.params.postId;
+
+    // Get rated post.
+    const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
+
+    return getPostTask.then(post => {
+
+        if (ratingAuthorId == post.val().authorId) {
+            return console.log('User rated own post');
+        }
+
+        // Get user points ref
+        const userPointsRef = admin.database().ref(`/user-points/${ratingAuthorId}`);
+        var newPointRef = userPointsRef.push();
+        newPointRef.set({
+            'action': event.data.exists() ? "add":"remove",
+            'type': 'rating',
+            'value': event.data.exists() ? 1:-1,
+            'creationDate': admin.database.ServerValue.TIMESTAMP
+        });
+
+        // Get rating author.
+        const authorProfilePointsRef = admin.database().ref(`/profiles/${ratingAuthorId}/points`);
+        return authorProfilePointsRef.transaction(current => {
+            if (event.data.exists()) {
+              return (current || 0) + 1;
+            } else {
+              return (current || 0) - 1;
+            }
+        }).then(() => {
+            console.log('User rating points updated.');
+        });
+
+    })
 });

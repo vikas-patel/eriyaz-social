@@ -29,6 +29,7 @@ import android.support.v7.widget.Toolbar;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.text.style.BackgroundColorSpan;
 import android.text.style.TextAppearanceSpan;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -70,7 +71,6 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
     private ImageView imageView;
     private RecyclerView recyclerView;
     private ProgressBar progressBar;
-    private TextView postsCounterTextView;
     private TextView postsLabelTextView;
     private ProgressBar postsProgressBar;
 
@@ -81,7 +81,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
 
     private PostsByUserAdapter postsAdapter;
     private SwipeRefreshLayout swipeContainer;
-    private TextView likesCountersTextView;
+    private TextView pointsCountersTextView;
     private ProfileManager profileManager;
 
     @Override
@@ -108,8 +108,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         imageView = (ImageView) findViewById(R.id.imageView);
         nameEditText = (TextView) findViewById(R.id.nameEditText);
-        postsCounterTextView = (TextView) findViewById(R.id.postsCounterTextView);
-        likesCountersTextView = (TextView) findViewById(R.id.likesCountersTextView);
+        pointsCountersTextView = (TextView) findViewById(R.id.pointsCountersTextView);
         postsLabelTextView = (TextView) findViewById(R.id.postsLabelTextView);
         postsProgressBar = (ProgressBar) findViewById(R.id.postsProgressBar);
 
@@ -200,10 +199,8 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
                 @Override
                 public void onPostsListChanged(int postsCount) {
                     String postsLabel = getResources().getQuantityString(R.plurals.posts_counter_format, postsCount, postsCount);
-                    postsCounterTextView.setText(buildCounterSpannable(postsLabel, postsCount));
 
-                    likesCountersTextView.setVisibility(View.VISIBLE);
-                    postsCounterTextView.setVisibility(View.VISIBLE);
+                    pointsCountersTextView.setVisibility(View.VISIBLE);
 
                     if (postsCount > 0) {
                         postsLabelTextView.setVisibility(View.VISIBLE);
@@ -234,6 +231,12 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
         int start = contentString.length();
         contentString.append(label);
         contentString.setSpan(new TextAppearanceSpan(this, R.style.TextAppearance_Second_Light), start, contentString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        contentString.setSpan(new TextAppearanceSpan(this, R.style.TextAppearance_Title_White), 0, start-1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        if (value > 0) {
+            contentString.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.light_green)), 0, start-1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        } else {
+            contentString.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.red)), 0, start-1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
         return contentString;
     }
 
@@ -300,9 +303,9 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
                 imageView.setImageResource(R.drawable.ic_stub);
             }
 
-            int likesCount = (int) profile.getLikesCount();
-            String likesLabel = getResources().getQuantityString(R.plurals.likes_counter_format, likesCount, likesCount);
-            likesCountersTextView.setText(buildCounterSpannable(likesLabel, likesCount));
+            int pointsCount = (int) profile.getPoints();
+            String pointsLabel = getResources().getQuantityString(R.plurals.points_counter_format, pointsCount, pointsCount);
+            pointsCountersTextView.setText(buildCounterSpannable(pointsLabel, pointsCount));
         }
     }
 

@@ -15,7 +15,6 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.eriyaz.social.utils.LogUtil;
 import com.melnykov.fab.FloatingActionButton;

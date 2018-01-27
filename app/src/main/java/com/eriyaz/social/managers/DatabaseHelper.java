@@ -65,6 +65,7 @@ import com.eriyaz.social.utils.LogUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -102,7 +103,7 @@ public class DatabaseHelper {
 
     public void init() {
         database = FirebaseDatabase.getInstance();
-        database.setPersistenceEnabled(true);
+//        database.setPersistenceEnabled(true);
         storage = FirebaseStorage.getInstance();
 
 //        Sets the maximum time to retry upload operations if a failure occurs.
@@ -213,7 +214,7 @@ public class DatabaseHelper {
         DatabaseReference postRef = databaseReference.child("posts").child(post.getId());
         return postRef.removeValue();
     }
-
+/*
     public void updateProfileLikeCountAfterRemovingPost(Post post) {
         DatabaseReference profileRef = database.getReference("profiles/" + post.getAuthorId() + "/likesCount");
         final long likesByPostCount = post.getLikesCount();
@@ -236,7 +237,7 @@ public class DatabaseHelper {
         });
 
     }
-
+*/
     public Task<Void> removeImage(String imageTitle) {
         StorageReference storageRef = storage.getReferenceFromUrl("gs://social.appspot.com");
         StorageReference desertRef = storageRef.child("images/" + imageTitle);
@@ -352,6 +353,13 @@ public class DatabaseHelper {
     public void onNewLikeAddedListener(ChildEventListener childEventListener) {
         DatabaseReference mLikesReference = database.getReference().child("post-likes");
         mLikesReference.addChildEventListener(childEventListener);
+    }
+
+    public void onNewPointAddedListener(ChildEventListener childEventListener) {
+        String authorId = firebaseAuth.getCurrentUser().getUid();
+        DatabaseReference mPointsReference = database.getReference().child("user-points").child(authorId);
+        Query query = mPointsReference.orderByChild("creationDate").startAt(new Date().getTime());
+        query.addChildEventListener(childEventListener);
     }
 
     public void createOrUpdateRating(final String postId, final String postAuthorId, final Rating rating) {
@@ -527,7 +535,7 @@ public class DatabaseHelper {
             postsQuery = databaseReference.limitToLast(Constants.Post.POST_AMOUNT_ON_PAGE).endAt(date).orderByChild("createdDate");
         }
 
-        postsQuery.keepSynced(true);
+//        postsQuery.keepSynced(true);
         postsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -554,7 +562,7 @@ public class DatabaseHelper {
         Query postsQuery;
         postsQuery = databaseReference.orderByChild("authorId").equalTo(userId);
 
-        postsQuery.keepSynced(true);
+//        postsQuery.keepSynced(true);
         postsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -715,6 +723,25 @@ public class DatabaseHelper {
                 LogUtil.logError(TAG, "getProfileSingleValue(), onCancelled", new Exception(databaseError.getMessage()));
             }
         });
+    }
+
+    public ValueEventListener getUserPointsValue(final OnObjectChangedListener<Integer> listener) {
+        String authorId = firebaseAuth.getCurrentUser().getUid();
+        DatabaseReference databaseReference = getDatabaseReference().child("profiles").child(authorId).child("points");
+        ValueEventListener valueEventListener = databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Integer pointValue = dataSnapshot.getValue(Integer.class);
+                listener.onObjectChanged(pointValue);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                LogUtil.logError(TAG, "getProfileSingleValue(), onCancelled", new Exception(databaseError.getMessage()));
+            }
+        });
+        activeListeners.put(valueEventListener, databaseReference);
+        return valueEventListener;
     }
 
     public ValueEventListener getProfile(String id, final OnObjectChangedListener<Profile> listener) {

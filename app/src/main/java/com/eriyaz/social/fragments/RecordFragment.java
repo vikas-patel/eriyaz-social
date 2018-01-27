@@ -64,7 +64,6 @@ public class RecordFragment extends Fragment {
         @Override
         public void onServiceConnected(ComponentName className,
                                        IBinder service) {
-            Toast.makeText(getActivity(), "onServiceConnected called", Toast.LENGTH_SHORT).show();
             // We've binded to LocalService, cast the IBinder and get LocalService instance
             RecordingService.LocalBinder binder = (RecordingService.LocalBinder) service;
             recordingService = binder.getServiceInstance(); //Get instance of your service!
