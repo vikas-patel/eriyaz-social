@@ -108,6 +108,9 @@ public class RecordingService extends Service {
             mRecorder.setAudioEncodingBitRate(192000);
         }
 
+        mRecorder.setAudioSamplingRate(44100);
+        mRecorder.setAudioEncodingBitRate(192000);
+
         try {
             mRecorder.prepare();
             mRecorder.start();
