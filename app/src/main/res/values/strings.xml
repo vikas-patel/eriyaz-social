@@ -125,8 +125,8 @@
     </plurals>
 
     <plurals name="points_counter_format">
-        <item quantity="one">point</item>
-        <item quantity="other">points</item>
+        <item quantity="one">karma point</item>
+        <item quantity="other">karma points</item>
     </plurals>
 
     <string name="posts_label">Posts:</string>

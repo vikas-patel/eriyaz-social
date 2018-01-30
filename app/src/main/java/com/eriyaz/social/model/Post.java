@@ -16,6 +16,8 @@
 
 package com.eriyaz.social.model;
 
+import android.os.Parcelable;
+
 import com.eriyaz.social.enums.ItemType;
 import com.eriyaz.social.utils.FormatterUtil;
 
@@ -45,6 +47,21 @@ public class Post implements Serializable, LazyLoading {
     private boolean hasComplain;
     private ItemType itemType;
     private long audioDuration;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Post post = (Post) o;
+
+        return id.equals(post.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 
     public Post() {
         this.createdDate = new Date().getTime();

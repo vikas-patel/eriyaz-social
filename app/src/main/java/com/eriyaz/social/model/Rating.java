@@ -1,12 +1,14 @@
 package com.eriyaz.social.model;
 
+import java.io.Serializable;
 import java.util.Calendar;
 
 /**
  * Created by vikas on 18/12/17.
  */
 
-public class Rating {
+public class Rating implements Serializable {
+    public static final String RATING_ID_EXTRA_KEY = "RATING.RATING_ID_EXTRA_KEY";
     private String id;
     private String authorId;
     private long createdDate;

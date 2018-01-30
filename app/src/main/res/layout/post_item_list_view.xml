@@ -48,7 +48,7 @@
                     android:id="@+id/imageView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/ic_fileviewer"
+                    android:src="@drawable/ic_media_play_red"
                     android:layout_gravity="center_vertical"
                     android:layout_marginLeft="7dp"
                     android:layout_marginRight="7dp"/>
@@ -122,14 +122,6 @@
                 <!--android:maxLines="2"-->
                 <!--android:textAppearance="@style/TextAppearance.Second"-->
                 <!--android:layout_alignParentEnd="true" />-->
-
-
-            <include
-                android:id="@+id/seekbarContainer"
-                layout="@layout/seekbar_container"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/titleTextView" />
 
         </RelativeLayout>
 

@@ -362,7 +362,7 @@ public class DatabaseHelper {
         query.addChildEventListener(childEventListener);
     }
 
-    public void createOrUpdateRating(final String postId, final String postAuthorId, final Rating rating) {
+    public void createOrUpdateRating(final String postId, final Rating rating) {
         try {
             String authorId = firebaseAuth.getCurrentUser().getUid();
             DatabaseReference mLikesReference = database.getReference().child("post-ratings").child(postId).child(authorId);
@@ -494,7 +494,7 @@ public class DatabaseHelper {
         });
     }
 
-    public void removeRating(final String postId, final String postAuthorId, final Rating rating) {
+    public void removeRating(final String postId, final Rating rating) {
         if (rating.getId() == null) return;
         String authorId = firebaseAuth.getCurrentUser().getUid();
         DatabaseReference mLikesReference = database.getReference().child("post-ratings").child(postId).child(authorId);

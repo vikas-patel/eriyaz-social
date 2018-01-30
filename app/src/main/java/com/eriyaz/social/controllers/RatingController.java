@@ -29,9 +29,7 @@ import com.xw.repo.BubbleSeekBar;
 public class RatingController {
     private static final int ANIMATION_DURATION = 300;
 
-    private Context context;
     private String postId;
-    private String postAuthorId;
 
     private LikeController.AnimationType likeAnimationType = LikeController.AnimationType.BOUNCE_ANIM;
 
@@ -44,11 +42,9 @@ public class RatingController {
     private Rating rating;
     private boolean updatingRatingCounter = true;
 
-    public RatingController(Context context, Post post, TextView ratingCounterTextView, TextView averageRatingTextView,
+    public RatingController(String postId, TextView ratingCounterTextView, TextView averageRatingTextView,
                             BubbleSeekBar ratingBar, boolean isListView) {
-        this.context = context;
-        this.postId = post.getId();
-        this.postAuthorId = post.getAuthorId();
+        this.postId = postId;
         this.ratingCounterTextView = ratingCounterTextView;
         this.averageRatingTextView = averageRatingTextView;
         this.ratingBar = ratingBar;
@@ -56,19 +52,23 @@ public class RatingController {
         this.rating = new Rating();
     }
 
-    public void ratingClickAction(Post post, float ratingValue) {
+    public RatingController(String postId, Rating rating) {
+        this.postId = postId;
+        this.rating = rating;
+    }
+
+    public void ratingClickAction(float ratingValue) {
         if (!updatingRatingCounter) {
             startAnimateLikeButton(likeAnimationType);
             if (ratingValue > 0)
-                addRating(post, ratingValue);
+                addRating(ratingValue);
             else
-                removeRating(post);
-//            if (!isRated) {
-//                addLike(prevValue);
-//            } else {
-//                removeLike(prevValue);
-//            }
+                removeRating();
         }
+    }
+
+    public Rating getRating() {
+        return rating;
     }
 
     public void ratingClickActionLocal(Post post, float ratingValue) {
@@ -78,19 +78,19 @@ public class RatingController {
         } else {
             removeLocalPostRatingCounter(post);
         }
-        ratingClickAction(post, ratingValue);
+        ratingClickAction(ratingValue);
     }
 
-    private void addRating(Post post, float ratingValue) {
+    private void addRating(float ratingValue) {
         updatingRatingCounter = true;
         rating.setRating(ratingValue);
-        ApplicationHelper.getDatabaseHelper().createOrUpdateRating(postId, postAuthorId, rating);
+        ApplicationHelper.getDatabaseHelper().createOrUpdateRating(postId, rating);
     }
 
-    private void removeRating(Post post) {
+    private void removeRating() {
         if (this.rating == null || this.rating.getId() == null) return;
         updatingRatingCounter = true;
-        ApplicationHelper.getDatabaseHelper().removeRating(postId, postAuthorId, this.rating);
+        ApplicationHelper.getDatabaseHelper().removeRating(postId, this.rating);
         rating.reinit();
     }
 
@@ -247,7 +247,7 @@ public class RatingController {
             if (isListView) {
                 ratingClickActionLocal(post, ratingValue);
             } else {
-                ratingClickAction(post, ratingValue);
+                ratingClickAction(ratingValue);
             }
         } else {
             baseActivity.doAuthorization(profileStatus);

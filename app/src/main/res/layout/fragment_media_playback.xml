@@ -31,7 +31,7 @@
                 android:layout_marginLeft="10dp"
                 android:layout_marginTop="7dp"
                 android:fontFamily="sans-serif-condensed"
-                android:text="file_name.mp4"
+                android:text="song title"
                 android:textSize="18sp" />
 
             <SeekBar
@@ -67,6 +67,7 @@
                     android:layout_centerHorizontal="true"
                     android:layout_marginBottom="10dp"
                     android:layout_marginTop="20dp"
+                    android:layout_below="@+id/seekbarContainer"
                     android:src="@drawable/ic_media_play"
                     app:fab_colorNormal="@color/primary"
                     app:fab_colorPressed="@color/primary"
@@ -82,8 +83,15 @@
                     android:layout_alignParentTop="true"
                     android:layout_marginRight="10dp"
                     android:text="00:00" />
+                <include
+                    android:id="@+id/seekbarContainer"
+                    layout="@layout/seekbar_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/txtPercentage" />
 
             </RelativeLayout>
+
 
         </LinearLayout>
 

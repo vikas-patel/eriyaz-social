@@ -479,4 +479,8 @@ public class MainActivity extends BaseActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
+
+    public void updatePost(Post post) {
+        postsAdapter.updatePost(post);
+    }
 }

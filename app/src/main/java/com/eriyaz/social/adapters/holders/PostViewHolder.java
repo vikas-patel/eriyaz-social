@@ -19,6 +19,8 @@ package com.eriyaz.social.adapters.holders;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
@@ -31,7 +33,10 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.eriyaz.social.activities.MainActivity;
+import com.eriyaz.social.activities.PostDetailsActivity;
 import com.eriyaz.social.utils.Analytics;
+import com.eriyaz.social.utils.LogUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.eriyaz.social.Constants;
@@ -49,6 +54,7 @@ import com.eriyaz.social.utils.FormatterUtil;
 import com.eriyaz.social.utils.Utils;
 import com.xw.repo.BubbleSeekBar;
 
+import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -76,13 +82,12 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     private TextView dateTextView;
     private ImageView authorImageView;
     private ViewGroup likeViewGroup;
-    private BubbleSeekBar ratingBar;
 
     private ProfileManager profileManager;
     private PostManager postManager;
+    private Rating rating;
 
 //    private LikeController likeController;
-    private RatingController ratingController;
     private Analytics analytics;
 
     public PostViewHolder(View view, final OnClickListener onClickListener) {
@@ -111,7 +116,6 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 //        detailsTextView = (TextView) view.findViewById(R.id.detailsTextView);
         authorImageView = (ImageView) view.findViewById(R.id.authorImageView);
 //        likeViewGroup = (ViewGroup) view.findViewById(R.id.likesContainer);
-        ratingBar = (BubbleSeekBar) view.findViewById(R.id.ratingBar);
 
         authorImageView.setVisibility(isAuthorNeeded ? View.VISIBLE : View.GONE);
 
@@ -124,45 +128,6 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
                 int position = getAdapterPosition();
                 if (onClickListener != null && position != RecyclerView.NO_POSITION) {
                     onClickListener.onItemClick(getAdapterPosition(), v);
-                }
-            }
-        });
-        // customize section texts
-        ratingBar.setCustomSectionTextArray(new BubbleSeekBar.CustomSectionTextArray() {
-            @NonNull
-            @Override
-            public SparseArray<String> onCustomize(int sectionCount, @NonNull SparseArray<String> array) {
-                array.clear();
-                array.put(1, "not ok");
-                array.put(3, "ok");
-                array.put(5, "good");
-                array.put(7, "amazing");
-                return array;
-            }
-        });
-        ratingBar.setOnProgressChangedListener(new BubbleSeekBar.OnProgressChangedListenerAdapter() {
-            @Override
-            public void onProgressChanged(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
-                int color;
-                if (progress <= 5) {
-                    color = ContextCompat.getColor(context, R.color.red);
-                } else if (progress <= 10) {
-                    color = ContextCompat.getColor(context, R.color.accent);
-                } else if (progress <= 15) {
-                    color = ContextCompat.getColor(context, R.color.light_green);
-                } else {
-                    color = ContextCompat.getColor(context, R.color.dark_green);
-                }
-                bubbleSeekBar.setSecondTrackColor(color);
-                bubbleSeekBar.setThumbColor(color);
-                bubbleSeekBar.setBubbleColor(color);
-            }
-
-            @Override
-            public void getProgressOnActionUp(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
-                int position = getAdapterPosition();
-                if (onClickListener != null && position != RecyclerView.NO_POSITION && true) {
-                    onClickListener.onRatingClick(ratingController, position, progress);
                 }
             }
         });
@@ -202,8 +167,6 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     public void bindData(final Post post) {
 
 //        likeController = new LikeController(context, post, likeCounterTextView, likesImageView, true);
-        ratingController = new RatingController(context, post, ratingCounterTextView, averageRatingTextView, ratingBar, true);
-
         final String title = removeNewLinesDividers(post.getTitle());
         titleTextView.setText(title);
         fileName.setText(title);
@@ -220,11 +183,6 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         }
         averageRatingTextView.setText(avgRatingText);
         ratingCounterTextView.setText("(" + post.getRatingsCount() + ")");
-        if (post.getRatingsCount() > 0) {
-            ratingsImageView.setImageResource(R.drawable.ic_star_active);
-        } else {
-            ratingsImageView.setImageResource(R.drawable.ic_star);
-        }
         commentsCountTextView.setText(String.valueOf(post.getCommentsCount()));
         watcherCounterTextView.setText(String.valueOf(post.getWatchersCount()));
 
@@ -255,7 +213,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
                     item.setLength(post.getAudioDuration());
                     item.setFilePath(post.getImagePath());
                     PlaybackFragment playbackFragment =
-                            new PlaybackFragment().newInstance(item);
+                            new PlaybackFragment().newInstance(item, post, rating);
                     android.app.FragmentTransaction transaction = ((Activity)context).getFragmentManager()
                             .beginTransaction();
                     playbackFragment.show(transaction, "dialog_playback");
@@ -313,7 +271,12 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         return new OnObjectChangedListener<Rating>() {
             @Override
             public void onObjectChanged(Rating obj) {
-                ratingController.initRating(obj);
+                rating = obj;
+                if (obj != null && obj.getRating() > 0) {
+                    ratingsImageView.setImageResource(R.drawable.ic_star_active);
+                } else {
+                    ratingsImageView.setImageResource(R.drawable.ic_star);
+                }
             }
         };
     }

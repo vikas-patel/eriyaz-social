@@ -383,4 +383,8 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
                 return super.onOptionsItemSelected(item);
         }
     }
+
+    public void updatePost(Post post) {
+        postsAdapter.updatePost(post);
+    }
 }

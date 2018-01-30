@@ -3,23 +3,35 @@ package com.eriyaz.social.fragments;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.content.DialogInterface;
 import android.graphics.ColorFilter;
 import android.graphics.LightingColorFilter;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.eriyaz.social.R;
+import com.eriyaz.social.activities.BaseActivity;
+import com.eriyaz.social.activities.MainActivity;
+import com.eriyaz.social.activities.PostDetailsActivity;
+import com.eriyaz.social.activities.ProfileActivity;
+import com.eriyaz.social.controllers.RatingController;
+import com.eriyaz.social.model.Post;
+import com.eriyaz.social.model.Profile;
+import com.eriyaz.social.model.Rating;
+import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.utils.LogUtil;
 import com.melnykov.fab.FloatingActionButton;
-import com.eriyaz.social.R;
-import com.eriyaz.social.model.RecordingItem;
+import com.xw.repo.BubbleSeekBar;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -31,7 +43,7 @@ public class PlaybackFragment extends DialogFragment {
 
     private static final String LOG_TAG = "PlaybackFragment";
 
-    private static final String ARG_ITEM = "recording_item";
+    public static final String RECORDING_ITEM = "recording_item";
     private RecordingItem item;
 
     private Handler mHandler = new Handler();
@@ -44,6 +56,12 @@ public class PlaybackFragment extends DialogFragment {
     private TextView mFileNameTextView = null;
     private TextView mFileLengthTextView = null;
     private TextView txtPercentage;
+    private BubbleSeekBar ratingBar;
+    private Post post;
+    private Rating rating;
+    private RatingController ratingController;
+    private boolean isRatingChanged = false;
+    private View ratingLayout;
 
     //stores whether or not the mediaplayer is currently playing audio
     private boolean isPlaying = false;
@@ -55,22 +73,44 @@ public class PlaybackFragment extends DialogFragment {
     public PlaybackFragment newInstance(RecordingItem item) {
         PlaybackFragment f = new PlaybackFragment();
         Bundle b = new Bundle();
-        b.putParcelable(ARG_ITEM, item);
+        b.putParcelable(RECORDING_ITEM, item);
         f.setArguments(b);
+        return f;
+    }
 
+    public PlaybackFragment newInstance(RecordingItem item, Post post, Rating rating) {
+        PlaybackFragment f = new PlaybackFragment();
+        Bundle b = new Bundle();
+        b.putParcelable(RECORDING_ITEM, item);
+        b.putSerializable(PostDetailsActivity.POST_ID_EXTRA_KEY, post);
+        b.putSerializable(Rating.RATING_ID_EXTRA_KEY, rating);
+        f.setArguments(b);
         return f;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        item = getArguments().getParcelable(ARG_ITEM);
-
+        item = getArguments().getParcelable(RECORDING_ITEM);
+        post = (Post) getArguments().getSerializable(PostDetailsActivity.POST_ID_EXTRA_KEY);
+        rating = (Rating) getArguments().getSerializable(Rating.RATING_ID_EXTRA_KEY);
+        if (rating == null) rating = new Rating();
         long itemDuration = item.getLength();
         minutes = TimeUnit.MILLISECONDS.toMinutes(itemDuration);
         seconds = TimeUnit.MILLISECONDS.toSeconds(itemDuration)
                 - TimeUnit.MINUTES.toSeconds(minutes);
 
+    }
+
+    @Override
+    public void onDismiss(DialogInterface dialog) {
+        super.onDismiss(dialog);
+        if (!isRatingChanged) return;
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).updatePost(post);
+        } else if (getActivity() instanceof ProfileActivity) {
+            ((ProfileActivity) getActivity()).updatePost(post);
+        }
     }
 
     @Override
@@ -91,6 +131,8 @@ public class PlaybackFragment extends DialogFragment {
         mFileLengthTextView = (TextView) view.findViewById(R.id.file_length_text_view);
         mCurrentProgressTextView = (TextView) view.findViewById(R.id.current_progress_text_view);
         txtPercentage = (TextView) view.findViewById(R.id.txtPercentage);
+        ratingBar = (BubbleSeekBar) view.findViewById(R.id.ratingBar);
+        ratingLayout = view.findViewById(R.id.seekbarContainerLayout);
 
         mSeekBar = (SeekBar) view.findViewById(R.id.seekbar);
         ColorFilter filter = new LightingColorFilter
@@ -100,6 +142,7 @@ public class PlaybackFragment extends DialogFragment {
 
         mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
+
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if(mMediaPlayer != null && fromUser) {
                     mMediaPlayer.seekTo(progress);
@@ -153,13 +196,14 @@ public class PlaybackFragment extends DialogFragment {
         mFileNameTextView.setText(item.getName());
         mFileLengthTextView.setText(String.format("%02d:%02d", minutes,seconds));
 
+        updateRatingDetails();
         builder.setView(view);
 
         // request a window without the title
         dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 
         return builder.create();
-}
+    }
 
     @Override
     public void onStart() {
@@ -192,6 +236,57 @@ public class PlaybackFragment extends DialogFragment {
         if (mMediaPlayer != null) {
             stopPlaying();
         }
+    }
+
+    private void updateRatingDetails() {
+        if (post == null) {
+            ratingLayout.setVisibility(View.GONE);
+            ratingBar.setVisibility(View.GONE);
+            return;
+        }
+        ratingController = new RatingController(post.getId(), rating);
+        ratingBar.setProgress(rating.getRating());
+        ratingBar.setCustomSectionTextArray(new BubbleSeekBar.CustomSectionTextArray() {
+            @NonNull
+            @Override
+            public SparseArray<String> onCustomize(int sectionCount, @NonNull SparseArray<String> array) {
+                array.clear();
+                array.put(1, "not ok");
+                array.put(3, "ok");
+                array.put(5, "good");
+                array.put(7, "amazing");
+                return array;
+            }
+        });
+        ratingBar.setOnProgressChangedListener(new BubbleSeekBar.OnProgressChangedListenerAdapter() {
+            @Override
+            public void onProgressChanged(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
+                int color;
+                if (progress <= 5) {
+                    color = ContextCompat.getColor(getActivity(), R.color.red);
+                } else if (progress <= 10) {
+                    color = ContextCompat.getColor(getActivity(), R.color.accent);
+                } else if (progress <= 15) {
+                    color = ContextCompat.getColor(getActivity(), R.color.light_green);
+                } else {
+                    color = ContextCompat.getColor(getActivity(), R.color.dark_green);
+                }
+                bubbleSeekBar.setSecondTrackColor(color);
+                bubbleSeekBar.setThumbColor(color);
+                bubbleSeekBar.setBubbleColor(color);
+            }
+
+            @Override
+            public void getProgressOnActionUp(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
+                ratingController.setUpdatingRatingCounter(false);
+                isRatingChanged = true;
+                ratingController.handleRatingClickAction((BaseActivity) getActivity(), post, progress);
+//                int position = getAdapterPosition();
+//                if (onClickListener != null && position != RecyclerView.NO_POSITION) {
+//                    onClickListener.onRatingClick(ratingController, position, progress);
+//                }
+            }
+        });
     }
 
     // Play start/stop

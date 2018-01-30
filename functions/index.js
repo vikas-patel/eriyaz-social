@@ -233,6 +233,7 @@ exports.commentsPoints = functions.database.ref('/post-comments/{postId}/{commen
     const postId = event.params.postId;
     const comment = event.data.exists() ? event.data.val() : event.data.previous.val();
     const commentAuthorId = comment.authorId;
+    const comment_points = 2;
 
     console.log('New comment was added, post id: ', postId);
 
@@ -251,7 +252,7 @@ exports.commentsPoints = functions.database.ref('/post-comments/{postId}/{commen
         newPointRef.set({
             'action': event.data.exists() ? "add":"remove",
             'type': 'comment',
-            'value': event.data.exists() ? 1:-1,
+            'value': event.data.exists() ? comment_points:-comment_points,
             'creationDate': admin.database.ServerValue.TIMESTAMP
         });
 
@@ -259,9 +260,9 @@ exports.commentsPoints = functions.database.ref('/post-comments/{postId}/{commen
         const authorProfilePointsRef = admin.database().ref(`/profiles/${commentAuthorId}/points`);
         return authorProfilePointsRef.transaction(current => {
             if (event.data.exists()) {
-              return (current || 0) + 1;
+              return (current || 0) + comment_points;
             } else {
-              return (current || 0) - 1;
+              return (current || 0) - comment_points;
             }
         }).then(() => {
             console.log('User comment points updated.');

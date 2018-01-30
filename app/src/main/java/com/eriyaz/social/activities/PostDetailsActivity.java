@@ -248,7 +248,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
                     item.setLength(post.getAudioDuration());
                     item.setFilePath(post.getImagePath());
                     PlaybackFragment playbackFragment =
-                            new PlaybackFragment().newInstance(item);
+                            new PlaybackFragment().newInstance(item, post, ratingController.getRating());
                     android.app.FragmentTransaction transaction = getFragmentManager()
                             .beginTransaction();
                     playbackFragment.show(transaction, "dialog_playback");
@@ -557,11 +557,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             avgRatingText = String.format( "%.1f", post.getAverageRating());
         }
         averageRatingTextView.setText(avgRatingText);
-        if (post.getRatingsCount() > 0) {
-            ratingsImageView.setImageResource(R.drawable.ic_star_active);
-        } else {
-            ratingsImageView.setImageResource(R.drawable.ic_star);
-        }
+
 //        likeController.setUpdatingLikeCounter(false);
         ratingController.setUpdatingRatingCounter(false);
 
@@ -695,6 +691,11 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             @Override
             public void onObjectChanged(Rating obj) {
                 ratingController.initRating(obj);
+                if (obj != null && obj.getRating() > 0) {
+                    ratingsImageView.setImageResource(R.drawable.ic_star_active);
+                } else {
+                    ratingsImageView.setImageResource(R.drawable.ic_star);
+                }
             }
         };
     }
@@ -709,7 +710,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 
     private void initLikes() {
 //        likeController = new LikeController(this, post, likeCounterTextView, likesImageView, false);
-        ratingController = new RatingController(this, post, ratingCounterTextView, averageRatingTextView, ratingBar, false);
+        ratingController = new RatingController(post.getId(), ratingCounterTextView, averageRatingTextView, ratingBar, false);
         //if rating value is changed.
 //        ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
 //            @Override
