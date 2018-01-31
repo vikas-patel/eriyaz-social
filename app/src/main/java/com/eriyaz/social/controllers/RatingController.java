@@ -52,14 +52,15 @@ public class RatingController {
         this.rating = new Rating();
     }
 
-    public RatingController(String postId, Rating rating) {
+    public RatingController(BubbleSeekBar ratingBar, String postId, Rating rating) {
         this.postId = postId;
         this.rating = rating;
+        this.ratingBar = ratingBar;
     }
 
     public void ratingClickAction(float ratingValue) {
         if (!updatingRatingCounter) {
-            startAnimateLikeButton(likeAnimationType);
+//            startAnimateLikeButton(likeAnimationType);
             if (ratingValue > 0)
                 addRating(ratingValue);
             else
@@ -94,7 +95,7 @@ public class RatingController {
         rating.reinit();
     }
 
-    private void startAnimateLikeButton(LikeController.AnimationType animationType) {
+    public void startAnimateLikeButton(LikeController.AnimationType animationType) {
         switch (animationType) {
             case BOUNCE_ANIM:
                 bounceAnimateImageView();
@@ -108,13 +109,13 @@ public class RatingController {
     private void bounceAnimateImageView() {
         AnimatorSet animatorSet = new AnimatorSet();
 
-        ObjectAnimator bounceAnimX = ObjectAnimator.ofFloat(ratingBar, "scaleX", 0.2f, 1f);
+        ObjectAnimator bounceAnimX = ObjectAnimator.ofFloat(ratingBar, "scaleX", 0.5f, 1f);
         bounceAnimX.setDuration(ANIMATION_DURATION);
         bounceAnimX.setInterpolator(new BounceInterpolator());
 
-        ObjectAnimator bounceAnimY = ObjectAnimator.ofFloat(ratingBar, "scaleY", 0.2f, 1f);
-        bounceAnimY.setDuration(ANIMATION_DURATION);
-        bounceAnimY.setInterpolator(new BounceInterpolator());
+//        ObjectAnimator bounceAnimY = ObjectAnimator.ofFloat(ratingBar, "scaleY", 0.5f, 1f);
+//        bounceAnimY.setDuration(ANIMATION_DURATION);
+//        bounceAnimY.setInterpolator(new BounceInterpolator());
 //        bounceAnimY.addListener(new AnimatorListenerAdapter() {
 //            @Override
 //            public void onAnimationStart(Animator animation) {
@@ -129,7 +130,8 @@ public class RatingController {
             }
         });
 
-        animatorSet.play(bounceAnimX).with(bounceAnimY);
+//        animatorSet.play(bounceAnimX).with(bounceAnimY);
+        animatorSet.play(bounceAnimX);
         animatorSet.start();
     }
 

@@ -67,7 +67,7 @@
         android:layout_marginTop="0dp"
         app:bsb_show_thumb_text="true"
         app:bsb_seek_by_section="false"
-        app:bsb_show_section_mark="true"
+        app:bsb_show_section_mark="false"
         app:bsb_second_track_color="@color/primary_dark"
         app:bsb_section_count="8"
         app:bsb_section_text_position="below_section_mark"

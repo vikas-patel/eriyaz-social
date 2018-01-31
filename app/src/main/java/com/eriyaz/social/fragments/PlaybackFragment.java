@@ -135,6 +135,7 @@ public class PlaybackFragment extends DialogFragment {
         ratingLayout = view.findViewById(R.id.seekbarContainerLayout);
 
         mSeekBar = (SeekBar) view.findViewById(R.id.seekbar);
+
         ColorFilter filter = new LightingColorFilter
                 (getResources().getColor(R.color.primary), getResources().getColor(R.color.primary));
 //        mSeekBar.getProgressDrawable().setColorFilter(filter);
@@ -244,7 +245,7 @@ public class PlaybackFragment extends DialogFragment {
             ratingBar.setVisibility(View.GONE);
             return;
         }
-        ratingController = new RatingController(post.getId(), rating);
+        ratingController = new RatingController(ratingBar, post.getId(), rating);
         ratingBar.setProgress(rating.getRating());
         ratingBar.setCustomSectionTextArray(new BubbleSeekBar.CustomSectionTextArray() {
             @NonNull

@@ -73,6 +73,7 @@ public class MainActivity extends BaseActivity {
     private PostManager.PostCounterWatcher postCounterWatcher;
     private boolean counterAnimationInProgress = false;
     private Integer userPoints;
+    private Snackbar karmaSnackbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,6 +108,7 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onObjectChanged(Integer obj) {
                 userPoints = obj;
+                updateKarmaWarning();
                 LogUtil.logInfo("MainActivity", "user points "+ userPoints);
             }
         };
@@ -425,6 +427,8 @@ public class MainActivity extends BaseActivity {
             public void run() {
                 if (userPoints != null && userPoints < 0) {
                     showKarmaWarning();
+                } else {
+                    hideKarmaWarning();
                 }
             }
         });
@@ -439,18 +443,26 @@ public class MainActivity extends BaseActivity {
     }
 
     private void showKarmaWarning() {
-        Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content),
-                "Warning. You are in negative karma", Snackbar.LENGTH_INDEFINITE);
-        snackbar.setAction("Know more..", new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showKarmaDetails();
-            }
-        });
-        snackbar.setActionTextColor(getResources().getColor(R.color.accent));
-        View snackBarView = snackbar.getView();
-        snackBarView.setBackgroundColor(getResources().getColor(R.color.red));
-        snackbar.show();
+        if (karmaSnackbar == null) {
+            karmaSnackbar = Snackbar.make(floatingActionButton,
+                    "Warning. You are in negative karma", Snackbar.LENGTH_INDEFINITE);
+            karmaSnackbar.setAction("Know more..", new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    showKarmaDetails();
+                }
+            });
+            karmaSnackbar.setActionTextColor(getResources().getColor(R.color.accent));
+            View snackBarView = karmaSnackbar.getView();
+            snackBarView.setBackgroundColor(getResources().getColor(R.color.red));
+        }
+        karmaSnackbar.show();
+    }
+
+    private void hideKarmaWarning() {
+        if (karmaSnackbar != null && karmaSnackbar.isShown()) {
+            karmaSnackbar.dismiss();
+        }
     }
 
     @Override
