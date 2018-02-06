@@ -22,6 +22,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -44,6 +45,8 @@ import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.model.Point;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.LogUtil;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -58,6 +61,7 @@ import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectExistListener;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.utils.AnimationUtils;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 
 public class MainActivity extends BaseActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -72,8 +76,9 @@ public class MainActivity extends BaseActivity {
     private TextView newPostsCounterTextView;
     private PostManager.PostCounterWatcher postCounterWatcher;
     private boolean counterAnimationInProgress = false;
-    private Integer userPoints;
-    private Snackbar karmaSnackbar;
+    private Integer userPoints = 0;
+    private FirebaseRemoteConfig mFirebaseRemoteConfig;
+//    private Snackbar karmaSnackbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,12 +100,25 @@ public class MainActivity extends BaseActivity {
         };
 
         postManager.setPostCounterWatcher(postCounterWatcher);
+        mFirebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
+        mFirebaseRemoteConfig.setDefaults(R.xml.remote_config_defaults);
+        fetchRemoteConfig();
+    }
 
-        profileManager.getUserPoints(MainActivity.this, createOnUserPointsChangedListener());
-
-        setOnPointAddedListener();
-
-//        setOnLikeAddedListener();
+    private void fetchRemoteConfig() {
+        mFirebaseRemoteConfig.fetch()
+            .addOnCompleteListener(this, new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+                        // After config data is successfully fetched, it must be activated before newly fetched
+                        // values are returned.
+                        mFirebaseRemoteConfig.activateFetched();
+                    } else {
+                        // don't do anything
+                    }
+                }
+            });
     }
 
     private OnObjectChangedListener<Integer> createOnUserPointsChangedListener() {
@@ -108,8 +126,7 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onObjectChanged(Integer obj) {
                 userPoints = obj;
-                updateKarmaWarning();
-                LogUtil.logInfo("MainActivity", "user points "+ userPoints);
+//                updateKarmaWarning();
             }
         };
     }
@@ -118,9 +135,20 @@ public class MainActivity extends BaseActivity {
     protected void onResume() {
         super.onResume();
         updateNewPostCounter();
-        updateKarmaWarning();
+//        updateKarmaWarning();
+        if (!profileManager.hasActiveListeners(MainActivity.this)
+                && profileManager.checkProfile().equals(ProfileStatus.PROFILE_CREATED)) {
+            profileManager.getUserPoints(MainActivity.this, createOnUserPointsChangedListener());
+            setOnPointAddedListener();
+        }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        profileManager.closeListeners(this);
+    }
+    //TODO: Close this listener on destroy
     private void setOnPointAddedListener() {
         DatabaseHelper.getInstance(this).onNewPointAddedListener(new ChildEventListener() {
             @Override
@@ -130,11 +158,15 @@ public class MainActivity extends BaseActivity {
                 int absValue = Math.abs(point.getValue());
                 String pointsLabel = getResources().getQuantityString(R.plurals.points_counter_format, absValue, absValue);
                 if (point.getValue()>0){
-                    String msg = absValue + " " + pointsLabel + " earned for " + point.getType() + " " + point.getAction();
+                    String earned = " earned";
+                    if (point.getType().equalsIgnoreCase("post")) earned = " restored";
+                    String msg = absValue + " " + pointsLabel + earned + " for " + point.getType() + " " + point.getAction();
                     toast = Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG);
                     toast.getView().setBackgroundColor(getResources().getColor(R.color.light_green));
                 } else {
-                    String msg = absValue + " " + pointsLabel + " lost for " + point.getType() + " " + point.getAction();
+                    String lost = " lost";
+                    if (point.getType().equalsIgnoreCase("post")) lost = " used";
+                    String msg = absValue + " " + pointsLabel +  lost +" for " + point.getType() + " " + point.getAction();
                     toast = Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG);
                     toast.getView().setBackgroundColor(getResources().getColor(R.color.red));
                 }
@@ -305,6 +337,7 @@ public class MainActivity extends BaseActivity {
                     super.onScrolled(recyclerView, dx, dy);
                 }
             });
+            if (!hasInternetConnection()) showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
         }
     }
 
@@ -374,6 +407,11 @@ public class MainActivity extends BaseActivity {
     }
 
     private void openCreatePostActivity() {
+        int points_post_create = (int) mFirebaseRemoteConfig.getLong("points_post_create");
+        if (userPoints < points_post_create) {
+            showPointsNeededDialog(points_post_create - userPoints);
+            return;
+        }
         Intent intent = new Intent(this, CreatePostActivity.class);
         startActivityForResult(intent, CreatePostActivity.CREATE_NEW_POST_REQUEST);
     }
@@ -388,12 +426,14 @@ public class MainActivity extends BaseActivity {
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && view != null) {
 
-            View authorImageView = view.findViewById(R.id.authorImageView);
+//            View authorImageView = view.findViewById(R.id.authorImageView);
+//
+//            ActivityOptions options = ActivityOptions.
+//                    makeSceneTransitionAnimation(MainActivity.this,
+//                            new android.util.Pair<>(authorImageView, getString(R.string.post_author_image_transition_name)));
 
-            ActivityOptions options = ActivityOptions.
-                    makeSceneTransitionAnimation(MainActivity.this,
-                            new android.util.Pair<>(authorImageView, getString(R.string.post_author_image_transition_name)));
-            startActivityForResult(intent, ProfileActivity.CREATE_POST_FROM_PROFILE_REQUEST, options.toBundle());
+//            startActivityForResult(intent, ProfileActivity.CREATE_POST_FROM_PROFILE_REQUEST, options.toBundle());
+            startActivityForResult(intent, ProfileActivity.CREATE_POST_FROM_PROFILE_REQUEST);
         } else {
             startActivityForResult(intent, ProfileActivity.CREATE_POST_FROM_PROFILE_REQUEST);
         }
@@ -420,50 +460,49 @@ public class MainActivity extends BaseActivity {
         });
     }
 
-    private void updateKarmaWarning() {
-        Handler mainHandler = new Handler(this.getMainLooper());
-        mainHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                if (userPoints != null && userPoints < 0) {
-                    showKarmaWarning();
-                } else {
-                    hideKarmaWarning();
-                }
-            }
-        });
-    }
+//    private void updateKarmaWarning() {
+//        Handler mainHandler = new Handler(this.getMainLooper());
+//        mainHandler.post(new Runnable() {
+//            @Override
+//            public void run() {
+//                if (userPoints != null && userPoints < 0) {
+//                    showKarmaWarning();
+//                } else {
+//                    hideKarmaWarning();
+//                }
+//            }
+//        });
+//    }
 
-    private void showKarmaDetails() {
+    private void showPointsNeededDialog(int pointsNeeded) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage(String.format(getString(R.string.karma_text),
-                FirebaseAuth.getInstance().getCurrentUser().getDisplayName()));
+        builder.setMessage(getResources().getQuantityString(R.plurals.points_needed_text, pointsNeeded, pointsNeeded));
         builder.setPositiveButton(R.string.button_ok, null);
         builder.show();
     }
 
-    private void showKarmaWarning() {
-        if (karmaSnackbar == null) {
-            karmaSnackbar = Snackbar.make(floatingActionButton,
-                    "Warning. You are in negative karma", Snackbar.LENGTH_INDEFINITE);
-            karmaSnackbar.setAction("Know more..", new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    showKarmaDetails();
-                }
-            });
-            karmaSnackbar.setActionTextColor(getResources().getColor(R.color.accent));
-            View snackBarView = karmaSnackbar.getView();
-            snackBarView.setBackgroundColor(getResources().getColor(R.color.red));
-        }
-        karmaSnackbar.show();
-    }
-
-    private void hideKarmaWarning() {
-        if (karmaSnackbar != null && karmaSnackbar.isShown()) {
-            karmaSnackbar.dismiss();
-        }
-    }
+//    private void showKarmaWarning() {
+//        if (karmaSnackbar == null) {
+//            karmaSnackbar = Snackbar.make(floatingActionButton,
+//                    "Warning. You are in negative karma", Snackbar.LENGTH_INDEFINITE);
+//            karmaSnackbar.setAction("Know more..", new View.OnClickListener() {
+//                @Override
+//                public void onClick(View view) {
+//                    showKarmaDetails();
+//                }
+//            });
+//            karmaSnackbar.setActionTextColor(getResources().getColor(R.color.accent));
+//            View snackBarView = karmaSnackbar.getView();
+//            snackBarView.setBackgroundColor(getResources().getColor(R.color.red));
+//        }
+//        karmaSnackbar.show();
+//    }
+//
+//    private void hideKarmaWarning() {
+//        if (karmaSnackbar != null && karmaSnackbar.isShown()) {
+//            karmaSnackbar.dismiss();
+//        }
+//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

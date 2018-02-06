@@ -33,7 +33,6 @@ public class GoogleApiHelper {
         } else {
             throw new IllegalArgumentException(fragmentActivity.getClass().getSimpleName() + " should implement OnConnectionFailedListener");
         }
-        LogUtil.logInfo("web_client", fragmentActivity.getResources().getString(R.string.default_web_client_id));
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(fragmentActivity.getResources().getString(R.string.default_web_client_id))

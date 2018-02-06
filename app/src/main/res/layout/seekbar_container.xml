@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
 
     android:layout_height="wrap_content"
@@ -63,15 +62,17 @@
         app:bsb_min="0"
         app:bsb_progress="0"
         app:bsb_second_track_size="5dp"
-        app:bsb_track_size="1dp"
         android:layout_marginTop="0dp"
+        app:bsb_thumb_radius="10dp"
         app:bsb_show_thumb_text="true"
         app:bsb_seek_by_section="false"
         app:bsb_show_section_mark="false"
-        app:bsb_second_track_color="@color/primary_dark"
+        app:bsb_second_track_color="@color/primary_light"
         app:bsb_section_count="8"
         app:bsb_section_text_position="below_section_mark"
-        app:bsb_touch_to_seek="false"/>
+        app:bsb_track_color="@color/transparentColor"
+        app:bsb_section_text_color="@color/primary_dark"
+        app:bsb_touch_to_seek="true"/>
 
     <!--<org.adw.library.widgets.discreteseekbar.DiscreteSeekBar-->
         <!--android:layout_width="match_parent"-->

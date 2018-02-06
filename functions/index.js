@@ -277,6 +277,7 @@ exports.postAddedPoints = functions.database.ref('/posts/{postId}').onCreate(eve
     const postId = event.params.postId;
     const post = event.data.val();
     const postAuthorId = post.authorId;
+    const post_points = 3;
     console.log('Post created. ', postId);
     // Get user points ref
     const userPointsRef = admin.database().ref(`/user-points/${postAuthorId}`);
@@ -284,42 +285,42 @@ exports.postAddedPoints = functions.database.ref('/posts/{postId}').onCreate(eve
     newPointRef.set({
         'action': "add",
         'type': 'post',
-        'value': -5,
+        'value': -post_points,
         'creationDate': admin.database.ServerValue.TIMESTAMP
     });
 
     // Get rating author.
     const authorProfilePointsRef = admin.database().ref(`/profiles/${postAuthorId}/points`);
     return authorProfilePointsRef.transaction(current => {
-          return (current || 0) - 5;
+          return (current || 0) - post_points;
     }).then(() => {
         console.log('User post added points updated.');
     });
 });
 
-exports.postDeletePoints = functions.database.ref('/posts/{postId}').onDelete(event => {
-    const postId = event.params.postId;
-    const post = event.data.previous.val();
-    const postAuthorId = post.authorId;
-    console.log('Post removed. ', postId);
-    // Get user points ref
-    const userPointsRef = admin.database().ref(`/user-points/${postAuthorId}`);
-    var newPointRef = userPointsRef.push();
-    newPointRef.set({
-        'action': "remove",
-        'type': 'post',
-        'value': 5,
-        'creationDate': admin.database.ServerValue.TIMESTAMP
-    });
+// exports.postDeletePoints = functions.database.ref('/posts/{postId}').onDelete(event => {
+//     const postId = event.params.postId;
+//     const post = event.data.previous.val();
+//     const postAuthorId = post.authorId;
+//     console.log('Post removed. ', postId);
+//     // Get user points ref
+//     const userPointsRef = admin.database().ref(`/user-points/${postAuthorId}`);
+//     var newPointRef = userPointsRef.push();
+//     newPointRef.set({
+//         'action': "remove",
+//         'type': 'post',
+//         'value': 5,
+//         'creationDate': admin.database.ServerValue.TIMESTAMP
+//     });
 
-    // Get rating author.
-    const authorProfilePointsRef = admin.database().ref(`/profiles/${postAuthorId}/points`);
-    return authorProfilePointsRef.transaction(current => {
-          return (current || 0) + 5;
-    }).then(() => {
-        console.log('User post points updated.');
-    });
-});
+//     // Get rating author.
+//     const authorProfilePointsRef = admin.database().ref(`/profiles/${postAuthorId}/points`);
+//     return authorProfilePointsRef.transaction(current => {
+//           return (current || 0) + 5;
+//     }).then(() => {
+//         console.log('User post points updated.');
+//     });
+// });
 
 exports.ratingPoints = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onWrite(event => {
     if (event.data.exists() && event.data.previous.exists()) {

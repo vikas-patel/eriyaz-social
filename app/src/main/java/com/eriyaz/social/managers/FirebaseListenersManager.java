@@ -43,6 +43,13 @@ public class FirebaseListenersManager {
         }
     }
 
+    public boolean hasActiveListeners(Context context) {
+        if (activeListeners.containsKey(context)) {
+            return true;
+        }
+        return false;
+    }
+
     public void closeListeners(Context context) {
         DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
         if (activeListeners.containsKey(context)) {

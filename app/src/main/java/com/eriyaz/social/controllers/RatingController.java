@@ -4,8 +4,10 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Color;
+import android.support.v4.content.ContextCompat;
 import android.view.animation.BounceInterpolator;
 import android.widget.TextView;
 
@@ -19,7 +21,6 @@ import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectExistListener;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Rating;
-import com.eriyaz.social.utils.Analytics;
 import com.xw.repo.BubbleSeekBar;
 
 /**
@@ -95,13 +96,13 @@ public class RatingController {
         rating.reinit();
     }
 
-    public void startAnimateLikeButton(LikeController.AnimationType animationType) {
+    public void startAnimateRatingButton(LikeController.AnimationType animationType) {
         switch (animationType) {
             case BOUNCE_ANIM:
                 bounceAnimateImageView();
                 break;
             case COLOR_ANIM:
-                //colorAnimateImageView();
+                colorAnimateRatingThumb();
                 break;
         }
     }
@@ -109,13 +110,13 @@ public class RatingController {
     private void bounceAnimateImageView() {
         AnimatorSet animatorSet = new AnimatorSet();
 
-        ObjectAnimator bounceAnimX = ObjectAnimator.ofFloat(ratingBar, "scaleX", 0.5f, 1f);
-        bounceAnimX.setDuration(ANIMATION_DURATION);
-        bounceAnimX.setInterpolator(new BounceInterpolator());
+//        ObjectAnimator bounceAnimX = ObjectAnimator.ofFloat(ratingBar, "scaleX", 0.5f, 1f);
+//        bounceAnimX.setDuration(ANIMATION_DURATION);
+//        bounceAnimX.setInterpolator(new BounceInterpolator());
 
-//        ObjectAnimator bounceAnimY = ObjectAnimator.ofFloat(ratingBar, "scaleY", 0.5f, 1f);
-//        bounceAnimY.setDuration(ANIMATION_DURATION);
-//        bounceAnimY.setInterpolator(new BounceInterpolator());
+        ObjectAnimator bounceAnimY = ObjectAnimator.ofFloat(ratingBar, "scaleY", 1.5f, 1f);
+        bounceAnimY.setDuration(ANIMATION_DURATION);
+        bounceAnimY.setInterpolator(new BounceInterpolator());
 //        bounceAnimY.addListener(new AnimatorListenerAdapter() {
 //            @Override
 //            public void onAnimationStart(Animator animation) {
@@ -131,8 +132,31 @@ public class RatingController {
         });
 
 //        animatorSet.play(bounceAnimX).with(bounceAnimY);
-        animatorSet.play(bounceAnimX);
+        animatorSet.play(bounceAnimY);
         animatorSet.start();
+    }
+
+    private void colorAnimateRatingThumb() {
+        final int activatedColor = ContextCompat.getColor(ratingBar.getContext(), R.color.primary);
+        final int defaultColor = ContextCompat.getColor(ratingBar.getContext(), R.color.primary_light);
+        final ValueAnimator colorAnim = ObjectAnimator.ofFloat(0f, 1f);
+        colorAnim.setDuration(ANIMATION_DURATION);
+        colorAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float mul = (Float) animation.getAnimatedValue();
+                int alpha = adjustAlpha(activatedColor, mul);
+                ratingBar.setThumbColor(alpha);
+                if (mul == 1.0) {
+                    ratingBar.setThumbColor(defaultColor);
+                }
+//                ratingsImageView.setColorFilter(alpha, PorterDuff.Mode.SRC_ATOP);
+//                if (mul == 0.0) {
+//                    ratingsImageView.setColorFilter(null);
+//                }
+            }
+        });
+        colorAnim.start();
     }
 
 //    private void colorAnimateImageView() {

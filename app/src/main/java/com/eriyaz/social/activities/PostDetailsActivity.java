@@ -22,6 +22,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
@@ -79,6 +80,7 @@ import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.utils.FormatterUtil;
+import com.eriyaz.social.utils.RatingUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.xw.repo.BubbleSeekBar;
@@ -117,7 +119,6 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private TextView fileName;
     private TextView audioLength;
     private View fileContainerView;
-    private TextView titleTextView;
 //    private TextView descriptionEditText;
     private ProgressBar commentsProgressBar;
     private RecyclerView commentsRecyclerView;
@@ -169,8 +170,6 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 
         incrementWatchersCount();
 
-        titleTextView = (TextView) findViewById(R.id.titleTextView);
-//        descriptionEditText = (TextView) findViewById(R.id.descriptionEditText);
         fileName = (TextView) findViewById(R.id.file_name_text);
         audioLength = (TextView) findViewById(R.id.file_length_text);
         fileContainerView = findViewById(R.id.fileViewContainer);
@@ -481,7 +480,6 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 
     private void fillPostFields() {
         if (post != null) {
-            titleTextView.setText(post.getTitle());
 //            descriptionEditText.setText(post.getDescription());
             fileName.setText(post.getTitle());
             long minutes = TimeUnit.MILLISECONDS.toMinutes(post.getAudioDuration());
@@ -736,16 +734,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         ratingBar.setOnProgressChangedListener(new BubbleSeekBar.OnProgressChangedListenerAdapter() {
             @Override
             public void onProgressChanged(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
-                int color;
-                if (progress <= 5) {
-                    color = ContextCompat.getColor(PostDetailsActivity.this, R.color.red);
-                } else if (progress <= 10) {
-                    color = ContextCompat.getColor(PostDetailsActivity.this, R.color.accent);
-                } else if (progress <= 15) {
-                    color = ContextCompat.getColor(PostDetailsActivity.this, R.color.light_green);
-                } else {
-                    color = ContextCompat.getColor(PostDetailsActivity.this, R.color.dark_green);
-                }
+                int color = RatingUtil.getRatingColor(PostDetailsActivity.this, progress);
                 bubbleSeekBar.setSecondTrackColor(color);
                 bubbleSeekBar.setThumbColor(color);
                 bubbleSeekBar.setBubbleColor(color);

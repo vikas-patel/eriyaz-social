@@ -304,7 +304,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
             }
 
             int pointsCount = (int) profile.getPoints();
-            String pointsLabel = getResources().getQuantityString(R.plurals.points_counter_format, pointsCount, pointsCount);
+            String pointsLabel = getResources().getString(R.string.score_label);
             pointsCountersTextView.setText(buildCounterSpannable(pointsLabel, pointsCount));
         }
     }

@@ -10,12 +10,12 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -24,12 +24,12 @@ import com.eriyaz.social.activities.BaseActivity;
 import com.eriyaz.social.activities.MainActivity;
 import com.eriyaz.social.activities.PostDetailsActivity;
 import com.eriyaz.social.activities.ProfileActivity;
+import com.eriyaz.social.controllers.LikeController;
 import com.eriyaz.social.controllers.RatingController;
 import com.eriyaz.social.model.Post;
-import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.model.RecordingItem;
-import com.eriyaz.social.utils.LogUtil;
+import com.eriyaz.social.utils.RatingUtil;
 import com.melnykov.fab.FloatingActionButton;
 import com.xw.repo.BubbleSeekBar;
 
@@ -52,6 +52,7 @@ public class PlaybackFragment extends DialogFragment {
 
     private SeekBar mSeekBar = null;
     private FloatingActionButton mPlayButton = null;
+    private Button closeButton = null;
     private TextView mCurrentProgressTextView = null;
     private TextView mFileNameTextView = null;
     private TextView mFileLengthTextView = null;
@@ -62,6 +63,7 @@ public class PlaybackFragment extends DialogFragment {
     private RatingController ratingController;
     private boolean isRatingChanged = false;
     private View ratingLayout;
+    private boolean animateRatingThumb = true;
 
     //stores whether or not the mediaplayer is currently playing audio
     private boolean isPlaying = false;
@@ -99,7 +101,6 @@ public class PlaybackFragment extends DialogFragment {
         minutes = TimeUnit.MILLISECONDS.toMinutes(itemDuration);
         seconds = TimeUnit.MILLISECONDS.toSeconds(itemDuration)
                 - TimeUnit.MINUTES.toSeconds(minutes);
-
     }
 
     @Override
@@ -194,6 +195,14 @@ public class PlaybackFragment extends DialogFragment {
             }
         });
 
+        closeButton = view.findViewById(R.id.closeButton);
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dismiss();
+            }
+        });
+
         mFileNameTextView.setText(item.getName());
         mFileLengthTextView.setText(String.format("%02d:%02d", minutes,seconds));
 
@@ -216,6 +225,7 @@ public class PlaybackFragment extends DialogFragment {
 
         //disable buttons from dialog
         AlertDialog alertDialog = (AlertDialog) getDialog();
+        alertDialog.setCanceledOnTouchOutside(false);
         alertDialog.getButton(Dialog.BUTTON_POSITIVE).setEnabled(false);
         alertDialog.getButton(Dialog.BUTTON_NEGATIVE).setEnabled(false);
         alertDialog.getButton(Dialog.BUTTON_NEUTRAL).setEnabled(false);
@@ -246,7 +256,8 @@ public class PlaybackFragment extends DialogFragment {
             return;
         }
         ratingController = new RatingController(ratingBar, post.getId(), rating);
-        ratingBar.setProgress(rating.getRating());
+
+
         ratingBar.setCustomSectionTextArray(new BubbleSeekBar.CustomSectionTextArray() {
             @NonNull
             @Override
@@ -262,16 +273,8 @@ public class PlaybackFragment extends DialogFragment {
         ratingBar.setOnProgressChangedListener(new BubbleSeekBar.OnProgressChangedListenerAdapter() {
             @Override
             public void onProgressChanged(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
-                int color;
-                if (progress <= 5) {
-                    color = ContextCompat.getColor(getActivity(), R.color.red);
-                } else if (progress <= 10) {
-                    color = ContextCompat.getColor(getActivity(), R.color.accent);
-                } else if (progress <= 15) {
-                    color = ContextCompat.getColor(getActivity(), R.color.light_green);
-                } else {
-                    color = ContextCompat.getColor(getActivity(), R.color.dark_green);
-                }
+                if (progressFloat > 0) animateRatingThumb = false;
+                int color = RatingUtil.getRatingColor(getActivity(), progress);
                 bubbleSeekBar.setSecondTrackColor(color);
                 bubbleSeekBar.setThumbColor(color);
                 bubbleSeekBar.setBubbleColor(color);
@@ -288,6 +291,7 @@ public class PlaybackFragment extends DialogFragment {
 //                }
             }
         });
+        ratingBar.setProgress(rating.getRating());
     }
 
     // Play start/stop
@@ -322,7 +326,6 @@ public class PlaybackFragment extends DialogFragment {
                     double ratio = percent / 100.0;
 //                    int bufferingLevel = (int)(mp.getDuration() * ratio);
 //                    mSeekBar.setSecondaryProgress(bufferingLevel);
-                    LogUtil.logInfo("", ratio + "onBufferingUpdate");
                     if (percent == 100) {
                         txtPercentage.setText("");
                     } else {
@@ -428,7 +431,9 @@ public class PlaybackFragment extends DialogFragment {
                 long seconds = TimeUnit.MILLISECONDS.toSeconds(mCurrentPosition)
                         - TimeUnit.MINUTES.toSeconds(minutes);
                 mCurrentProgressTextView.setText(String.format("%02d:%02d", minutes, seconds));
-
+                if (animateRatingThumb && ratingController != null) {
+                    ratingController.startAnimateRatingButton(LikeController.AnimationType.COLOR_ANIM);
+                }
                 updateSeekBar();
             }
         }
