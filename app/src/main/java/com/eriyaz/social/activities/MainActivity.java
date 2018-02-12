@@ -408,6 +408,7 @@ public class MainActivity extends BaseActivity {
 
     private void openCreatePostActivity() {
         int points_post_create = (int) mFirebaseRemoteConfig.getLong("points_post_create");
+        if (userPoints == null) userPoints = 0;
         if (userPoints < points_post_create) {
             showPointsNeededDialog(points_post_create - userPoints);
             return;

@@ -585,6 +585,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         return new OnObjectChangedListener<Profile>() {
             @Override
             public void onObjectChanged(Profile obj) {
+                if (isActivityDestroyed()) return;
                 if (obj.getPhotoUrl() != null) {
                     Glide.with(PostDetailsActivity.this)
                             .load(obj.getPhotoUrl())

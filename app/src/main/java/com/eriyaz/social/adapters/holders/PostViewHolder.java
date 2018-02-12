@@ -28,6 +28,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.eriyaz.social.activities.BaseActivity;
 import com.eriyaz.social.utils.Analytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -226,6 +227,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         return new OnObjectChangedListener<Profile>() {
             @Override
             public void onObjectChanged(final Profile obj) {
+                if (((BaseActivity)context).isActivityDestroyed()) return;
                 authorTextView.setText(obj.getUsername());
                 if (obj.getPhotoUrl() != null) {
 

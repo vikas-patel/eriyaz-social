@@ -201,9 +201,7 @@ exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{aut
         let ratingNum = snapshot.numChildren();
         const updates = {};
         snapshot.forEach(function(authorSnap) {
-	      console.log("author obj", authorSnap.val());
 	      authorSnap.forEach(function(ratingSnap) {
-		     console.log("rating obj", ratingSnap.val());
 		     ratingTotal = ratingTotal + ratingSnap.val().rating;
 	      });
         });
@@ -211,6 +209,10 @@ exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{aut
         // Get the rated post
         const postRef = admin.database().ref(`/posts/${postId}`);
         return postRef.transaction(current => {
+            if (current == null) {
+                console.log("ignore: null object returned from cache, expect another event with fresh server value.");
+                return false;
+            }
             current.ratingsCount = ratingNum;
             if (ratingNum > 0) {
                 current.averageRating = ratingTotal/ratingNum;
@@ -292,7 +294,12 @@ exports.postAddedPoints = functions.database.ref('/posts/{postId}').onCreate(eve
     // Get rating author.
     const authorProfilePointsRef = admin.database().ref(`/profiles/${postAuthorId}/points`);
     return authorProfilePointsRef.transaction(current => {
-          return (current || 0) - post_points;
+          current = (current || 0) - post_points;
+          if (current > 0) {
+                return current;
+          } else {
+                return 0;
+          }
     }).then(() => {
         console.log('User post added points updated.');
     });
