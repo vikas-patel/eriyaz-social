@@ -16,7 +16,13 @@
 
 package com.eriyaz.social.utils;
 
+import android.content.Context;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
+
+import com.eriyaz.social.R;
 import com.eriyaz.social.enums.UploadImagePrefix;
+import com.eriyaz.social.views.BadgeDrawable;
 
 import java.util.Date;
 
@@ -29,5 +35,20 @@ public class ImageUtil {
         }
 
         return prefix.toString() + new Date().getTime();
+    }
+
+    public static void setBadgeCount(Context context, LayerDrawable icon, String count) {
+        BadgeDrawable badge;
+        // Reuse drawable if possible
+        Drawable reuse = icon.findDrawableByLayerId(R.id.ic_badge);
+        if (reuse != null && reuse instanceof BadgeDrawable) {
+            badge = (BadgeDrawable) reuse;
+        } else {
+            badge = new BadgeDrawable(context);
+        }
+
+        badge.setCount(count);
+//        icon.mutate();
+        icon.setDrawableByLayerId(R.id.ic_badge, badge);
     }
 }

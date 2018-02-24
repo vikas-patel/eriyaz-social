@@ -22,6 +22,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.eriyaz.social.model.Notification;
 import com.eriyaz.social.utils.Analytics;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -381,6 +382,13 @@ public class DatabaseHelper {
 
     }
 
+    public void markNotificationRead(Notification notification) {
+        notification.setRead(true);
+        String userId = firebaseAuth.getCurrentUser().getUid();
+        DatabaseReference databaseReference = database.getReference("user-notifications").child(userId).child(notification.getId());
+        databaseReference.setValue(notification);
+    }
+
     public void createOrUpdateLike(final String postId, final String postAuthorId) {
         try {
             String authorId = firebaseAuth.getCurrentUser().getUid();
@@ -452,6 +460,12 @@ public class DatabaseHelper {
                 LogUtil.logInfo(TAG, "Updating Watchers count transaction is completed.");
             }
         });
+     }
+
+     public void resetUnseenNotificationCount() {
+         String userId = firebaseAuth.getCurrentUser().getUid();
+         DatabaseReference unseenCountRef = database.getReference("profiles/" + userId + "/unseen");
+         unseenCountRef.setValue(0);
      }
 
     public void removeLike(final String postId, final String postAuthorId) {
@@ -792,6 +806,34 @@ public class DatabaseHelper {
 
         activeListeners.put(valueEventListener, databaseReference);
         return valueEventListener;
+    }
+
+    public void getNotificationsList(String userId, final OnDataChangedListener<Notification> onDataChangedListener) {
+        DatabaseReference databaseReference = database.getReference("user-notifications").child(userId);
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                List<Notification> list = new ArrayList<>();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Notification notification = snapshot.getValue(Notification.class);
+                    notification.setId(snapshot.getKey());
+                    list.add(notification);
+                }
+
+                Collections.sort(list, new Comparator<Notification>() {
+                    @Override
+                    public int compare(Notification lhs, Notification rhs) {
+                        return ((Long) rhs.getCreatedDate()).compareTo((Long) lhs.getCreatedDate());
+                    }
+                });
+                onDataChangedListener.onListChanged(list);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                LogUtil.logError(TAG, "getNotificationsList(), onCancelled", new Exception(databaseError.getMessage()));
+            }
+        });
     }
 
     public ValueEventListener getRatingsList(String postId, final OnDataChangedListener<Rating> onDataChangedListener) {

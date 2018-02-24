@@ -20,6 +20,8 @@ import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 
+import com.eriyaz.social.managers.listeners.OnDataChangedListener;
+import com.eriyaz.social.model.Notification;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -141,8 +143,22 @@ public class ProfileManager extends FirebaseListenersManager {
         addListenerToMap(activityContext, valueEventListener);
     }
 
+    public void resetUnseenNotificationCount() {
+        DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
+        databaseHelper.resetUnseenNotificationCount();
+    }
+
+    public void markNotificationRead(Notification notification) {
+        DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
+        databaseHelper.markNotificationRead(notification);
+    }
+
     public void getProfileSingleValue(String id, final OnObjectChangedListener<Profile> listener) {
         databaseHelper.getProfileSingleValue(id, listener);
+    }
+
+    public void getNotificationsList(String userId, OnDataChangedListener<Notification> onDataChangedListener) {
+        ApplicationHelper.getDatabaseHelper().getNotificationsList(userId, onDataChangedListener);
     }
 
     public ProfileStatus checkProfile() {

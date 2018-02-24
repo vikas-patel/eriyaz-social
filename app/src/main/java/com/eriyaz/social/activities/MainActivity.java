@@ -19,14 +19,15 @@ package com.eriyaz.social.activities;
 
 import android.app.ActivityOptions;
 import android.content.Intent;
+import android.graphics.drawable.LayerDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SimpleItemAnimator;
@@ -41,16 +42,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
-import com.eriyaz.social.model.Point;
-import com.eriyaz.social.model.Profile;
-import com.eriyaz.social.utils.LogUtil;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.PostsAdapter;
 import com.eriyaz.social.enums.PostStatus;
@@ -58,10 +49,22 @@ import com.eriyaz.social.enums.ProfileStatus;
 import com.eriyaz.social.managers.DatabaseHelper;
 import com.eriyaz.social.managers.PostManager;
 import com.eriyaz.social.managers.ProfileManager;
+import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.managers.listeners.OnObjectExistListener;
+import com.eriyaz.social.model.Point;
 import com.eriyaz.social.model.Post;
+import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.AnimationUtils;
+import com.eriyaz.social.utils.LogUtil;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
+
+import static com.eriyaz.social.utils.ImageUtil.setBadgeCount;
 
 public class MainActivity extends BaseActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -74,11 +77,16 @@ public class MainActivity extends BaseActivity {
     private PostManager postManager;
     private int counter;
     private TextView newPostsCounterTextView;
+    private Menu mOptionsMenu;
     private PostManager.PostCounterWatcher postCounterWatcher;
     private boolean counterAnimationInProgress = false;
-    private Integer userPoints = 0;
+    private long userPoints = 0;
     private FirebaseRemoteConfig mFirebaseRemoteConfig;
 //    private Snackbar karmaSnackbar;
+    static
+    {
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,14 +129,21 @@ public class MainActivity extends BaseActivity {
             });
     }
 
-    private OnObjectChangedListener<Integer> createOnUserPointsChangedListener() {
-        return new OnObjectChangedListener<Integer>() {
+    private OnObjectChangedListener<Profile> createOnProfileChangedListener() {
+        return new OnObjectChangedListener<Profile>() {
             @Override
-            public void onObjectChanged(Integer obj) {
-                userPoints = obj;
+            public void onObjectChanged(Profile profile) {
+                userPoints = profile.getPoints();
+                updateUnseenNotificationCount(profile.getUnseen());
 //                updateKarmaWarning();
             }
         };
+    }
+
+    private void updateUnseenNotificationCount(int count) {
+        MenuItem itemNotification = mOptionsMenu.findItem(R.id.notification);
+        LayerDrawable icon = (LayerDrawable) itemNotification.getIcon();
+        setBadgeCount(this, icon, Integer.toString(count));
     }
 
     @Override
@@ -138,7 +153,10 @@ public class MainActivity extends BaseActivity {
 //        updateKarmaWarning();
         if (!profileManager.hasActiveListeners(MainActivity.this)
                 && profileManager.checkProfile().equals(ProfileStatus.PROFILE_CREATED)) {
-            profileManager.getUserPoints(MainActivity.this, createOnUserPointsChangedListener());
+            profileManager.getProfileValue(MainActivity.this,
+                    FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                    createOnProfileChangedListener());
+//            profileManager.getUserPoints(MainActivity.this, createOnUserPointsChangedListener());
             setOnPointAddedListener();
         }
     }
@@ -408,9 +426,9 @@ public class MainActivity extends BaseActivity {
 
     private void openCreatePostActivity() {
         int points_post_create = (int) mFirebaseRemoteConfig.getLong("points_post_create");
-        if (userPoints == null) userPoints = 0;
+//        if (userPoints == null) userPoints = 0L;
         if (userPoints < points_post_create) {
-            showPointsNeededDialog(points_post_create - userPoints);
+            showPointsNeededDialog(points_post_create - (int) userPoints);
             return;
         }
         Intent intent = new Intent(this, CreatePostActivity.class);
@@ -440,6 +458,12 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    private void openNotificationActivity(String userId) {
+        Intent intent = new Intent(MainActivity.this, NotificationActivity.class);
+        intent.putExtra(ProfileActivity.USER_ID_EXTRA_KEY, userId);
+        startActivityForResult(intent, ProfileActivity.CREATE_POST_FROM_PROFILE_REQUEST);
+    }
+
     private void updateNewPostCounter() {
         Handler mainHandler = new Handler(this.getMainLooper());
         mainHandler.post(new Runnable() {
@@ -461,20 +485,6 @@ public class MainActivity extends BaseActivity {
         });
     }
 
-//    private void updateKarmaWarning() {
-//        Handler mainHandler = new Handler(this.getMainLooper());
-//        mainHandler.post(new Runnable() {
-//            @Override
-//            public void run() {
-//                if (userPoints != null && userPoints < 0) {
-//                    showKarmaWarning();
-//                } else {
-//                    hideKarmaWarning();
-//                }
-//            }
-//        });
-//    }
-
     private void showPointsNeededDialog(int pointsNeeded) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(getResources().getQuantityString(R.plurals.points_needed_text, pointsNeeded, pointsNeeded));
@@ -482,51 +492,35 @@ public class MainActivity extends BaseActivity {
         builder.show();
     }
 
-//    private void showKarmaWarning() {
-//        if (karmaSnackbar == null) {
-//            karmaSnackbar = Snackbar.make(floatingActionButton,
-//                    "Warning. You are in negative karma", Snackbar.LENGTH_INDEFINITE);
-//            karmaSnackbar.setAction("Know more..", new View.OnClickListener() {
-//                @Override
-//                public void onClick(View view) {
-//                    showKarmaDetails();
-//                }
-//            });
-//            karmaSnackbar.setActionTextColor(getResources().getColor(R.color.accent));
-//            View snackBarView = karmaSnackbar.getView();
-//            snackBarView.setBackgroundColor(getResources().getColor(R.color.red));
-//        }
-//        karmaSnackbar.show();
-//    }
-//
-//    private void hideKarmaWarning() {
-//        if (karmaSnackbar != null && karmaSnackbar.isShown()) {
-//            karmaSnackbar.dismiss();
-//        }
-//    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu, menu);
+
+        mOptionsMenu = menu;
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        ProfileStatus profileStatus = profileManager.checkProfile();
         // Handle item selection
         switch (item.getItemId()) {
             case R.id.profile:
-                ProfileStatus profileStatus = profileManager.checkProfile();
-
                 if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
                     String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
                     openProfileActivity(userId);
                 } else {
                     doAuthorization(profileStatus);
                 }
-
                 return true;
+            case R.id.notification:
+                if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
+                    String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                    openNotificationActivity(userId);
+                } else {
+                    doAuthorization(profileStatus);
+                }
             default:
                 return super.onOptionsItemSelected(item);
         }

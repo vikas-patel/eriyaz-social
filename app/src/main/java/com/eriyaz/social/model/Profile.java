@@ -28,6 +28,7 @@ public class Profile implements Serializable {
     private String email;
     private String photoUrl;
     private long points;
+    private int unseen;
     private String registrationToken;
 
     public Profile() {
@@ -76,6 +77,14 @@ public class Profile implements Serializable {
 
     public void setPoints(long points) {
         this.points = points;
+    }
+
+    public int getUnseen() {
+        return unseen;
+    }
+
+    public void setUnseen(int unseen) {
+        this.unseen = unseen;
     }
 
     public String getRegistrationToken() {

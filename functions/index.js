@@ -199,7 +199,6 @@ exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{aut
     return postRatingRef.once('value').then(snapshot => {
         let ratingTotal = 0;
         let ratingNum = snapshot.numChildren();
-        const updates = {};
         snapshot.forEach(function(authorSnap) {
 	      authorSnap.forEach(function(ratingSnap) {
 		     ratingTotal = ratingTotal + ratingSnap.val().rating;
@@ -370,4 +369,139 @@ exports.ratingPoints = functions.database.ref('/post-ratings/{postId}/{authorId}
         });
 
     })
+});
+
+exports.appNotificationRatings = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onCreate(event => {
+    console.log('App notification for new rating');
+
+    const ratingAuthorId = event.params.authorId;
+    const postId = event.params.postId;
+
+    // Get rated post.
+    const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
+
+    return getPostTask.then(post => {
+        var postAuthorId = post.val().authorId;
+        if (ratingAuthorId == postAuthorId) {
+            return console.log('User rated own post');
+        }
+        // Get rating author.
+        const getRatingAuthorProfileTask = admin.database().ref(`/profiles/${ratingAuthorId}`).once('value');
+
+        return getRatingAuthorProfileTask.then(profile => {
+            // Get user notification ref
+            const userNotificationsRef = admin.database().ref(`/user-notifications/${postAuthorId}`);
+            var newNotificationRef = userNotificationsRef.push();
+            var msg = profile.val().username + " rated your post '" + post.val().title + "'";
+            newNotificationRef.set({
+                'action': 'com.eriyaz.social.activities.PostDetailsActivity',
+                'fromUserId' : ratingAuthorId,
+                'message': msg,
+                'extraKey' : 'PostDetailsActivity.POST_ID_EXTRA_KEY',
+                'extraKeyValue' : postId,
+                'createdDate': admin.database.ServerValue.TIMESTAMP
+            });
+        });
+
+    })
+});
+
+exports.appNotificationComments = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
+    console.log('App notification for new comment');
+
+    const commentId = event.params.commentId;
+    const postId = event.params.postId;
+    const comment = event.data.val();
+    const commentAuthorId = comment.authorId;
+
+    // Get rated post.
+    const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
+
+    return getPostTask.then(post => {
+        var postAuthorId = post.val().authorId;
+        if (commentAuthorId == postAuthorId) {
+            return console.log('User commented on own post');
+        }
+        // Get comment author.
+        const getCommentAuthorProfileTask = admin.database().ref(`/profiles/${commentAuthorId}`).once('value');
+
+        return getCommentAuthorProfileTask.then(profile => {
+            // Get user notification ref
+            const userNotificationsRef = admin.database().ref(`/user-notifications/${postAuthorId}`);
+            var newNotificationRef = userNotificationsRef.push();
+            var msg = profile.val().username + " commented your post '" + post.val().title + "'";
+            newNotificationRef.set({
+                'action': 'com.eriyaz.social.activities.PostDetailsActivity',
+                'fromUserId' : commentAuthorId,
+                'message': msg,
+                'extraKey' : 'PostDetailsActivity.POST_ID_EXTRA_KEY',
+                'extraKeyValue' : postId,
+                'createdDate': admin.database.ServerValue.TIMESTAMP
+            });
+        });
+    })
+});
+
+exports.appNotificationCommentConversation = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
+    console.log('App notification for new comment in conversation');
+
+    const postCommentRef = event.data.ref.parent;
+    const commentId = event.params.commentId;
+    const postId = event.params.postId;
+    const comment = event.data.val();
+    const commentAuthorId = comment.authorId;
+
+    // Get commented post.
+    const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
+
+    return getPostTask.then(post => {
+        var postAuthorId = post.val().authorId;
+        // process all post comments
+        return postCommentRef.once('value').then(snapshot => {
+            const authorToNotify = [];
+            snapshot.forEach(function(commentSnap) {
+                // exclude post author & comment user
+                const notifyAuthorId = commentSnap.val().authorId;
+                if (notifyAuthorId  != postAuthorId && notifyAuthorId != commentAuthorId ) {
+                    if (!authorToNotify.includes(notifyAuthorId)) {
+                        authorToNotify.push(notifyAuthorId);
+                    }
+                }
+            });
+            console.log("authorList:"+authorToNotify);
+            if (authorToNotify.length == 0) return;
+
+            // Get comment author.
+            const getCommentAuthorProfileTask = admin.database().ref(`/profiles/${commentAuthorId}`).once('value');
+
+            return getCommentAuthorProfileTask.then(profile => {
+                authorToNotify.forEach(function(authorId) {
+                    // Get user notification ref
+                    const userNotificationsRef = admin.database().ref(`/user-notifications/${authorId}`);
+                    var newNotificationRef = userNotificationsRef.push();
+                    var msg = profile.val().username + " commented post '" + post.val().title + "' you had commented.";
+                    newNotificationRef.set({
+                        'action': 'com.eriyaz.social.activities.PostDetailsActivity',
+                        'fromUserId' : commentAuthorId,
+                        'message': msg,
+                        'extraKey' : 'PostDetailsActivity.POST_ID_EXTRA_KEY',
+                        'extraKeyValue' : postId,
+                        'createdDate': admin.database.ServerValue.TIMESTAMP
+                    });
+                });
+            });
+
+        });
+
+    })
+});
+
+exports.incrementUserUnseenNotification = functions.database.ref('/user-notifications/{authorId}/{notificationId}').onCreate(event => {
+    const authorId = event.params.authorId;
+    const authorProfileUnseenRef = admin.database().ref(`/profiles/${authorId}/unseen`);
+    return authorProfileUnseenRef.transaction(current => {
+          return (current || 0) + 1;
+    }).then(() => {
+        console.log('User unseen count incremented.');
+    });
 });
