@@ -56,6 +56,7 @@
 
     <string name="comment_text_hint">Enter your comment…</string>
     <string name="button_post_comment">Post comment</string>
+    <string name="comment_not_ok_hint">Comment what could be improved…</string>
 
     <string name="label_comments">Comments (%1$d):</string>
     <string name="label_ratings">Ratings (%1$d):</string>
@@ -158,6 +159,7 @@
     <string name="message_comment_was_removed">Comment was removed</string>
     <string name="message_comment_was_edited">Comment was edited</string>
     <string name="title_edit_comment">Edit comment</string>
+    <string name="title_not_ok_comment">Why not ok?</string>
     <!-- Recording Screen -->
     <string name="pause_recording_button">Pause</string>
     <string name="resume_recording_button">Resume</string>

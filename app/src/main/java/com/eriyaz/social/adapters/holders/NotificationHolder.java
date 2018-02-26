@@ -61,7 +61,6 @@ public class NotificationHolder extends RecyclerView.ViewHolder {
         });
     }
 
-    //TODO: don't open author profile rather do action.
     private void openActionActivity(Notification notification) {
         if (!notification.isRead()) {
             profileManager.markNotificationRead(notification);

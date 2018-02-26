@@ -1,9 +1,11 @@
 package com.eriyaz.social.fragments;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.ColorFilter;
 import android.graphics.LightingColorFilter;
 import android.media.MediaPlayer;
@@ -26,6 +28,7 @@ import com.eriyaz.social.activities.PostDetailsActivity;
 import com.eriyaz.social.activities.ProfileActivity;
 import com.eriyaz.social.controllers.LikeController;
 import com.eriyaz.social.controllers.RatingController;
+import com.eriyaz.social.dialogs.CommentDialog;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.model.RecordingItem;
@@ -284,14 +287,24 @@ public class PlaybackFragment extends DialogFragment {
             public void getProgressOnActionUp(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
                 ratingController.setUpdatingRatingCounter(false);
                 isRatingChanged = true;
+                if (progress > 0 && progress <= 5) {
+                    openCommentDialog();
+                    return;
+                }
                 ratingController.handleRatingClickAction((BaseActivity) getActivity(), post, progress);
-//                int position = getAdapterPosition();
-//                if (onClickListener != null && position != RecyclerView.NO_POSITION) {
-//                    onClickListener.onRatingClick(ratingController, position, progress);
-//                }
             }
         });
         ratingBar.setProgress(rating.getRating());
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK) {
+            ratingController.handleRatingClickAction((BaseActivity) getActivity(), post, ratingBar.getProgress());
+        } else {
+            ratingBar.setProgress(rating.getRating());
+        }
     }
 
     // Play start/stop
@@ -416,6 +429,15 @@ public class PlaybackFragment extends DialogFragment {
 
         //allow the screen to turn off again once audio is finished playing
         getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
+
+    private void openCommentDialog() {
+        CommentDialog commentDialog = new CommentDialog();
+        Bundle args = new Bundle();
+        args.putString(PostDetailsActivity.POST_ID_EXTRA_KEY, post.getId());
+        commentDialog.setArguments(args);
+        commentDialog.setTargetFragment(this,CommentDialog.NEW_COMMENT_REQUEST);
+        commentDialog.show(getFragmentManager(), CommentDialog.TAG);
     }
 
     //updating mSeekBar

@@ -19,6 +19,7 @@ package com.eriyaz.social.activities;
 
 import android.animation.Animator;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -62,6 +63,7 @@ import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.CommentsAdapter;
 import com.eriyaz.social.adapters.RatingsAdapter;
 import com.eriyaz.social.controllers.RatingController;
+import com.eriyaz.social.dialogs.CommentDialog;
 import com.eriyaz.social.dialogs.EditCommentDialog;
 import com.eriyaz.social.enums.PostStatus;
 import com.eriyaz.social.enums.ProfileStatus;
@@ -743,7 +745,11 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 
             @Override
             public void getProgressOnActionUp(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
-                if (isPostExist && true) {
+                if (isPostExist) {
+                    if (progress > 0 && progress <= 5) {
+                        openCommentDialog();
+                        return;
+                    }
                     ratingController.handleRatingClickAction(PostDetailsActivity.this, post, progress);
                 }
             }
@@ -776,6 +782,23 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 //                return true;
 //            }
 //        });
+    }
+
+    private void openCommentDialog() {
+        CommentDialog commentDialog = new CommentDialog();
+        Bundle args = new Bundle();
+        args.putString(PostDetailsActivity.POST_ID_EXTRA_KEY, post.getId());
+        commentDialog.setArguments(args);
+        commentDialog.show(getFragmentManager(), CommentDialog.TAG);
+    }
+
+    public void onCommentDialogResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK) {
+            ratingController.handleRatingClickAction(PostDetailsActivity.this, post, ratingBar.getProgress());
+        } else {
+            ratingBar.setProgress(ratingController.getRating().getRating());
+        }
     }
 
     private void sendComment() {
