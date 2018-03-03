@@ -13,6 +13,7 @@ public class Notification {
     private String extraKey;
     private String extraKeyValue;
     private boolean read;
+    private boolean openPlayStore;
 
     public Notification() {
     }
@@ -79,5 +80,13 @@ public class Notification {
 
     public void setRead(boolean read) {
         this.read = read;
+    }
+
+    public boolean isOpenPlayStore() {
+        return openPlayStore;
+    }
+
+    public void setOpenPlayStore(boolean openPlayStore) {
+        this.openPlayStore = openPlayStore;
     }
 }

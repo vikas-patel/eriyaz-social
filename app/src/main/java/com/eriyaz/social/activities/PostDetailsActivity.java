@@ -37,6 +37,7 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.transition.Transition;
 import android.util.Log;
@@ -121,7 +122,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private TextView fileName;
     private TextView audioLength;
     private View fileContainerView;
-//    private TextView descriptionEditText;
+    private TextView descriptionEditText;
     private ProgressBar commentsProgressBar;
     private RecyclerView commentsRecyclerView;
     private TextView warningCommentsTextView;
@@ -173,6 +174,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         incrementWatchersCount();
 
         fileName = (TextView) findViewById(R.id.file_name_text);
+        descriptionEditText = findViewById(R.id.descriptionEditText);
         audioLength = (TextView) findViewById(R.id.file_length_text);
         fileContainerView = findViewById(R.id.fileViewContainer);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
@@ -245,7 +247,11 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             public void onClick(View view) {
                 try {
                     RecordingItem item = new RecordingItem();
-                    item.setName(post.getTitle());
+                    String title = post.getTitle();
+                    if (!TextUtils.isEmpty(post.getVersion())) {
+                        title = title.concat("-"+post.getVersion());
+                    }
+                    item.setName(title);
                     item.setLength(post.getAudioDuration());
                     item.setFilePath(post.getImagePath());
                     PlaybackFragment playbackFragment =
@@ -482,8 +488,17 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 
     private void fillPostFields() {
         if (post != null) {
-//            descriptionEditText.setText(post.getDescription());
-            fileName.setText(post.getTitle());
+            if (TextUtils.isEmpty(post.getDescription())) {
+                descriptionEditText.setVisibility(View.GONE);
+            } else {
+                descriptionEditText.setText(post.getDescription());
+            }
+
+            String title = post.getTitle();
+            if (!TextUtils.isEmpty(post.getVersion())) {
+                title = title.concat("-"+post.getVersion());
+            }
+            fileName.setText(title);
             long minutes = TimeUnit.MILLISECONDS.toMinutes(post.getAudioDuration());
             long seconds = TimeUnit.MILLISECONDS.toSeconds(post.getAudioDuration())
                     - TimeUnit.MINUTES.toSeconds(minutes);

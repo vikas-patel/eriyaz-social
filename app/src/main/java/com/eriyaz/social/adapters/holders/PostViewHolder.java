@@ -20,6 +20,7 @@ package com.eriyaz.social.adapters.holders;
 import android.app.Activity;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -57,6 +58,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 
     private Context context;
     private TextView fileName;
+    private TextView detailsTextView;
     private TextView audioLength;
     private View playImageView;
     private TextView authorTextView;
@@ -95,7 +97,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         watcherCounterTextView = (TextView) view.findViewById(R.id.watcherCounterTextView);
         dateTextView = (TextView) view.findViewById(R.id.dateTextView);
         authorTextView = (TextView) view.findViewById(R.id.authorTextView);
-//        detailsTextView = (TextView) view.findViewById(R.id.detailsTextView);
+        detailsTextView = (TextView) view.findViewById(R.id.detailsTextView);
         authorImageView = (ImageView) view.findViewById(R.id.authorImageView);
         authorImageContainerView = view.findViewById(R.id.authorImageContainer);
 //        likeViewGroup = (ViewGroup) view.findViewById(R.id.likesContainer);
@@ -148,17 +150,18 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     }
 
     public void bindData(final Post post) {
-
-//        likeController = new LikeController(context, post, likeCounterTextView, likesImageView, true);
-        final String title = removeNewLinesDividers(post.getTitle());
+        final String title = formTitleText(post);
         fileName.setText(title);
         long minutes = TimeUnit.MILLISECONDS.toMinutes(post.getAudioDuration());
         long seconds = TimeUnit.MILLISECONDS.toSeconds(post.getAudioDuration())
                 - TimeUnit.MINUTES.toSeconds(minutes);
         audioLength.setText(String.format("%02d:%02d", minutes, seconds));
-//        String description = removeNewLinesDividers(post.getDescription());
-//        detailsTextView.setText(description);
-//        likeCounterTextView.setText(String.valueOf(post.getLikesCount()));
+        String description = removeNewLinesDividers(post.getDescription());
+        if (TextUtils.isEmpty(description)) {
+            detailsTextView.setVisibility(View.GONE);
+        } else {
+            detailsTextView.setText(description);
+        }
         String avgRatingText = "";
         if (post.getAverageRating() > 0) {
             avgRatingText = String.format( "%.1f", post.getAverageRating());
@@ -218,6 +221,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     }
 
     private String removeNewLinesDividers(String text) {
+        if (TextUtils.isEmpty(text)) return text;
         int decoratedTextLength = text.length() < Constants.Post.MAX_TEXT_LENGTH_IN_LIST ?
                 text.length() : Constants.Post.MAX_TEXT_LENGTH_IN_LIST;
         return text.substring(0, decoratedTextLength).replaceAll("\n", " ").trim();
@@ -250,6 +254,14 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 //            }
 //        };
 //    }
+
+    private String formTitleText(Post post) {
+        String title = removeNewLinesDividers(post.getTitle());
+        if (!TextUtils.isEmpty(post.getVersion())) {
+            title = title.concat("-"+post.getVersion());
+        }
+        return title;
+    }
 
     private OnObjectChangedListener<Rating> createOnRatingObjectChangedListener() {
         return new OnObjectChangedListener<Rating>() {

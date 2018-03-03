@@ -680,6 +680,9 @@ public class DatabaseHelper {
                         if (mapObj.containsKey("commentsCount")) {
                             post.setCommentsCount((long) mapObj.get("commentsCount"));
                         }
+                        if (mapObj.containsKey("version")) {
+                            post.setVersion((String) mapObj.get("version"));
+                        }
 //                        if (mapObj.containsKey("likesCount")) {
 //                            post.setLikesCount((long) mapObj.get("likesCount"));
 //                        }

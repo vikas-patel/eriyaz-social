@@ -3,12 +3,17 @@ var functions = require('firebase-functions');
 const admin = require('firebase-admin');
 admin.initializeApp(functions.config().firebase);
 
+const promisePool = require('es6-promise-pool');
+const PromisePool = promisePool.PromisePool;
+
 const actionTypeNewRating = "new_rating"
 const actionTypeNewComment = "new_comment"
 const actionTypeNewPost = "new_post"
-const notificationTitle = "YourSingingScore"
+const notificationTitle = "RateMySinging"
 
 const postsTopic = "postsTopic"
+// Maximum concurrent database connection.
+const MAX_CONCURRENT = 3;
 
 exports.pushNotificationRatings = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onWrite(event => {
 
@@ -468,14 +473,13 @@ exports.appNotificationCommentConversation = functions.database.ref('/post-comme
                     }
                 }
             });
-            console.log("authorList:"+authorToNotify);
             if (authorToNotify.length == 0) return;
-
             // Get comment author.
             const getCommentAuthorProfileTask = admin.database().ref(`/profiles/${commentAuthorId}`).once('value');
-
             return getCommentAuthorProfileTask.then(profile => {
-                authorToNotify.forEach(function(authorId) {
+                const promisePool = new PromisePool(() => {
+                  if (authorToNotify.length > 0) {
+                    const authorId = authorToNotify.pop();
                     // Get user notification ref
                     const userNotificationsRef = admin.database().ref(`/user-notifications/${authorId}`);
                     var newNotificationRef = userNotificationsRef.push();
@@ -488,12 +492,16 @@ exports.appNotificationCommentConversation = functions.database.ref('/post-comme
                         'extraKeyValue' : postId,
                         'createdDate': admin.database.ServerValue.TIMESTAMP
                     });
+                  }
+                  return null;
+                }, MAX_CONCURRENT);
+                const poolTask =  promisePool.start();
+                return poolTask.then(() => {
+                    return console.log('added new comment in thread notification');
                 });
             });
-
         });
-
-    })
+    });
 });
 
 exports.incrementUserUnseenNotification = functions.database.ref('/user-notifications/{authorId}/{notificationId}').onCreate(event => {
@@ -503,5 +511,54 @@ exports.incrementUserUnseenNotification = functions.database.ref('/user-notifica
           return (current || 0) + 1;
     }).then(() => {
         console.log('User unseen count incremented.');
+    });
+});
+
+exports.appUpdateNotification = functions.https.onRequest((req, res) => {
+    // check if security key is same
+    const keyParam = req.query.key;
+    const key = "Test!234";
+    if (key != keyParam) {
+        console.log('The key ', key,' provided in the request does not match the key set in the environment.');
+        res.status(403).send('Security key does not match. Make sure your "key" URL query parameter matches the ' +
+          'cron.key environment variable.');
+        return null;
+    }
+    // Get profiles
+    const getProfilesTask = admin.database().ref(`/profiles/`).once('value');
+    return getProfilesTask.then(snapshot => {
+        const snapshotVal = snapshot.val();
+        const profiles = Object.keys(snapshotVal).map(key => snapshotVal[key]);
+        // const profiles = Object.values(profilesSnapshot.val());
+        // const profiles = profilesSnapshot.val();
+        console.log("About to update ", profiles.length, ' users.');
+        const msg = "New version of the app is available now with important updates. Tap to update.";
+        const promisePool = new PromisePool(() => {
+          if (profiles.length > 0) {
+            const profile = profiles.pop();
+            // Get user notification ref
+            const authorId = profile.id;
+            const userNotificationsRef = admin.database().ref(`/user-notifications/${authorId}`);
+            var newNotificationRef = userNotificationsRef.push();
+            // add notification
+            return newNotificationRef.set({
+                'action': 'com.eriyaz.social',
+                //'fromUserId' : '',
+                'message': msg,
+                'openPlayStore': true,
+                'createdDate': admin.database.ServerValue.TIMESTAMP
+            });
+          }
+          return null;
+        }, MAX_CONCURRENT);
+        const poolTask =  promisePool.start();
+        return poolTask.then(() => {
+            return console.log('added notification to user');
+        }).catch((error) => {
+            console.error('User notification failed:', error);
+        }).then(() => {
+            console.log('User notification task finished');
+            return res.status(200).send('User notification task finished');
+        });
     });
 });

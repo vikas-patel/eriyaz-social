@@ -3,6 +3,7 @@ package com.eriyaz.social.adapters.holders;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
@@ -65,13 +66,22 @@ public class NotificationHolder extends RecyclerView.ViewHolder {
         if (!notification.isRead()) {
             profileManager.markNotificationRead(notification);
         }
-        try {
-            Class<?> c = Class.forName(notification.getAction());
-            Intent intent = new Intent(context, c);
-            intent.putExtra(notification.getExtraKey(), notification.getExtraKeyValue());
-            ((Activity)context).startActivity(intent);
-        } catch (ClassNotFoundException e) {
-            LogUtil.logError("NotificationHolder", e.getMessage(), e);
+        if (notification.isOpenPlayStore()) {
+            final String appPackageName = notification.getAction(); // getPackageName() from Context or Activity object
+            try {
+                ((Activity)context).startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
+            } catch (android.content.ActivityNotFoundException anfe) {
+                ((Activity)context).startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
+            }
+        } else {
+            try {
+                Class<?> c = Class.forName(notification.getAction());
+                Intent intent = new Intent(context, c);
+                intent.putExtra(notification.getExtraKey(), notification.getExtraKeyValue());
+                ((Activity)context).startActivity(intent);
+            } catch (ClassNotFoundException e) {
+                LogUtil.logError("NotificationHolder", e.getMessage(), e);
+            }
         }
     }
 

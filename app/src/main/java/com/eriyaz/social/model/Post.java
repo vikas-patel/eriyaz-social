@@ -47,6 +47,7 @@ public class Post implements Serializable, LazyLoading {
     private boolean hasComplain;
     private ItemType itemType;
     private long audioDuration;
+    private String version;
 
     @Override
     public boolean equals(Object o) {
@@ -185,6 +186,14 @@ public class Post implements Serializable, LazyLoading {
         this.audioDuration = audioDuration;
     }
 
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
 
@@ -201,6 +210,7 @@ public class Post implements Serializable, LazyLoading {
         result.put("audioDuration", audioDuration);
         result.put("watchersCount", watchersCount);
         result.put("hasComplain", hasComplain);
+        result.put("version", version);
         result.put("createdDateText", FormatterUtil.getFirebaseDateFormat().format(new Date(createdDate)));
 
         return result;
