@@ -22,6 +22,37 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
+            <LinearLayout
+                android:id="@+id/ratedContainer"
+                android:layout_width="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_height="wrap_content"
+                android:paddingTop="@dimen/intrinsic_padding"
+                android:paddingBottom="@dimen/intrinsic_padding"
+                android:paddingLeft="@dimen/intrinsic_padding"
+                android:gravity="center_vertical"
+                android:visibility="invisible"
+                android:orientation="horizontal">
+                <!--<TextView-->
+                    <!--android:id="@+id/ratedTextView"-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:text="Rated"-->
+                    <!--android:textAppearance="@style/TextAppearance.Second.Light" />-->
+                <TextView
+                    android:id="@+id/ratedValueTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="@dimen/small_intrinsic_padding"
+                    android:textColor="@color/like_icon_activated"
+                    android:text="18" />
+                <ImageView
+                    android:id="@+id/ratedImageView"
+                    app:srcCompat="@drawable/ic_star_active"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
             <include
                 android:id="@+id/countersContainer"
                 layout="@layout/counters_panel"

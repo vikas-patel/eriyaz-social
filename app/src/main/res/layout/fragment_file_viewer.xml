@@ -82,20 +82,21 @@
 
     </android.support.design.widget.TextInputLayout>
 
-    <TextView
-        android:id="@+id/inputLabel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/attempt_label"
-        android:layout_below="@+id/input_layout_title"
-        style="@style/InputLabel" />
+    <!--<TextView-->
+        <!--android:id="@+id/inputLabel"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="@string/attempt_label"-->
+        <!--android:layout_below="@+id/input_layout_title"-->
+        <!--style="@style/InputLabel" />-->
 
     <Spinner
         android:id="@+id/versionSpinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="start"
-        android:layout_below="@+id/inputLabel"
+        style="@style/Widget.AppCompat.Spinner.Underlined"
+        android:layout_below="@+id/input_layout_title"
         android:entries="@array/attempt_arrays"
         android:prompt="@string/attempt_label" />
 

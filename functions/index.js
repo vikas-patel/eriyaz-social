@@ -15,7 +15,7 @@ const postsTopic = "postsTopic"
 // Maximum concurrent database connection.
 const MAX_CONCURRENT = 3;
 
-exports.pushNotificationRatings = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onWrite(event => {
+exports.pushNotificationRatings = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onCreate(event => {
 
     console.log('New rating was added');
 
@@ -87,7 +87,7 @@ exports.pushNotificationRatings = functions.database.ref('/post-ratings/{postId}
     })
 });
 
-exports.pushNotificationComments = functions.database.ref('/post-comments/{postId}/{commentId}').onWrite(event => {
+exports.pushNotificationComments = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
 
     const commentId = event.params.commentId;
     const postId = event.params.postId;
@@ -409,6 +409,17 @@ exports.appNotificationRatings = functions.database.ref('/post-ratings/{postId}/
         });
 
     })
+});
+
+exports.duplicateUserRating = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onWrite(event => {
+    console.log('Duplicate user rating');
+    const ratingAuthorId = event.params.authorId;
+    const ratingId = event.params.ratingId;
+    const postId = event.params.postId;
+    const rating = event.data.val();
+    if (rating != null) rating.postId = postId;
+    const userRatingRef = admin.database().ref(`/user-ratings/${ratingAuthorId}/${ratingId}`);
+    return userRatingRef.set(rating);
 });
 
 exports.appNotificationComments = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {

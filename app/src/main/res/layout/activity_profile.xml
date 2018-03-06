@@ -9,32 +9,38 @@
     android:orientation="vertical"
     tools:context=".activities.ProfileActivity">
 
-    <android.support.v4.widget.SwipeRefreshLayout
-        android:id="@+id/swipeContainer"
+    <android.support.v4.view.ViewPager
+        android:id="@+id/profileTabPager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
 
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+    <!--<android.support.v4.widget.SwipeRefreshLayout-->
+        <!--android:id="@+id/swipeContainer"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--app:layout_behavior="@string/appbar_scrolling_view_behavior">-->
 
-            <ProgressBar
-                android:id="@+id/postsProgressBar"
-                android:layout_width="@dimen/progress_bar_size"
-                android:layout_height="@dimen/progress_bar_size"
-                android:layout_gravity="top|center_horizontal"
-                android:layout_marginTop="@dimen/profile_screen_margin_top_progress_bar"/>
+        <!--<FrameLayout-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="match_parent">-->
 
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/recycler_view"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:paddingBottom="@dimen/intrinsic_padding" />
+            <!--<ProgressBar-->
+                <!--android:id="@+id/postsProgressBar"-->
+                <!--android:layout_width="@dimen/progress_bar_size"-->
+                <!--android:layout_height="@dimen/progress_bar_size"-->
+                <!--android:layout_gravity="top|center_horizontal"-->
+                <!--android:layout_marginTop="@dimen/profile_screen_margin_top_progress_bar"/>-->
 
-        </FrameLayout>
+            <!--<android.support.v7.widget.RecyclerView-->
+                <!--android:id="@+id/recycler_view"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="match_parent"-->
+                <!--android:paddingBottom="@dimen/intrinsic_padding" />-->
 
-    </android.support.v4.widget.SwipeRefreshLayout>
+        <!--</FrameLayout>-->
+
+    <!--</android.support.v4.widget.SwipeRefreshLayout>-->
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/appbar"
@@ -118,8 +124,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:gravity="center"
-                                android:textAppearance="@style/TextAppearance.Title"
-                                android:visibility="invisible" />
+                                android:textAppearance="@style/TextAppearance.Title" />
 
                         </LinearLayout>
 
@@ -127,14 +132,22 @@
 
                 </RelativeLayout>
 
-                <TextView
-                    android:id="@+id/postsLabelTextView"
+                <!--<TextView-->
+                    <!--android:id="@+id/postsLabelTextView"-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:layout_marginLeft="@dimen/post_card_content_padding_left"-->
+                    <!--android:paddingTop="@dimen/intrinsic_padding"-->
+                    <!--android:text="@string/posts_label"-->
+                    <!--android:textAppearance="@style/TextAppearance.Second.Light" />-->
+                <android.support.design.widget.TabLayout
+                    android:id="@+id/tabs"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="@dimen/post_card_content_padding_left"
-                    android:paddingTop="@dimen/intrinsic_padding"
-                    android:text="@string/posts_label"
-                    android:textAppearance="@style/TextAppearance.Second.Light" />
+                    android:elevation="4dp"
+                    app:tabGravity="fill"
+                    android:theme="@style/Theme.AppCompat.Light.DarkActionBar"
+                    app:tabMode="fixed"/>
 
             </LinearLayout>
 
