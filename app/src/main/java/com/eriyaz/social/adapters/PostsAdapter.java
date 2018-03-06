@@ -33,6 +33,7 @@ import com.eriyaz.social.managers.PostManager;
 import com.eriyaz.social.managers.listeners.OnPostListChangedListener;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.PostListResult;
+import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.utils.PreferencesUtil;
 
 import java.util.List;
@@ -105,23 +106,16 @@ public class PostsAdapter extends BasePostsAdapter {
                 }
             }
 
-//            @Override
-//            public void onLikeClick(LikeController likeController, int position) {
-//                Post post = getItemByPosition(position);
-//                likeController.handleLikeClickAction(activity, post);
-//            }
+            @Override
+            public void onPlayClick(int position, Rating rating, View view) {
+                openPlayFragment(position, rating, view);
+            }
 
             @Override
             public void onAuthorClick(int position, View view) {
                 if (callback != null) {
                     callback.onAuthorClick(getItemByPosition(position).getAuthorId(), view);
                 }
-            }
-
-            @Override
-            public void onRatingClick(RatingController ratingController, int position, float rating) {
-                Post post = getItemByPosition(position);
-                ratingController.handleRatingClickAction(activity, post, rating);
             }
         };
     }

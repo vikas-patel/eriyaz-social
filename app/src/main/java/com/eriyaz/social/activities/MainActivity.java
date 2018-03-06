@@ -526,7 +526,7 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    public void updatePost(Post post) {
-        postsAdapter.updatePost(post);
+    public void updatePost() {
+        postsAdapter.updateSelectedPost();
     }
 }

@@ -727,12 +727,12 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private void initLikes() {
 //        likeController = new LikeController(this, post, likeCounterTextView, likesImageView, false);
         ratingController = new RatingController(post.getId(), ratingCounterTextView, averageRatingTextView, ratingBar, false);
-        //if rating value is changed.
+        //if ratingByCurrentUser value is changed.
 //        ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
 //            @Override
-//            public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
+//            public void onRatingChanged(RatingBar ratingBar, float ratingByCurrentUser, boolean fromUser) {
 //                if (isPostExist && fromUser) {
-//                    ratingController.handleRatingClickAction(PostDetailsActivity.this, post, rating);
+//                    ratingController.handleRatingClickAction(PostDetailsActivity.this, post, ratingByCurrentUser);
 //                }
 //            }
 //        });

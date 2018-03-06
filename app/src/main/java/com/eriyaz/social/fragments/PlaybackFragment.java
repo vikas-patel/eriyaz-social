@@ -111,9 +111,9 @@ public class PlaybackFragment extends DialogFragment {
         super.onDismiss(dialog);
         if (!isRatingChanged) return;
         if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).updatePost(post);
+            ((MainActivity) getActivity()).updatePost();
         } else if (getActivity() instanceof ProfileActivity) {
-            ((ProfileActivity) getActivity()).updatePost(post);
+            ((ProfileActivity) getActivity()).updatePost();
         }
     }
 

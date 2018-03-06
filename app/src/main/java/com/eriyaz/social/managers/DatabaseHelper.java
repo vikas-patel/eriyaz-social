@@ -367,7 +367,7 @@ public class DatabaseHelper {
         try {
             String authorId = firebaseAuth.getCurrentUser().getUid();
             DatabaseReference mLikesReference = database.getReference().child("post-ratings").child(postId).child(authorId);
-            // add rating, else update
+            // add ratingByCurrentUser, else update
             if (rating.getId() == null) {
                 mLikesReference.push();
                 String id = mLikesReference.push().getKey();
@@ -587,6 +587,33 @@ public class DatabaseHelper {
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 LogUtil.logError(TAG, "getPostListByUser(), onCancelled", new Exception(databaseError.getMessage()));
+            }
+        });
+    }
+
+    public void getRatingListByUser(final OnDataChangedListener<Rating> onDataChangedListener, String userId) {
+        DatabaseReference databaseReference = database.getReference("user-ratings").child(userId);
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                List<Rating> list = new ArrayList<>();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Rating rating = snapshot.getValue(Rating.class);
+                    list.add(rating);
+                }
+
+                Collections.sort(list, new Comparator<Rating>() {
+                    @Override
+                    public int compare(Rating lhs, Rating rhs) {
+                        return ((Long) rhs.getCreatedDate()).compareTo((Long) lhs.getCreatedDate());
+                    }
+                });
+                onDataChangedListener.onListChanged(list);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                LogUtil.logError(TAG, "getRatingListByUser(), onCancelled", new Exception(databaseError.getMessage()));
             }
         });
     }
@@ -911,6 +938,23 @@ public class DatabaseHelper {
                     listener.onObjectChanged(rating);
                     return;
                 }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                LogUtil.logError(TAG, "getCurrentUserRating(), onCancelled", new Exception(databaseError.getMessage()));
+            }
+        });
+    }
+
+    public void geUserRatingSingleValue(String userId, String ratingId, final OnObjectChangedListener<Rating> listener) {
+        DatabaseReference databaseReference = database.getReference("user-ratings").child(userId).child(ratingId);
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                    Rating rating = dataSnapshot.getValue(Rating.class);
+                    listener.onObjectChanged(rating);
+                    return;
             }
 
             @Override

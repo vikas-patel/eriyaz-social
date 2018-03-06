@@ -16,7 +16,9 @@
 
 package com.eriyaz.social.adapters;
 
+import android.app.Activity;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,19 +26,21 @@ import android.view.ViewGroup;
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
 import com.eriyaz.social.adapters.holders.PostViewHolder;
-import com.eriyaz.social.controllers.RatingController;
+import com.eriyaz.social.fragments.PlaybackFragment;
 import com.eriyaz.social.managers.PostManager;
 import com.eriyaz.social.managers.listeners.OnDataChangedListener;
 import com.eriyaz.social.model.Post;
+import com.eriyaz.social.model.Rating;
+import com.eriyaz.social.model.RecordingItem;
 
 import java.util.List;
 
 
-public class PostsByUserAdapter extends BasePostsAdapter {
+public class PostsByUserAdapter extends BasePostsAdapter implements ProfileTabInterface {
     public static final String TAG = PostsByUserAdapter.class.getSimpleName();
 
-    private String userId;
-    private CallBack callBack;
+    protected String userId;
+    public CallBack callBack;
 
     public PostsByUserAdapter(final BaseActivity activity, String userId) {
         super(activity);
@@ -65,21 +69,14 @@ public class PostsByUserAdapter extends BasePostsAdapter {
                 }
             }
 
-//            @Override
-//            public void onLikeClick(LikeController likeController, int position) {
-//                Post post = getItemByPosition(position);
-//                likeController.handleLikeClickAction(activity, post);
-//            }
+            @Override
+            public void onPlayClick(int position, Rating rating, View view) {
+                openPlayFragment(position, rating, view);
+            }
 
             @Override
             public void onAuthorClick(int position, View view) {
 
-            }
-
-            @Override
-            public void onRatingClick(RatingController ratingController, int position, float rating) {
-                Post post = getItemByPosition(position);
-                ratingController.handleRatingClickAction(activity, post, rating);
             }
         };
     }
@@ -122,7 +119,7 @@ public class PostsByUserAdapter extends BasePostsAdapter {
     public interface CallBack {
         void onItemClick(Post post, View view);
         void onPostsListChanged(int postsCount);
-
+        void onAuthorClick(String authorId, View view);
         void onPostLoadingCanceled();
     }
 }

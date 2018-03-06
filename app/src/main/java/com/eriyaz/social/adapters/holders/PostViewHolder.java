@@ -23,7 +23,6 @@ import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -35,7 +34,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.eriyaz.social.Constants;
 import com.eriyaz.social.R;
-import com.eriyaz.social.controllers.RatingController;
 import com.eriyaz.social.fragments.PlaybackFragment;
 import com.eriyaz.social.managers.PostManager;
 import com.eriyaz.social.managers.ProfileManager;
@@ -60,7 +58,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     private TextView fileName;
     private TextView detailsTextView;
     private TextView audioLength;
-    private View playImageView;
+    protected View playImageView;
     private TextView authorTextView;
     private TextView averageRatingTextView;
     private TextView ratingCounterTextView;
@@ -70,18 +68,18 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     private TextView watcherCounterTextView;
     private TextView dateTextView;
     private ImageView authorImageView;
-    private View authorImageContainerView;
+    protected View authorImageContainerView;
 
-    private ProfileManager profileManager;
-    private PostManager postManager;
-    private Rating rating;
+    protected ProfileManager profileManager;
+    protected PostManager postManager;
+    protected Rating ratingByCurrentUser;
     private Analytics analytics;
 
     public PostViewHolder(View view, final OnClickListener onClickListener) {
         this(view, onClickListener, true);
     }
 
-    public PostViewHolder(View view, final OnClickListener onClickListener, boolean isAuthorNeeded) {
+    public PostViewHolder(View view, boolean isAuthorNeeded) {
         super(view);
         this.context = view.getContext();
         analytics = new Analytics(this.context);
@@ -106,7 +104,10 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 
         profileManager = ProfileManager.getInstance(context.getApplicationContext());
         postManager = PostManager.getInstance(context.getApplicationContext());
+    }
 
+    public PostViewHolder(View view, final OnClickListener onClickListener, boolean isAuthorNeeded) {
+        this(view, isAuthorNeeded);
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -137,17 +138,18 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
             }
         });
 
-        //if rating value is changed.
-//        ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
-//            public void onRatingChanged(RatingBar ratingBar, float rating,
-//                                        boolean fromUser) {
-//                int position = getAdapterPosition();
-//                if (onClickListener != null && position != RecyclerView.NO_POSITION && fromUser) {
-//                    onClickListener.onRatingClick(ratingController, position, rating);
-//                }
-//            }
-//        });
+        playImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int position = getAdapterPosition();
+                if (onClickListener != null && position != RecyclerView.NO_POSITION) {
+                    onClickListener.onPlayClick(getAdapterPosition(), ratingByCurrentUser, view);
+                }
+                analytics.logOpenAudio();
+            }
+        });
     }
+
 
     public void bindData(final Post post) {
         final String title = formTitleText(post);
@@ -189,25 +191,6 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 //                .into(postImageView);
 
         // define an on click listener to open PlaybackFragment
-        playImageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                try {
-                    RecordingItem item = new RecordingItem();
-                    item.setName(title);
-                    item.setLength(post.getAudioDuration());
-                    item.setFilePath(post.getImagePath());
-                    PlaybackFragment playbackFragment =
-                            new PlaybackFragment().newInstance(item, post, rating);
-                    android.app.FragmentTransaction transaction = ((Activity)context).getFragmentManager()
-                            .beginTransaction();
-                    playbackFragment.show(transaction, "dialog_playback");
-                    analytics.logOpenAudio();
-                } catch (Exception e) {
-                    Log.e(TAG, "exception", e);
-                }
-            }
-        });
 
         if (post.getAuthorId() != null) {
             profileManager.getProfileSingleValue(post.getAuthorId(), createProfileChangeListener(authorImageView));
@@ -267,7 +250,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         return new OnObjectChangedListener<Rating>() {
             @Override
             public void onObjectChanged(Rating obj) {
-                rating = obj;
+                ratingByCurrentUser = obj;
                 if (obj != null && obj.getRating() > 0) {
                     ratingsImageView.setImageResource(R.drawable.ic_star_active);
                 } else {
@@ -279,11 +262,10 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 
     public interface OnClickListener {
         void onItemClick(int position, View view);
+        void onPlayClick(int position, Rating rating, View view);
 
         //void onLikeClick(LikeController likeController, int position);
 
         void onAuthorClick(int position, View view);
-
-        void onRatingClick(RatingController ratingController, int position, float rating);
     }
 }
