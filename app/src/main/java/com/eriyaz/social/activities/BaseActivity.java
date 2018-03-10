@@ -21,6 +21,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
@@ -155,5 +156,13 @@ public class BaseActivity extends AppCompatActivity {
 
     public Analytics getAnalytics() {
         return analytics;
+    }
+
+    public boolean isActivityDestroyed() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1
+                && this != null && this.isDestroyed()) {
+            return true;
+        }
+        return false;
     }
 }

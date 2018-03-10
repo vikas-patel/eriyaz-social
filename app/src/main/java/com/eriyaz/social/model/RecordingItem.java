@@ -3,10 +3,12 @@ package com.eriyaz.social.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.io.Serializable;
+
 /**
  * Created by Daniel on 12/30/2014.
  */
-public class RecordingItem implements Parcelable {
+public class RecordingItem implements Parcelable, Serializable {
     private String mName; // file name
     private String mFilePath; //file path
     private long mLength; // length of recording in seconds

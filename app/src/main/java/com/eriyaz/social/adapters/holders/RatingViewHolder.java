@@ -31,6 +31,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.eriyaz.social.R;
+import com.eriyaz.social.activities.BaseActivity;
 import com.eriyaz.social.adapters.RatingsAdapter;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
@@ -102,6 +103,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
         return new OnObjectChangedListener<Profile>() {
             @Override
             public void onObjectChanged(Profile obj) {
+                if (((BaseActivity)context).isActivityDestroyed()) return;
                 String userName = obj.getUsername();
                 fillRating(userName, rating, expandableTextView);
 

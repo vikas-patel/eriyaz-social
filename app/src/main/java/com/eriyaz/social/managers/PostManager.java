@@ -84,6 +84,10 @@ public class PostManager extends FirebaseListenersManager {
         ApplicationHelper.getDatabaseHelper().getPostListByUser(onDataChangedListener, userId);
     }
 
+    public void getRatingsListByUser(OnDataChangedListener<Rating> onDataChangedListener, String userId) {
+        ApplicationHelper.getDatabaseHelper().getRatingListByUser(onDataChangedListener, userId);
+    }
+
     public void getPost(Context context, String postId, OnPostChangedListener onPostChangedListener) {
         ValueEventListener valueEventListener = ApplicationHelper.getDatabaseHelper().getPost(postId, onPostChangedListener);
         addListenerToMap(context, valueEventListener);
@@ -184,7 +188,7 @@ public class PostManager extends FirebaseListenersManager {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         onTaskCompleteListener.onTaskComplete(task.isSuccessful());
-                        databaseHelper.updateProfileLikeCountAfterRemovingPost(post);
+//                        databaseHelper.updateProfileLikeCountAfterRemovingPost(post);
                         LogUtil.logDebug(TAG, "removePost(), is success: " + task.isSuccessful());
                     }
                 });
@@ -223,7 +227,12 @@ public class PostManager extends FirebaseListenersManager {
 
     public void getCurrentUserRatingSingleValue(String postId, String userId, final OnObjectChangedListener<Rating> onObjectChangedListener) {
         DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
-        databaseHelper.getCurrentUserRating(postId, userId, onObjectChangedListener);
+        databaseHelper.getCurrentUserRatingSingleValue(postId, userId, onObjectChangedListener);
+    }
+
+    public void getUserRatingSingleValue(String userId, String ratingId, final OnObjectChangedListener<Rating> onObjectChangedListener) {
+        DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
+        databaseHelper.geUserRatingSingleValue(userId, ratingId, onObjectChangedListener);
     }
 
     public void getRatingsList(Context activityContext, String postId, OnDataChangedListener<Rating> onDataChangedListener) {

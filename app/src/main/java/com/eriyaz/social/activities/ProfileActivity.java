@@ -16,19 +16,17 @@
 
 package com.eriyaz.social.activities;
 
-import android.app.ActivityOptions;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SimpleItemAnimator;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.text.style.BackgroundColorSpan;
 import android.text.style.TextAppearanceSpan;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -44,17 +42,16 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.eriyaz.social.adapters.ProfileTabAdapter;
+import com.eriyaz.social.enums.PostStatus;
+import com.eriyaz.social.fragments.PostsByUserFragment;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.eriyaz.social.R;
-import com.eriyaz.social.adapters.PostsByUserAdapter;
-import com.eriyaz.social.enums.PostStatus;
-import com.eriyaz.social.managers.PostManager;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
-import com.eriyaz.social.managers.listeners.OnObjectExistListener;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.LogUtil;
@@ -68,20 +65,18 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
     // UI references.
     private TextView nameEditText;
     private ImageView imageView;
-    private RecyclerView recyclerView;
     private ProgressBar progressBar;
-    private TextView postsCounterTextView;
-    private TextView postsLabelTextView;
-    private ProgressBar postsProgressBar;
+//    private TextView postsLabelTextView;
 
     private FirebaseAuth mAuth;
     private GoogleApiClient mGoogleApiClient;
     private String currentUserId;
     private String userID;
 
-    private PostsByUserAdapter postsAdapter;
-    private SwipeRefreshLayout swipeContainer;
-    private TextView likesCountersTextView;
+    private TabLayout tabLayout;
+    private ViewPager profileTabViewPager;
+
+    private TextView pointsCountersTextView;
     private ProfileManager profileManager;
 
     @Override
@@ -108,20 +103,16 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         imageView = (ImageView) findViewById(R.id.imageView);
         nameEditText = (TextView) findViewById(R.id.nameEditText);
-        postsCounterTextView = (TextView) findViewById(R.id.postsCounterTextView);
-        likesCountersTextView = (TextView) findViewById(R.id.likesCountersTextView);
-        postsLabelTextView = (TextView) findViewById(R.id.postsLabelTextView);
-        postsProgressBar = (ProgressBar) findViewById(R.id.postsProgressBar);
+        pointsCountersTextView = (TextView) findViewById(R.id.pointsCountersTextView);
+//        postsLabelTextView = (TextView) findViewById(R.id.postsLabelTextView);
 
-        swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
-        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                onRefreshAction();
-            }
-        });
+        profileTabViewPager = findViewById(R.id.profileTabPager);
+        ProfileTabAdapter profileTabAdapter = new ProfileTabAdapter(getSupportFragmentManager(), userID);
+        profileTabViewPager.setAdapter(profileTabAdapter);
 
-        loadPostsList();
+        tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(profileTabViewPager);
+
         supportPostponeEnterTransition();
     }
 
@@ -149,11 +140,13 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        ProfileTabAdapter tabAdapter = (ProfileTabAdapter) profileTabViewPager.getAdapter();
+        PostsByUserFragment selectedFragment = tabAdapter.getSelectedFragment(profileTabViewPager.getCurrentItem());
 
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case CreatePostActivity.CREATE_NEW_POST_REQUEST:
-                    postsAdapter.loadPosts();
+                    selectedFragment.getPostsAdapter().loadPosts();
                     showSnackBar(R.string.message_post_was_created);
                     setResult(RESULT_OK);
                     break;
@@ -162,68 +155,14 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
                     if (data != null) {
                         PostStatus postStatus = (PostStatus) data.getSerializableExtra(PostDetailsActivity.POST_STATUS_EXTRA_KEY);
                         if (postStatus.equals(PostStatus.REMOVED)) {
-                            postsAdapter.removeSelectedPost();
+                            selectedFragment.getPostsAdapter().removeSelectedPost();
 
                         } else if (postStatus.equals(PostStatus.UPDATED)) {
-                            postsAdapter.updateSelectedPost();
+                            selectedFragment.getPostsAdapter().updateSelectedPost();
                         }
                     }
                     break;
             }
-        }
-    }
-
-    private void onRefreshAction() {
-        postsAdapter.loadPosts();
-    }
-
-    private void loadPostsList() {
-        if (recyclerView == null) {
-
-            recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-            postsAdapter = new PostsByUserAdapter(this, userID);
-            postsAdapter.setCallBack(new PostsByUserAdapter.CallBack() {
-                @Override
-                public void onItemClick(final Post post, final View view) {
-                    PostManager.getInstance(ProfileActivity.this).isPostExistSingleValue(post.getId(), new OnObjectExistListener<Post>() {
-                        @Override
-                        public void onDataChanged(boolean exist) {
-                            if (exist) {
-                                openPostDetailsActivity(post, view);
-                            } else {
-                                showSnackBar(R.string.error_post_was_removed);
-                            }
-                        }
-                    });
-                }
-
-                @Override
-                public void onPostsListChanged(int postsCount) {
-                    String postsLabel = getResources().getQuantityString(R.plurals.posts_counter_format, postsCount, postsCount);
-                    postsCounterTextView.setText(buildCounterSpannable(postsLabel, postsCount));
-
-                    likesCountersTextView.setVisibility(View.VISIBLE);
-                    postsCounterTextView.setVisibility(View.VISIBLE);
-
-                    if (postsCount > 0) {
-                        postsLabelTextView.setVisibility(View.VISIBLE);
-                    }
-
-                    swipeContainer.setRefreshing(false);
-                    hideLoadingPostsProgressBar();
-                }
-
-                @Override
-                public void onPostLoadingCanceled() {
-                    swipeContainer.setRefreshing(false);
-                    hideLoadingPostsProgressBar();
-                }
-            });
-
-            recyclerView.setLayoutManager(new LinearLayoutManager(this));
-            ((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
-            recyclerView.setAdapter(postsAdapter);
-            postsAdapter.loadPosts();
         }
     }
 
@@ -234,25 +173,13 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
         int start = contentString.length();
         contentString.append(label);
         contentString.setSpan(new TextAppearanceSpan(this, R.style.TextAppearance_Second_Light), start, contentString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        return contentString;
-    }
-
-    private void openPostDetailsActivity(Post post, View v) {
-        Intent intent = new Intent(ProfileActivity.this, PostDetailsActivity.class);
-        intent.putExtra(PostDetailsActivity.POST_ID_EXTRA_KEY, post.getId());
-        intent.putExtra(PostDetailsActivity.AUTHOR_ANIMATION_NEEDED_EXTRA_KEY, true);
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-
-            View imageView = v.findViewById(R.id.fileViewContainer);
-
-            ActivityOptions options = ActivityOptions.
-                    makeSceneTransitionAnimation(ProfileActivity.this,
-                            new android.util.Pair<>(imageView, getString(R.string.post_image_transition_name))
-                    );
-            startActivityForResult(intent, PostDetailsActivity.UPDATE_POST_REQUEST);
+        contentString.setSpan(new TextAppearanceSpan(this, R.style.TextAppearance_Title_White), 0, start-1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        if (value > 0) {
+            contentString.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.light_green)), 0, start-1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         } else {
-            startActivityForResult(intent, PostDetailsActivity.UPDATE_POST_REQUEST);
+            contentString.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.red)), 0, start-1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
+        return contentString;
     }
 
     private void loadProfile() {
@@ -300,15 +227,9 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
                 imageView.setImageResource(R.drawable.ic_stub);
             }
 
-            int likesCount = (int) profile.getLikesCount();
-            String likesLabel = getResources().getQuantityString(R.plurals.likes_counter_format, likesCount, likesCount);
-            likesCountersTextView.setText(buildCounterSpannable(likesLabel, likesCount));
-        }
-    }
-
-    private void hideLoadingPostsProgressBar() {
-        if (postsProgressBar.getVisibility() != View.GONE) {
-            postsProgressBar.setVisibility(View.GONE);
+            int pointsCount = (int) profile.getPoints();
+            String pointsLabel = getResources().getString(R.string.score_label);
+            pointsCountersTextView.setText(buildCounterSpannable(pointsLabel, pointsCount));
         }
     }
 
@@ -379,5 +300,11 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    public void updatePost() {
+        ProfileTabAdapter tabAdapter = (ProfileTabAdapter) profileTabViewPager.getAdapter();
+        PostsByUserFragment selectedFragment = tabAdapter.getSelectedFragment(profileTabViewPager.getCurrentItem());
+        selectedFragment.getPostsAdapter().updateSelectedPost();
     }
 }

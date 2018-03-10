@@ -64,7 +64,6 @@ public class RecordFragment extends Fragment {
         @Override
         public void onServiceConnected(ComponentName className,
                                        IBinder service) {
-            Toast.makeText(getActivity(), "onServiceConnected called", Toast.LENGTH_SHORT).show();
             // We've binded to LocalService, cast the IBinder and get LocalService instance
             RecordingService.LocalBinder binder = (RecordingService.LocalBinder) service;
             recordingService = binder.getServiceInstance(); //Get instance of your service!
@@ -119,15 +118,15 @@ public class RecordFragment extends Fragment {
             }
         });
 
-        mPauseButton = (Button) recordView.findViewById(R.id.btnPause);
-        mPauseButton.setVisibility(View.GONE); //hide pause button before recording starts
-        mPauseButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onPauseRecord(mPauseRecording);
-                mPauseRecording = !mPauseRecording;
-            }
-        });
+//        mPauseButton = (Button) recordView.findViewById(R.id.btnPause);
+//        mPauseButton.setVisibility(View.GONE); //hide pause button before recording starts
+//        mPauseButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                onPauseRecord(mPauseRecording);
+//                mPauseRecording = !mPauseRecording;
+//            }
+//        });
 
         return recordView;
     }

@@ -155,7 +155,7 @@
             <!--android:layout_height="wrap_content"-->
             <!--android:gravity="right"-->
             <!--android:numStars="5"-->
-            <!--android:rating="0"-->
+            <!--andrratingByCurrentUserting="0"-->
             <!--android:stepSize="1.0" />-->
 
         <!--&lt;!&ndash;<RatingBar&ndash;&gt;-->
@@ -165,7 +165,7 @@
             <!--&lt;!&ndash;android:layout_height="wrap_content"&ndash;&gt;-->
             <!--&lt;!&ndash;android:gravity="right"&ndash;&gt;-->
             <!--&lt;!&ndash;android:numStars="5"&ndash;&gt;-->
-            <!--&lt;!&ndash;android:rating="0"&ndash;&gt;-->
+            <!--&lt;!&ndash;andrratingByCurrentUserting="0"&ndash;&gt;-->
             <!--&lt;!&ndash;android:stepSize="1.0" />&ndash;&gt;-->
     <!--</LinearLayout>-->
 

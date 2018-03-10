@@ -25,14 +25,16 @@
     <string name="title_activity_profile">Profile</string>
     <string name="title_activity_edit_profile">Edit profile</string>
     <string name="title_activity_edit_post">Edit post</string>
+    <string name="title_activity_notification">Notifications</string>
 
     <string name="text_take_photo">Take photo</string>
     <string name="text_pick_photo">Pick from Gallery</string>
     <string name="button_title_cancel">Cancel</string>
     <string name="button_ok">OK</string>
 
-    <string name="hint_title">Title</string>
-    <string name="hint_description">Description</string>
+    <string name="hint_title">Song name</string>
+    <string name="hint_description">Additional notes</string>
+    <string name="attempt_label">Attempt</string>
 
     <string name="message_post_was_created">Post was created</string>
     <string name="error_fail_create_post">Fail to create post</string>
@@ -46,7 +48,8 @@
     <string name="warning_empty_image">Image is required</string>
     <string name="warning_empty_title">Title is required</string>
     <string name="warning_empty_description">Description is required</string>
-    <string name="error_post_title_length">Max length of the title should be less than 255 symbols</string>
+    <string name="error_post_title_length">Max length of the title should be less than 60 symbols</string>
+    <string name="error_post_description_length">Max length of the description should be less than 255 symbols</string>
     <string name="error_fail_remove_post">Fail to remove post</string>
     <string name="message_post_was_removed">Post was removed</string>
     <string name="error_fail_update_post">Fail to update post</string>
@@ -55,6 +58,7 @@
 
     <string name="comment_text_hint">Enter your comment…</string>
     <string name="button_post_comment">Post comment</string>
+    <string name="comment_not_ok_hint">Please give feedback on what can be improved. It is mandatory for \'Not Ok' rating.</string>
 
     <string name="label_comments">Comments (%1$d):</string>
     <string name="label_ratings">Ratings (%1$d):</string>
@@ -102,6 +106,7 @@
     </string>
 
     <string name="profile_menu_item">Profile</string>
+    <string name="notification_menu_item">Notification</string>
     <string name="collapse_text_label">show less</string>
     <string name="expand_text_label">show more</string>
     <string name="add_complain">Complain</string>
@@ -110,10 +115,14 @@
     <string name="complain_text">You can complain to this post if it contains violence,
         bullying and threats, hate speech, tragic events and sexually explicit contents.
         Nobody will see the post if you complain to it. You can\'t delete your complain.</string>
-
+    <!--<string name="karma_text">Dear %1$s, this community can only function if everybody contributes. To get out of karma debt please rate and give feedback on other people\'s recordings.</string>-->
     <string name="send_comment_button_label">Send</string>
     <string name="posted_by_label">Posted by:</string>
-
+    <string name="score_label">contribution score</string>
+    <plurals name="points_needed_text">
+        <item quantity="one">Please rate %1$d other person and then you can add your recording.</item>
+        <item quantity="other">Please rate %1$d other people and then you can add your recording.</item>
+    </plurals>
     <plurals name="posts_counter_format">
         <item quantity="one">post</item>
         <item quantity="other">posts</item>
@@ -122,6 +131,11 @@
     <plurals name="likes_counter_format">
         <item quantity="one">like</item>
         <item quantity="other">likes</item>
+    </plurals>
+
+    <plurals name="points_counter_format">
+        <item quantity="one">contribution point</item>
+        <item quantity="other">contribution points</item>
     </plurals>
 
     <string name="posts_label">Posts:</string>
@@ -147,6 +161,7 @@
     <string name="message_comment_was_removed">Comment was removed</string>
     <string name="message_comment_was_edited">Comment was edited</string>
     <string name="title_edit_comment">Edit comment</string>
+    <string name="title_not_ok_comment">Why \'Not Ok'?</string>
     <!-- Recording Screen -->
     <string name="pause_recording_button">Pause</string>
     <string name="resume_recording_button">Resume</string>
@@ -162,4 +177,16 @@
 
     <string name="facebook_app_id">165281787534501</string>
     <string name="fb_login_protocol_scheme">fb165281787534501</string>
+    <string-array name="attempt_arrays">
+        <item>Attempt 1</item>
+        <item>Attempt 2</item>
+        <item>Attempt 3</item>
+        <item>Attempt 4</item>
+        <item>Attempt 5</item>
+        <item>Attempt 6</item>
+        <item>Attempt 7</item>
+        <item>Attempt 8</item>
+        <item>Attempt 9</item>
+        <item>Attempt 10</item>
+    </string-array>
 </resources>

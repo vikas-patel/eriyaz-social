@@ -59,4 +59,10 @@
         <item name="android:textColor">@android:color/white</item>
     </style>
 
+    <style name="InputLabel" parent="TextAppearance.AppCompat.Caption">
+        <item name="android:paddingBottom">@dimen/intrinsic_padding</item>
+        <item name="android:paddingLeft">@dimen/small_intrinsic_padding</item>
+        <item name="android:paddingRight">@dimen/small_intrinsic_padding</item>
+    </style>
+
 </resources>

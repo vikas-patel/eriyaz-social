@@ -4,8 +4,10 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Color;
+import android.support.v4.content.ContextCompat;
 import android.view.animation.BounceInterpolator;
 import android.widget.TextView;
 
@@ -19,7 +21,6 @@ import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectExistListener;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Rating;
-import com.eriyaz.social.utils.Analytics;
 import com.xw.repo.BubbleSeekBar;
 
 /**
@@ -29,9 +30,7 @@ import com.xw.repo.BubbleSeekBar;
 public class RatingController {
     private static final int ANIMATION_DURATION = 300;
 
-    private Context context;
     private String postId;
-    private String postAuthorId;
 
     private LikeController.AnimationType likeAnimationType = LikeController.AnimationType.BOUNCE_ANIM;
 
@@ -44,11 +43,9 @@ public class RatingController {
     private Rating rating;
     private boolean updatingRatingCounter = true;
 
-    public RatingController(Context context, Post post, TextView ratingCounterTextView, TextView averageRatingTextView,
+    public RatingController(String postId, TextView ratingCounterTextView, TextView averageRatingTextView,
                             BubbleSeekBar ratingBar, boolean isListView) {
-        this.context = context;
-        this.postId = post.getId();
-        this.postAuthorId = post.getAuthorId();
+        this.postId = postId;
         this.ratingCounterTextView = ratingCounterTextView;
         this.averageRatingTextView = averageRatingTextView;
         this.ratingBar = ratingBar;
@@ -56,65 +53,56 @@ public class RatingController {
         this.rating = new Rating();
     }
 
-    public void ratingClickAction(Post post, float ratingValue) {
+    public RatingController(BubbleSeekBar ratingBar, String postId, Rating rating) {
+        this.postId = postId;
+        this.rating = rating;
+        this.ratingBar = ratingBar;
+    }
+
+    public void ratingClickAction(float ratingValue) {
         if (!updatingRatingCounter) {
-            startAnimateLikeButton(likeAnimationType);
-            if (ratingValue > 0) addRating(post, ratingValue);
-            else removeRating(post);
-//            if (!isRated) {
-//                addLike(prevValue);
-//            } else {
-//                removeLike(prevValue);
-//            }
+//            startAnimateLikeButton(likeAnimationType);
+            if (ratingValue > 0)
+                addRating(ratingValue);
+            else
+                removeRating();
         }
+    }
+
+    public Rating getRating() {
+        return rating;
     }
 
     public void ratingClickActionLocal(Post post, float ratingValue) {
         setUpdatingRatingCounter(false);
-        //updateLocalPostLikeCounter(post);
-        ratingClickAction(post, ratingValue);
+        if (ratingValue > 0) {
+            updateLocalPostRatingCounter(post, ratingValue);
+        } else {
+            removeLocalPostRatingCounter(post);
+        }
+        ratingClickAction(ratingValue);
     }
 
-    private void addRating(Post post, float ratingValue) {
+    private void addRating(float ratingValue) {
         updatingRatingCounter = true;
-        float oldRatingValue = rating.getRating();
         rating.setRating(ratingValue);
-        float avgRating = post.getAverageRating();
-        if (rating.getId() == null || rating.getId().isEmpty()) {
-            ratingCounterTextView.setText("(" + (post.getRatingsCount() + 1) + ")");
-            avgRating = (avgRating*post.getRatingsCount() + ratingValue)/(post.getRatingsCount() + 1);
-            post.setRatingsCount(post.getRatingsCount()+1);
-        } else {
-            avgRating = avgRating + (ratingValue - oldRatingValue)/post.getRatingsCount();
-        }
-        post.setAverageRating(avgRating);
-        averageRatingTextView.setText(String.format( "%.1f", avgRating));
-        ApplicationHelper.getDatabaseHelper().createOrUpdateRating(postId, postAuthorId, rating, oldRatingValue);
+        ApplicationHelper.getDatabaseHelper().createOrUpdateRating(postId, rating);
     }
 
-    private void removeRating(Post post) {
+    private void removeRating() {
+        if (this.rating == null || this.rating.getId() == null) return;
         updatingRatingCounter = true;
-        float avgRating = post.getAverageRating();
-        if (post.getRatingsCount() > 1) {
-            avgRating = (avgRating*post.getRatingsCount() - this.rating.getRating())/(post.getRatingsCount() - 1);
-            post.setRatingsCount(post.getRatingsCount() - 1);
-            post.setAverageRating(avgRating);
-        } else {
-            post.setRatingsCount(0);
-            post.setAverageRating(0);
-        }
-        ratingCounterTextView.setText("(" + post.getRatingsCount() + ")");
-        averageRatingTextView.setText(String.format( "%.1f", post.getAverageRating()));
-        ApplicationHelper.getDatabaseHelper().removeRating(postId, postAuthorId, this.rating.getRating());
+        ApplicationHelper.getDatabaseHelper().removeRating(postId, this.rating);
+        rating.reinit();
     }
 
-    private void startAnimateLikeButton(LikeController.AnimationType animationType) {
+    public void startAnimateRatingButton(LikeController.AnimationType animationType) {
         switch (animationType) {
             case BOUNCE_ANIM:
                 bounceAnimateImageView();
                 break;
             case COLOR_ANIM:
-                //colorAnimateImageView();
+                colorAnimateRatingThumb();
                 break;
         }
     }
@@ -122,11 +110,11 @@ public class RatingController {
     private void bounceAnimateImageView() {
         AnimatorSet animatorSet = new AnimatorSet();
 
-        ObjectAnimator bounceAnimX = ObjectAnimator.ofFloat(ratingBar, "scaleX", 0.2f, 1f);
-        bounceAnimX.setDuration(ANIMATION_DURATION);
-        bounceAnimX.setInterpolator(new BounceInterpolator());
+//        ObjectAnimator bounceAnimX = ObjectAnimator.ofFloat(ratingBar, "scaleX", 0.5f, 1f);
+//        bounceAnimX.setDuration(ANIMATION_DURATION);
+//        bounceAnimX.setInterpolator(new BounceInterpolator());
 
-        ObjectAnimator bounceAnimY = ObjectAnimator.ofFloat(ratingBar, "scaleY", 0.2f, 1f);
+        ObjectAnimator bounceAnimY = ObjectAnimator.ofFloat(ratingBar, "scaleY", 1.5f, 1f);
         bounceAnimY.setDuration(ANIMATION_DURATION);
         bounceAnimY.setInterpolator(new BounceInterpolator());
 //        bounceAnimY.addListener(new AnimatorListenerAdapter() {
@@ -143,8 +131,32 @@ public class RatingController {
             }
         });
 
-        animatorSet.play(bounceAnimX).with(bounceAnimY);
+//        animatorSet.play(bounceAnimX).with(bounceAnimY);
+        animatorSet.play(bounceAnimY);
         animatorSet.start();
+    }
+
+    private void colorAnimateRatingThumb() {
+        final int activatedColor = ContextCompat.getColor(ratingBar.getContext(), R.color.primary);
+        final int defaultColor = ContextCompat.getColor(ratingBar.getContext(), R.color.primary_light);
+        final ValueAnimator colorAnim = ObjectAnimator.ofFloat(0f, 1f);
+        colorAnim.setDuration(ANIMATION_DURATION);
+        colorAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float mul = (Float) animation.getAnimatedValue();
+                int alpha = adjustAlpha(activatedColor, mul);
+                ratingBar.setThumbColor(alpha);
+                if (mul == 1.0) {
+                    ratingBar.setThumbColor(defaultColor);
+                }
+//                ratingsImageView.setColorFilter(alpha, PorterDuff.Mode.SRC_ATOP);
+//                if (mul == 0.0) {
+//                    ratingsImageView.setColorFilter(null);
+//                }
+            }
+        });
+        colorAnim.start();
     }
 
 //    private void colorAnimateImageView() {
@@ -198,14 +210,35 @@ public class RatingController {
             this.rating = rating;
         } else {
             this.rating = new Rating();
+            ratingBar.setProgress(0);
         }
     }
 
-    private void updateLocalPostLikeCounter(Post post) {
-        // first time rated by user
-        if (this.rating == null || this.rating.getRating() == 0) {
-            post.setRatingsCount(post.getRatingsCount() + 1);
+    private void updateLocalPostRatingCounter(Post post, float ratingValue) {
+        float avgRating = post.getAverageRating();
+        if (rating.getId() == null || rating.getId().isEmpty()) {
+            ratingCounterTextView.setText("(" + (post.getRatingsCount() + 1) + ")");
+            avgRating = (avgRating*post.getRatingsCount() + ratingValue)/(post.getRatingsCount() + 1);
+            post.setRatingsCount(post.getRatingsCount()+1);
+        } else {
+            avgRating = avgRating + (ratingValue - rating.getRating())/post.getRatingsCount();
         }
+        post.setAverageRating(avgRating);
+        averageRatingTextView.setText(String.format( "%.1f", avgRating));
+    }
+
+    private void removeLocalPostRatingCounter(Post post) {
+        float avgRating = post.getAverageRating();
+        if (post.getRatingsCount() > 1) {
+            avgRating = (avgRating*post.getRatingsCount() - this.rating.getRating())/(post.getRatingsCount() - 1);
+            post.setRatingsCount(post.getRatingsCount() - 1);
+            post.setAverageRating(avgRating);
+        } else {
+            post.setRatingsCount(0);
+            post.setAverageRating(0);
+        }
+        ratingCounterTextView.setText("(" + post.getRatingsCount() + ")");
+        averageRatingTextView.setText(String.format( "%.1f", post.getAverageRating()));
     }
 
     public void handleRatingClickAction(final BaseActivity baseActivity, final Post post, final float ratingValue) {
@@ -240,7 +273,7 @@ public class RatingController {
             if (isListView) {
                 ratingClickActionLocal(post, ratingValue);
             } else {
-                ratingClickAction(post, ratingValue);
+                ratingClickAction(ratingValue);
             }
         } else {
             baseActivity.doAuthorization(profileStatus);

@@ -19,24 +19,21 @@ package com.eriyaz.social.adapters.holders;
 
 import android.app.Activity;
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
-import android.util.SparseArray;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.eriyaz.social.activities.BaseActivity;
 import com.eriyaz.social.utils.Analytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.eriyaz.social.Constants;
 import com.eriyaz.social.R;
-import com.eriyaz.social.controllers.RatingController;
 import com.eriyaz.social.fragments.PlaybackFragment;
 import com.eriyaz.social.managers.PostManager;
 import com.eriyaz.social.managers.ProfileManager;
@@ -47,7 +44,6 @@ import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.utils.FormatterUtil;
 import com.eriyaz.social.utils.Utils;
-import com.xw.repo.BubbleSeekBar;
 
 import java.util.concurrent.TimeUnit;
 
@@ -59,14 +55,11 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     public static final String TAG = PostViewHolder.class.getSimpleName();
 
     private Context context;
-//    private ImageView postImageView;
     private TextView fileName;
+    private TextView detailsTextView;
     private TextView audioLength;
-    private View imageView;
-    private TextView titleTextView;
-//    private TextView detailsTextView;
-//    private TextView likeCounterTextView;
-//    private ImageView likesImageView;
+    protected View playImageView;
+    private TextView authorTextView;
     private TextView averageRatingTextView;
     private TextView ratingCounterTextView;
     private ImageView ratingsImageView;
@@ -75,31 +68,25 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     private TextView watcherCounterTextView;
     private TextView dateTextView;
     private ImageView authorImageView;
-    private ViewGroup likeViewGroup;
-    private BubbleSeekBar ratingBar;
+    protected View authorImageContainerView;
 
-    private ProfileManager profileManager;
-    private PostManager postManager;
-
-//    private LikeController likeController;
-    private RatingController ratingController;
+    protected ProfileManager profileManager;
+    protected PostManager postManager;
+    protected Rating ratingByCurrentUser;
     private Analytics analytics;
 
     public PostViewHolder(View view, final OnClickListener onClickListener) {
         this(view, onClickListener, true);
     }
 
-    public PostViewHolder(View view, final OnClickListener onClickListener, boolean isAuthorNeeded) {
+    public PostViewHolder(View view, boolean isAuthorNeeded) {
         super(view);
         this.context = view.getContext();
         analytics = new Analytics(this.context);
 
-//        postImageView = (ImageView) view.findViewById(R.id.postImageView);
-//        likeCounterTextView = (TextView) view.findViewById(R.id.likeCounterTextView);
-//        likesImageView = (ImageView) view.findViewById(R.id.likesImageView);
         fileName = view.findViewById(R.id.file_name_text);
         audioLength = view.findViewById(R.id.file_length_text);
-        imageView = view.findViewById(R.id.imageView);
+        playImageView = view.findViewById(R.id.imageView);
         averageRatingTextView = (TextView) view.findViewById(R.id.averageRatingTextView);
         ratingCounterTextView = (TextView) view.findViewById(R.id.ratingCounterTextView);
         ratingsImageView = (ImageView) view.findViewById(R.id.ratingImageView);
@@ -107,62 +94,26 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         commentsCountTextView = (TextView) view.findViewById(R.id.commentsCountTextView);
         watcherCounterTextView = (TextView) view.findViewById(R.id.watcherCounterTextView);
         dateTextView = (TextView) view.findViewById(R.id.dateTextView);
-        titleTextView = (TextView) view.findViewById(R.id.titleTextView);
-//        detailsTextView = (TextView) view.findViewById(R.id.detailsTextView);
+        authorTextView = (TextView) view.findViewById(R.id.authorTextView);
+        detailsTextView = (TextView) view.findViewById(R.id.detailsTextView);
         authorImageView = (ImageView) view.findViewById(R.id.authorImageView);
+        authorImageContainerView = view.findViewById(R.id.authorImageContainer);
 //        likeViewGroup = (ViewGroup) view.findViewById(R.id.likesContainer);
-        ratingBar = (BubbleSeekBar) view.findViewById(R.id.ratingBar);
 
-        authorImageView.setVisibility(isAuthorNeeded ? View.VISIBLE : View.GONE);
+        authorImageContainerView.setVisibility(isAuthorNeeded ? View.VISIBLE : View.GONE);
 
         profileManager = ProfileManager.getInstance(context.getApplicationContext());
         postManager = PostManager.getInstance(context.getApplicationContext());
+    }
 
+    public PostViewHolder(View view, final OnClickListener onClickListener, boolean isAuthorNeeded) {
+        this(view, isAuthorNeeded);
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 int position = getAdapterPosition();
                 if (onClickListener != null && position != RecyclerView.NO_POSITION) {
                     onClickListener.onItemClick(getAdapterPosition(), v);
-                }
-            }
-        });
-        // customize section texts
-        ratingBar.setCustomSectionTextArray(new BubbleSeekBar.CustomSectionTextArray() {
-            @NonNull
-            @Override
-            public SparseArray<String> onCustomize(int sectionCount, @NonNull SparseArray<String> array) {
-                array.clear();
-                array.put(1, "not ok");
-                array.put(3, "ok");
-                array.put(5, "good");
-                array.put(7, "amazing");
-                return array;
-            }
-        });
-        ratingBar.setOnProgressChangedListener(new BubbleSeekBar.OnProgressChangedListenerAdapter() {
-            @Override
-            public void onProgressChanged(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
-                int color;
-                if (progress <= 5) {
-                    color = ContextCompat.getColor(context, R.color.red);
-                } else if (progress <= 10) {
-                    color = ContextCompat.getColor(context, R.color.accent);
-                } else if (progress <= 15) {
-                    color = ContextCompat.getColor(context, R.color.light_green);
-                } else {
-                    color = ContextCompat.getColor(context, R.color.dark_green);
-                }
-                bubbleSeekBar.setSecondTrackColor(color);
-                bubbleSeekBar.setThumbColor(color);
-                bubbleSeekBar.setBubbleColor(color);
-            }
-
-            @Override
-            public void getProgressOnActionUp(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
-                int position = getAdapterPosition();
-                if (onClickListener != null && position != RecyclerView.NO_POSITION && true) {
-                    onClickListener.onRatingClick(ratingController, position, progress);
                 }
             }
         });
@@ -177,7 +128,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 //            }
 //        });
 
-        authorImageView.setOnClickListener(new View.OnClickListener() {
+        authorImageContainerView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 int position = getAdapterPosition();
@@ -187,44 +138,38 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
             }
         });
 
-        //if rating value is changed.
-//        ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
-//            public void onRatingChanged(RatingBar ratingBar, float rating,
-//                                        boolean fromUser) {
-//                int position = getAdapterPosition();
-//                if (onClickListener != null && position != RecyclerView.NO_POSITION && fromUser) {
-//                    onClickListener.onRatingClick(ratingController, position, rating);
-//                }
-//            }
-//        });
+        playImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int position = getAdapterPosition();
+                if (onClickListener != null && position != RecyclerView.NO_POSITION) {
+                    onClickListener.onPlayClick(getAdapterPosition(), ratingByCurrentUser, view);
+                }
+                analytics.logOpenAudio();
+            }
+        });
     }
 
+
     public void bindData(final Post post) {
-
-//        likeController = new LikeController(context, post, likeCounterTextView, likesImageView, true);
-        ratingController = new RatingController(context, post, ratingCounterTextView, averageRatingTextView, ratingBar, true);
-
-        final String title = removeNewLinesDividers(post.getTitle());
-        titleTextView.setText(title);
+        final String title = formTitleText(post);
         fileName.setText(title);
         long minutes = TimeUnit.MILLISECONDS.toMinutes(post.getAudioDuration());
         long seconds = TimeUnit.MILLISECONDS.toSeconds(post.getAudioDuration())
                 - TimeUnit.MINUTES.toSeconds(minutes);
         audioLength.setText(String.format("%02d:%02d", minutes, seconds));
-//        String description = removeNewLinesDividers(post.getDescription());
-//        detailsTextView.setText(description);
-//        likeCounterTextView.setText(String.valueOf(post.getLikesCount()));
+        String description = removeNewLinesDividers(post.getDescription());
+        if (TextUtils.isEmpty(description)) {
+            detailsTextView.setVisibility(View.GONE);
+        } else {
+            detailsTextView.setText(description);
+        }
         String avgRatingText = "";
         if (post.getAverageRating() > 0) {
             avgRatingText = String.format( "%.1f", post.getAverageRating());
         }
         averageRatingTextView.setText(avgRatingText);
         ratingCounterTextView.setText("(" + post.getRatingsCount() + ")");
-        if (post.getRatingsCount() > 0) {
-            ratingsImageView.setImageResource(R.drawable.ic_star_active);
-        } else {
-            ratingsImageView.setImageResource(R.drawable.ic_star);
-        }
         commentsCountTextView.setText(String.valueOf(post.getCommentsCount()));
         watcherCounterTextView.setText(String.valueOf(post.getWatchersCount()));
 
@@ -246,25 +191,6 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 //                .into(postImageView);
 
         // define an on click listener to open PlaybackFragment
-        imageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                try {
-                    RecordingItem item = new RecordingItem();
-                    item.setName(title);
-                    item.setLength(post.getAudioDuration());
-                    item.setFilePath(post.getImagePath());
-                    PlaybackFragment playbackFragment =
-                            new PlaybackFragment().newInstance(item);
-                    android.app.FragmentTransaction transaction = ((Activity)context).getFragmentManager()
-                            .beginTransaction();
-                    playbackFragment.show(transaction, "dialog_playback");
-                    analytics.logOpenAudio();
-                } catch (Exception e) {
-                    Log.e(TAG, "exception", e);
-                }
-            }
-        });
 
         if (post.getAuthorId() != null) {
             profileManager.getProfileSingleValue(post.getAuthorId(), createProfileChangeListener(authorImageView));
@@ -278,6 +204,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     }
 
     private String removeNewLinesDividers(String text) {
+        if (TextUtils.isEmpty(text)) return text;
         int decoratedTextLength = text.length() < Constants.Post.MAX_TEXT_LENGTH_IN_LIST ?
                 text.length() : Constants.Post.MAX_TEXT_LENGTH_IN_LIST;
         return text.substring(0, decoratedTextLength).replaceAll("\n", " ").trim();
@@ -287,6 +214,8 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         return new OnObjectChangedListener<Profile>() {
             @Override
             public void onObjectChanged(final Profile obj) {
+                if (((BaseActivity)context).isActivityDestroyed()) return;
+                authorTextView.setText(obj.getUsername());
                 if (obj.getPhotoUrl() != null) {
 
                     Glide.with(context)
@@ -309,22 +238,34 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 //        };
 //    }
 
+    private String formTitleText(Post post) {
+        String title = removeNewLinesDividers(post.getTitle());
+        if (!TextUtils.isEmpty(post.getVersion())) {
+            title = title.concat("-"+post.getVersion());
+        }
+        return title;
+    }
+
     private OnObjectChangedListener<Rating> createOnRatingObjectChangedListener() {
         return new OnObjectChangedListener<Rating>() {
             @Override
             public void onObjectChanged(Rating obj) {
-                ratingController.initRating(obj);
+                ratingByCurrentUser = obj;
+                if (obj != null && obj.getRating() > 0) {
+                    ratingsImageView.setImageResource(R.drawable.ic_star_active);
+                } else {
+                    ratingsImageView.setImageResource(R.drawable.ic_star);
+                }
             }
         };
     }
 
     public interface OnClickListener {
         void onItemClick(int position, View view);
+        void onPlayClick(int position, Rating rating, View view);
 
         //void onLikeClick(LikeController likeController, int position);
 
         void onAuthorClick(int position, View view);
-
-        void onRatingClick(RatingController ratingController, int position, float rating);
     }
 }

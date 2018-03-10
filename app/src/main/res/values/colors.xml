@@ -36,4 +36,5 @@
     <color name="light_green">#8BC34A</color>
     <color name="dark_green">#33691E</color>
     <color name="red">#F44336</color>
+    <color name="transparentColor">#00ffffff</color>
 </resources>

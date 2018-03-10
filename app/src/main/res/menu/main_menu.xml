@@ -8,5 +8,11 @@
         app:showAsAction="ifRoom"
         android:icon="@drawable/ic_person"
         android:orderInCategory="1" />
+    <item
+        android:id="@+id/notification"
+        android:title="@string/notification_menu_item"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/ic_menu_notification"
+        android:orderInCategory="1" />
 </menu>
 

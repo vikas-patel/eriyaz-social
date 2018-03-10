@@ -16,12 +16,18 @@
 
 package com.eriyaz.social.adapters;
 
+import android.app.Activity;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
+import android.view.View;
 
 import com.eriyaz.social.activities.BaseActivity;
+import com.eriyaz.social.fragments.PlaybackFragment;
 import com.eriyaz.social.managers.PostManager;
 import com.eriyaz.social.managers.listeners.OnPostChangedListener;
 import com.eriyaz.social.model.Post;
+import com.eriyaz.social.model.Rating;
+import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.utils.LogUtil;
 
 import java.util.LinkedList;
@@ -75,6 +81,25 @@ public abstract class BasePostsAdapter extends RecyclerView.Adapter<RecyclerView
         if (selectedPostPosition != -1) {
             Post selectedPost = getItemByPosition(selectedPostPosition);
             PostManager.getInstance(activity).getSinglePostValue(selectedPost.getId(), createOnPostChangeListener(selectedPostPosition));
+        }
+    }
+
+
+    protected void openPlayFragment(int position, Rating rating, View view) {
+        selectedPostPosition = position;
+        Post post = getItemByPosition(position);
+        try {
+            RecordingItem item = new RecordingItem();
+            item.setName(post.getTitle());
+            item.setLength(post.getAudioDuration());
+            item.setFilePath(post.getImagePath());
+            PlaybackFragment playbackFragment =
+                    new PlaybackFragment().newInstance(item, post, rating);
+            android.app.FragmentTransaction transaction = ((Activity)view.getContext()).getFragmentManager()
+                    .beginTransaction();
+            playbackFragment.show(transaction, "dialog_playback");
+        } catch (Exception e) {
+            Log.e(TAG, "exception", e);
         }
     }
 }

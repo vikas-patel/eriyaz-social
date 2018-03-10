@@ -19,11 +19,15 @@ package com.eriyaz.social.activities;
 
 import android.app.ActivityOptions;
 import android.content.Intent;
+import android.graphics.drawable.LayerDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SimpleItemAnimator;
@@ -38,10 +42,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.PostsAdapter;
 import com.eriyaz.social.enums.PostStatus;
@@ -49,9 +49,22 @@ import com.eriyaz.social.enums.ProfileStatus;
 import com.eriyaz.social.managers.DatabaseHelper;
 import com.eriyaz.social.managers.PostManager;
 import com.eriyaz.social.managers.ProfileManager;
+import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.managers.listeners.OnObjectExistListener;
+import com.eriyaz.social.model.Point;
 import com.eriyaz.social.model.Post;
+import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.AnimationUtils;
+import com.eriyaz.social.utils.LogUtil;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
+
+import static com.eriyaz.social.utils.ImageUtil.setBadgeCount;
 
 public class MainActivity extends BaseActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -64,8 +77,16 @@ public class MainActivity extends BaseActivity {
     private PostManager postManager;
     private int counter;
     private TextView newPostsCounterTextView;
+    private Menu mOptionsMenu;
     private PostManager.PostCounterWatcher postCounterWatcher;
     private boolean counterAnimationInProgress = false;
+    private long userPoints = 0;
+    private FirebaseRemoteConfig mFirebaseRemoteConfig;
+//    private Snackbar karmaSnackbar;
+    static
+    {
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,16 +108,113 @@ public class MainActivity extends BaseActivity {
         };
 
         postManager.setPostCounterWatcher(postCounterWatcher);
+        mFirebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
+        mFirebaseRemoteConfig.setDefaults(R.xml.remote_config_defaults);
+        fetchRemoteConfig();
+    }
 
-//        setOnLikeAddedListener();
+    private void fetchRemoteConfig() {
+        mFirebaseRemoteConfig.fetch()
+            .addOnCompleteListener(this, new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+                        // After config data is successfully fetched, it must be activated before newly fetched
+                        // values are returned.
+                        mFirebaseRemoteConfig.activateFetched();
+                    } else {
+                        // don't do anything
+                    }
+                }
+            });
+    }
+
+    private OnObjectChangedListener<Profile> createOnProfileChangedListener() {
+        return new OnObjectChangedListener<Profile>() {
+            @Override
+            public void onObjectChanged(Profile profile) {
+                userPoints = profile.getPoints();
+                updateUnseenNotificationCount(profile.getUnseen());
+//                updateKarmaWarning();
+            }
+        };
+    }
+
+    private void updateUnseenNotificationCount(int count) {
+        MenuItem itemNotification = mOptionsMenu.findItem(R.id.notification);
+        LayerDrawable icon = (LayerDrawable) itemNotification.getIcon();
+        setBadgeCount(this, icon, Integer.toString(count));
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         updateNewPostCounter();
+//        updateKarmaWarning();
+        if (!profileManager.hasActiveListeners(MainActivity.this)
+                && profileManager.checkProfile().equals(ProfileStatus.PROFILE_CREATED)) {
+            profileManager.getProfileValue(MainActivity.this,
+                    FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                    createOnProfileChangedListener());
+//            profileManager.getUserPoints(MainActivity.this, createOnUserPointsChangedListener());
+            setOnPointAddedListener();
+        }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        profileManager.closeListeners(this);
+    }
+    //TODO: Close this listener on destroy
+    private void setOnPointAddedListener() {
+        DatabaseHelper.getInstance(this).onNewPointAddedListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Point point = dataSnapshot.getValue(Point.class);
+                Toast toast;
+                int absValue = Math.abs(point.getValue());
+                String pointsLabel = getResources().getQuantityString(R.plurals.points_counter_format, absValue, absValue);
+                if (point.getValue()>0){
+                    String earned = " earned";
+                    if (point.getType().equalsIgnoreCase("post")) earned = " restored";
+                    String msg = absValue + " " + pointsLabel + earned + " for " + point.getType() + " " + point.getAction();
+                    toast = Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG);
+                    toast.getView().setBackgroundColor(getResources().getColor(R.color.light_green));
+                } else {
+                    String lost = " lost";
+                    if (point.getType().equalsIgnoreCase("post")) lost = " used";
+                    String msg = absValue + " " + pointsLabel +  lost +" for " + point.getType() + " " + point.getAction();
+                    toast = Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG);
+                    toast.getView().setBackgroundColor(getResources().getColor(R.color.red));
+                }
+                TextView text = (TextView) toast.getView().findViewById(android.R.id.message);
+                text.setTextColor(getResources().getColor(R.color.icons));
+                toast.show();
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+/*
     private void setOnLikeAddedListener() {
         DatabaseHelper.getInstance(this).onNewLikeAddedListener(new ChildEventListener() {
             @Override
@@ -126,7 +244,7 @@ public class MainActivity extends BaseActivity {
             }
         });
     }
-
+*/
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -237,6 +355,7 @@ public class MainActivity extends BaseActivity {
                     super.onScrolled(recyclerView, dx, dy);
                 }
             });
+            if (!hasInternetConnection()) showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
         }
     }
 
@@ -306,6 +425,12 @@ public class MainActivity extends BaseActivity {
     }
 
     private void openCreatePostActivity() {
+        int points_post_create = (int) mFirebaseRemoteConfig.getLong("points_post_create");
+//        if (userPoints == null) userPoints = 0L;
+        if (userPoints < points_post_create) {
+            showPointsNeededDialog(points_post_create - (int) userPoints);
+            return;
+        }
         Intent intent = new Intent(this, CreatePostActivity.class);
         startActivityForResult(intent, CreatePostActivity.CREATE_NEW_POST_REQUEST);
     }
@@ -320,15 +445,23 @@ public class MainActivity extends BaseActivity {
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && view != null) {
 
-            View authorImageView = view.findViewById(R.id.authorImageView);
+//            View authorImageView = view.findViewById(R.id.authorImageView);
+//
+//            ActivityOptions options = ActivityOptions.
+//                    makeSceneTransitionAnimation(MainActivity.this,
+//                            new android.util.Pair<>(authorImageView, getString(R.string.post_author_image_transition_name)));
 
-            ActivityOptions options = ActivityOptions.
-                    makeSceneTransitionAnimation(MainActivity.this,
-                            new android.util.Pair<>(authorImageView, getString(R.string.post_author_image_transition_name)));
-            startActivityForResult(intent, ProfileActivity.CREATE_POST_FROM_PROFILE_REQUEST, options.toBundle());
+//            startActivityForResult(intent, ProfileActivity.CREATE_POST_FROM_PROFILE_REQUEST, options.toBundle());
+            startActivityForResult(intent, ProfileActivity.CREATE_POST_FROM_PROFILE_REQUEST);
         } else {
             startActivityForResult(intent, ProfileActivity.CREATE_POST_FROM_PROFILE_REQUEST);
         }
+    }
+
+    private void openNotificationActivity(String userId) {
+        Intent intent = new Intent(MainActivity.this, NotificationActivity.class);
+        intent.putExtra(ProfileActivity.USER_ID_EXTRA_KEY, userId);
+        startActivityForResult(intent, ProfileActivity.CREATE_POST_FROM_PROFILE_REQUEST);
     }
 
     private void updateNewPostCounter() {
@@ -352,30 +485,48 @@ public class MainActivity extends BaseActivity {
         });
     }
 
+    private void showPointsNeededDialog(int pointsNeeded) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(getResources().getQuantityString(R.plurals.points_needed_text, pointsNeeded, pointsNeeded));
+        builder.setPositiveButton(R.string.button_ok, null);
+        builder.show();
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu, menu);
+
+        mOptionsMenu = menu;
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        ProfileStatus profileStatus = profileManager.checkProfile();
         // Handle item selection
         switch (item.getItemId()) {
             case R.id.profile:
-                ProfileStatus profileStatus = profileManager.checkProfile();
-
                 if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
                     String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
                     openProfileActivity(userId);
                 } else {
                     doAuthorization(profileStatus);
                 }
-
                 return true;
+            case R.id.notification:
+                if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
+                    String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                    openNotificationActivity(userId);
+                } else {
+                    doAuthorization(profileStatus);
+                }
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    public void updatePost() {
+        postsAdapter.updateSelectedPost();
     }
 }

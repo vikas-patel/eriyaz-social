@@ -23,10 +23,12 @@
 
             <RelativeLayout
                 android:id="@+id/imageContainer"
+                android:layout_toStartOf="@id/authorImageView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/intrinsic_padding"
-                android:layout_alignParentTop="true">
+                android:layout_alignParentTop="true"
+                android:layout_toLeftOf="@id/authorImageView">
 
                 <ProgressBar
                     android:id="@+id/progressBar"
@@ -54,10 +56,10 @@
                         android:id="@+id/imageView"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:src="@drawable/ic_fileviewer"
+                        android:src="@drawable/ic_media_play_red"
                         android:layout_gravity="center_vertical"
-                        android:layout_marginLeft="7dp"
-                        android:layout_marginRight="7dp"/>
+                        android:layout_marginLeft="@dimen/small_intrinsic_padding"
+                        android:layout_marginRight="@dimen/small_intrinsic_padding"/>
 
                     <LinearLayout
                         android:layout_width="wrap_content"
@@ -67,20 +69,22 @@
 
                         <TextView
                             android:id="@+id/file_name_text"
+                            android:text="123456789 123456789 12345"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="file_name"
-                            android:textSize="15sp"
-                            android:fontFamily="sans-serif-condensed"
-                            android:textStyle="bold"/>
-
+                            android:textAppearance="@style/TextAppearance.Title"/>
+                        <TextView
+                            android:id="@+id/descriptionEditText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:autoLink="all"
+                            android:textAppearance="@style/TextAppearance.Second" />
                         <TextView
                             android:id="@+id/file_length_text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="00:00"
                             android:textSize="12sp"
-                            android:fontFamily="sans-serif-condensed"
+                            android:textAppearance="@style/TextAppearance.Second.Dark"
                             android:layout_marginTop="7dp"/>
 
                     </LinearLayout>
@@ -89,25 +93,29 @@
 
             </RelativeLayout>
 
-            <TextView
-                android:id="@+id/titleTextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_below="@+id/imageContainer"
-                android:layout_marginBottom="@dimen/intrinsic_padding"
-                android:layout_toStartOf="@+id/authorImageView"
-                android:paddingLeft="@dimen/large_intrinsic_padding"
-                android:paddingRight="@dimen/large_intrinsic_padding"
-                android:textAppearance="@style/TextAppearance.Title"
-                android:layout_alignEnd="@+id/authorImageView" />
+            <!--<TextView-->
+                <!--android:id="@+id/titleTextView"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_alignParentStart="true"-->
+                <!--android:layout_alignParentLeft="true"-->
+                <!--android:layout_below="@+id/imageContainer"-->
+                <!--android:layout_marginBottom="@dimen/intrinsic_padding"-->
+                <!--android:layout_toStartOf="@+id/authorImageView"-->
+                <!--android:layout_toLeftOf="@+id/authorImageView"-->
+                <!--android:paddingLeft="@dimen/large_intrinsic_padding"-->
+                <!--android:paddingRight="@dimen/large_intrinsic_padding"-->
+                <!--android:textAppearance="@style/TextAppearance.Title"-->
+                <!--android:layout_alignEnd="@+id/authorImageView"-->
+                <!--android:layout_alignRight="@+id/authorImageView"/>-->
 
             <LinearLayout
                 android:id="@+id/authorContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentStart="true"
-                android:layout_below="@+id/titleTextView"
+                android:layout_alignParentLeft="true"
+                android:layout_below="@+id/imageContainer"
                 android:layout_marginBottom="@dimen/intrinsic_padding"
                 android:orientation="horizontal"
                 android:paddingLeft="@dimen/large_intrinsic_padding"
@@ -145,17 +153,6 @@
                 android:layout_marginLeft="@dimen/large_intrinsic_padding"
                 android:layout_marginRight="@dimen/large_intrinsic_padding" />
 
-
-            <!--<TextView-->
-                <!--android:id="@+id/descriptionEditText"-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:layout_below="@+id/countersContainer"-->
-                <!--android:layout_marginBottom="@dimen/large_intrinsic_padding"-->
-                <!--android:paddingLeft="@dimen/large_intrinsic_padding"-->
-                <!--android:paddingRight="@dimen/large_intrinsic_padding"-->
-                <!--android:autoLink="all"-->
-                <!--android:textAppearance="@style/TextAppearance.Second" />-->
             <TextView
                 android:id="@+id/ratingsLabel"
                 android:layout_width="wrap_content"
@@ -255,15 +252,16 @@
                 android:layout_width="@dimen/post_author_image_side"
                 android:layout_height="@dimen/post_author_image_side"
                 android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
                 android:layout_alignTop="@+id/imageContainer"
-                android:layout_marginRight="@dimen/intrinsic_padding"
+                android:layout_marginRight="@dimen/small_intrinsic_padding"
                 android:layout_marginTop="@dimen/post_author_image_margin"
                 app:border="false"
                 app:shadow="true"
                 app:shadow_color="@color/circle_image_shadow"
                 app:shadow_radius="@dimen/circle_image_shadow_radius"
                 android:transitionName="@string/post_author_image_transition_name"
-                tools:targetApi="lollipop"/>
+                tools:targetApi="lollipop" />
 
         </RelativeLayout>
     </ScrollView>
@@ -311,7 +309,3 @@
     </LinearLayout>
 
 </RelativeLayout>
-
-
-
-

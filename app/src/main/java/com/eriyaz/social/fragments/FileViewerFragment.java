@@ -12,6 +12,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.eriyaz.social.R;
@@ -37,6 +38,8 @@ public class FileViewerFragment extends Fragment {
     private View cardView;
 
     protected EditText titleEditText;
+    protected EditText descriptionEditText;
+    protected Spinner versionSpinner;
 
     public static FileViewerFragment newInstance(RecordingItem item) {
         FileViewerFragment f = new FileViewerFragment();
@@ -104,6 +107,8 @@ public class FileViewerFragment extends Fragment {
         vLength = (TextView) v.findViewById(R.id.file_length_text);
         cardView = v.findViewById(R.id.card_view);
         titleEditText = (EditText) v.findViewById(R.id.titleEditText);
+        descriptionEditText = v.findViewById(R.id.descriptionEditText);
+        versionSpinner = v.findViewById(R.id.versionSpinner);
         bindData();
         return v;
     }
@@ -111,7 +116,10 @@ public class FileViewerFragment extends Fragment {
     protected void attemptCreatePost() {
         // Reset errors.
         titleEditText.setError(null);
+        descriptionEditText.setError(null);
         String title = titleEditText.getText().toString().trim();
+        String description = descriptionEditText.getText().toString().trim();
+        String version = versionSpinner.getSelectedItem().toString();
         View focusView = null;
         boolean cancel = false;
 
@@ -125,9 +133,15 @@ public class FileViewerFragment extends Fragment {
             cancel = true;
         }
 
+        if (!TextUtils.isEmpty(description) && !ValidationUtil.isPostDescriptionValid(description)) {
+            descriptionEditText.setError(getString(R.string.error_post_description_length));
+            focusView = descriptionEditText;
+            cancel = true;
+        }
+
         if (!cancel) {
             ((BaseActivity) getActivity()).hideKeyboard();
-            ((CreatePostActivity) getActivity()).savePost(title, filePath);
+            ((CreatePostActivity) getActivity()).savePost(title, description, version, filePath);
         } else if (focusView != null) {
             focusView.requestFocus();
         }

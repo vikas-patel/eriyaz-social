@@ -65,6 +65,10 @@ public class ValidationUtil {
         return name.length() <= Constants.Post.MAX_POST_TITLE_LENGTH;
     }
 
+    public static boolean isPostDescriptionValid(String name) {
+        return name.length() <= Constants.Post.MAX_POST_DESCRIPTION_LENGTH;
+    }
+
     public static boolean isNameValid(String name) {
         return name.length() <= Constants.Profile.MAX_NAME_LENGTH;
     }
