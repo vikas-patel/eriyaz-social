@@ -445,7 +445,7 @@ exports.appNotificationComments = functions.database.ref('/post-comments/{postId
             // Get user notification ref
             const userNotificationsRef = admin.database().ref(`/user-notifications/${postAuthorId}`);
             var newNotificationRef = userNotificationsRef.push();
-            var msg = profile.val().username + " commented your post '" + post.val().title + "'";
+            var msg = profile.val().username + " commented on your post '" + post.val().title + "'";
             newNotificationRef.set({
                 'action': 'com.eriyaz.social.activities.PostDetailsActivity',
                 'fromUserId' : commentAuthorId,
@@ -471,7 +471,9 @@ exports.appNotificationCommentConversation = functions.database.ref('/post-comme
     const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
 
     return getPostTask.then(post => {
-        var postAuthorId = post.val().authorId;
+        const postVal = post.val();
+        console.log("new comment on post '", postVal.title,"'.");
+        var postAuthorId = postVal.authorId;
         // process all post comments
         return postCommentRef.once('value').then(snapshot => {
             const authorToNotify = [];
@@ -494,21 +496,23 @@ exports.appNotificationCommentConversation = functions.database.ref('/post-comme
                     // Get user notification ref
                     const userNotificationsRef = admin.database().ref(`/user-notifications/${authorId}`);
                     var newNotificationRef = userNotificationsRef.push();
-                    var msg = profile.val().username + " commented post '" + post.val().title + "' you had commented.";
-                    newNotificationRef.set({
+                    var msg = profile.val().username + " commented on the post '" + postVal.title + "' on which you also commented.";
+                    return newNotificationRef.set({
                         'action': 'com.eriyaz.social.activities.PostDetailsActivity',
                         'fromUserId' : commentAuthorId,
                         'message': msg,
                         'extraKey' : 'PostDetailsActivity.POST_ID_EXTRA_KEY',
                         'extraKeyValue' : postId,
                         'createdDate': admin.database.ServerValue.TIMESTAMP
+                    }).then(() => {
+                        console.log('sent new comment notification on post you commented to ', authorId);
                     });
                   }
                   return null;
                 }, MAX_CONCURRENT);
                 const poolTask =  promisePool.start();
                 return poolTask.then(() => {
-                    return console.log('added new comment in thread notification');
+                    return console.log('sent notification task completed.');
                 });
             });
         });
@@ -524,6 +528,64 @@ exports.incrementUserUnseenNotification = functions.database.ref('/user-notifica
         console.log('User unseen count incremented.');
     });
 });
+
+exports.taskPopulatePastRatedData = functions.https.onRequest((req, res) => {
+    // check if security key is same
+    const keyParam = req.query.key;
+    const key = "Test!234";
+    if (key != keyParam) {
+        console.log('The key ', key,' provided in the request does not match the key set in the environment.');
+        res.status(403).send('Security key does not match. Make sure your "key" URL query parameter matches the ' +
+          'cron.key environment variable.');
+        return null;
+    }
+    return nextPostRating(res);
+});
+
+function nextPostRating(res, key) {
+    if (key == null) {
+        return admin.database().ref(`/post-ratings/`).orderByKey().limitToFirst(4).once('value').then(snapshot => {
+            var lastPostId;
+            snapshot.forEach(function(child) {
+                lastPostId = child.key;
+                console.log(lastPostId);
+            });
+            return nextPostRating(res, lastPostId);
+        });
+    } else {
+        return admin.database().ref(`/post-ratings/`).orderByKey().startAt(key).limitToFirst(4).once('value').then(snapshot => {
+            var lastPostId;
+            snapshot.forEach(function(child) {
+                lastPostId = child.key;
+                if (key == lastPostId) return;
+                processAuthorRatingNode(child);
+                console.log(lastPostId);
+            });
+            if (snapshot.numChildren() == 4) {
+                return nextPostRating(res, lastPostId);
+            } else {
+                console.log("exit function");
+                return res.status(200).send('User notification task finished');
+            }
+        });
+    }
+}
+
+function processAuthorRatingNode(postSnap) {
+    postSnap.forEach(function(authorSnap) {
+        var postId = postSnap.key;
+        const ratingAuthorId = authorSnap.key;
+        authorSnap.forEach(function(ratingSnap) {
+            const rating = ratingSnap.val();
+            if (rating != null) {
+                rating.postId = postId;
+                const ratingId = ratingSnap.key;
+                const userRatingRef = admin.database().ref(`/user-ratings/${ratingAuthorId}/${ratingId}`);
+                return userRatingRef.set(rating);
+            }
+        });
+    });
+}
 
 exports.appUpdateNotification = functions.https.onRequest((req, res) => {
     // check if security key is same
@@ -573,3 +635,31 @@ exports.appUpdateNotification = functions.https.onRequest((req, res) => {
         });
     });
 });
+
+exports.appUninstall = functions.analytics.event('app_remove').onLog(event => {
+    const user = event.data.user;
+    const uid = user.userId;
+    console.log("app uninstall detected for uid ",uid);
+    // Get profile of user and set user details
+    if (uid) {
+        const profileUninstallRef = admin.database().ref(`/uninstall/track/${uid}`);
+        const newProfileUninstallRef = profileUninstallRef.push();
+        user.uninstallTime = event.data.logTime;
+        return newProfileUninstallRef.set(user).then(() => {
+            console.log('uninstall user profile updated with event details.');
+        });
+    } else {
+        const appInstanceId = user.appInfo.appInstanceId;
+        const uninstallUntrackRef = admin.database().ref(`/uninstall/untrack/${appInstanceId}`);
+        const newUninstallUntrackRef = uninstallUntrackRef.push();
+        user.uninstallTime = event.data.logTime;
+        return newUninstallUntrackRef.set(user).then(() => {
+            console.log('updated uninstall details of untracked user.');
+        });
+    }
+});
+
+// exports.appSessionStart = functions.analytics.event('session_start').onLog(event => {
+//     const user = event.data.user;
+//     const uid = user.userId;
+// });

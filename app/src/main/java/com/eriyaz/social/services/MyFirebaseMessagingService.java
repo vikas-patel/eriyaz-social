@@ -28,6 +28,8 @@ import android.support.v4.app.NotificationCompat;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.eriyaz.social.enums.PostOrigin;
+import com.eriyaz.social.utils.Analytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.messaging.FirebaseMessagingService;
@@ -72,13 +74,17 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private void handleRemoteMessage(RemoteMessage remoteMessage) {
         String receivedActionType = remoteMessage.getData().get(ACTION_TYPE_KEY);
-
+        Analytics analytics;
         switch (receivedActionType) {
             case ACTION_TYPE_NEW_RATING:
                 parseCommentOrLike(remoteMessage);
+                analytics = new Analytics(getApplicationContext());
+                analytics.receivedNotification("rating");
                 break;
             case ACTION_TYPE_NEW_COMMENT:
                 parseCommentOrLike(remoteMessage);
+                analytics = new Analytics(getApplicationContext());
+                analytics.receivedNotification("comment");
                 break;
             case ACTION_TYPE_NEW_POST:
                 handleNewPostCreatedAction(remoteMessage);
@@ -105,6 +111,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         Intent backIntent = new Intent(this, MainActivity.class);
         Intent intent = new Intent(this, PostDetailsActivity.class);
         intent.putExtra(PostDetailsActivity.POST_ID_EXTRA_KEY, postId);
+        intent.putExtra(PostDetailsActivity.POST_ORIGIN_EXTRA_KEY, PostOrigin.PUSH_NOTIFICATION);
 
         Bitmap bitmap = null;//getBitmapFromUrl(notificationImageUrl);
 
@@ -160,5 +167,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         notificationManager.notify(notificationId++ /* ID of notification */, notificationBuilder.build());
+
     }
 }

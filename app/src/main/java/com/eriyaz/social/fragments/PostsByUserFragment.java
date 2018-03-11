@@ -133,7 +133,7 @@ public class PostsByUserFragment extends Fragment {
 
                 @Override
                 public void onPostsListChanged(int postsCount) {
-                    String postsLabel = getResources().getQuantityString(R.plurals.posts_counter_format, postsCount, postsCount);
+//                    String postsLabel = getResources().getQuantityString(R.plurals.posts_counter_format, postsCount, postsCount);
 
 //                    pointsCountersTextView.setVisibility(View.VISIBLE);
 

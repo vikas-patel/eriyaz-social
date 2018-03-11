@@ -66,6 +66,7 @@ import com.eriyaz.social.adapters.RatingsAdapter;
 import com.eriyaz.social.controllers.RatingController;
 import com.eriyaz.social.dialogs.CommentDialog;
 import com.eriyaz.social.dialogs.EditCommentDialog;
+import com.eriyaz.social.enums.PostOrigin;
 import com.eriyaz.social.enums.PostStatus;
 import com.eriyaz.social.enums.ProfileStatus;
 import com.eriyaz.social.fragments.PlaybackFragment;
@@ -88,6 +89,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.xw.repo.BubbleSeekBar;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -98,6 +100,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private static final int TIME_OUT_LOADING_COMMENTS = 30000;
     public static final int UPDATE_POST_REQUEST = 1;
     public static final String POST_STATUS_EXTRA_KEY = "PostDetailsActivity.POST_STATUS_EXTRA_KEY";
+    public static final String POST_ORIGIN_EXTRA_KEY = "PostDetailsActivity.POST_ORIGIN_EXTRA_KEY";
 
     private EditText commentEditText;
     @Nullable
@@ -121,6 +124,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private ProgressBar progressBar;
     private TextView fileName;
     private TextView audioLength;
+    private TextView attemptTextView;
     private View fileContainerView;
     private TextView descriptionEditText;
     private ProgressBar commentsProgressBar;
@@ -175,6 +179,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 
         fileName = (TextView) findViewById(R.id.file_name_text);
         descriptionEditText = findViewById(R.id.descriptionEditText);
+        attemptTextView = findViewById(R.id.attemptTextView);
         audioLength = (TextView) findViewById(R.id.file_length_text);
         fileContainerView = findViewById(R.id.fileViewContainer);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
@@ -247,11 +252,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             public void onClick(View view) {
                 try {
                     RecordingItem item = new RecordingItem();
-                    String title = post.getTitle();
-                    if (!TextUtils.isEmpty(post.getVersion())) {
-                        title = title.concat("-"+post.getVersion());
-                    }
-                    item.setName(title);
+                    item.setName(post.getTitle());
                     item.setLength(post.getAudioDuration());
                     item.setFilePath(post.getImagePath());
                     PlaybackFragment playbackFragment =
@@ -259,7 +260,6 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
                     android.app.FragmentTransaction transaction = getFragmentManager()
                             .beginTransaction();
                     playbackFragment.show(transaction, "dialog_playback");
-                    analytics.logOpenAudio();
                 } catch (Exception e) {
                     Log.e("", "exception", e);
                 }
@@ -320,6 +320,15 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 
         authorTextView.setOnClickListener(onAuthorClickListener);
 
+        Serializable serializable = getIntent().getSerializableExtra(POST_ORIGIN_EXTRA_KEY);
+        if (serializable != null && serializable instanceof PostOrigin) {
+            PostOrigin origin = (PostOrigin) serializable;
+            if (origin.equals(PostOrigin.PUSH_NOTIFICATION)) {
+                analytics.logOpenPostDetailsFromPushNotification();
+            } else if (origin.equals(PostOrigin.APP_NOTIFICATION)) {
+                analytics.logOpenPostDetailsFromAppNotification();
+            }
+        }
         supportPostponeEnterTransition();
     }
 
@@ -493,16 +502,16 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             } else {
                 descriptionEditText.setText(post.getDescription());
             }
-
-            String title = post.getTitle();
-            if (!TextUtils.isEmpty(post.getVersion())) {
-                title = title.concat("-"+post.getVersion());
-            }
-            fileName.setText(title);
+            fileName.setText(post.getTitle());
             long minutes = TimeUnit.MILLISECONDS.toMinutes(post.getAudioDuration());
             long seconds = TimeUnit.MILLISECONDS.toSeconds(post.getAudioDuration())
                     - TimeUnit.MINUTES.toSeconds(minutes);
             audioLength.setText(String.format("%02d:%02d", minutes, seconds));
+            if (TextUtils.isEmpty(post.getVersion())) {
+                attemptTextView.setVisibility(View.GONE);
+            } else {
+                attemptTextView.setText(post.getVersion());
+            }
 //            loadPostDetailsImage();
             loadAuthorImage();
         }

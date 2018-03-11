@@ -57,7 +57,8 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     private Context context;
     private TextView fileName;
     private TextView detailsTextView;
-    private TextView audioLength;
+//    private TextView audioLength;
+    private TextView attemptTextView;
     protected View playImageView;
     private TextView authorTextView;
     private TextView averageRatingTextView;
@@ -85,7 +86,8 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         analytics = new Analytics(this.context);
 
         fileName = view.findViewById(R.id.file_name_text);
-        audioLength = view.findViewById(R.id.file_length_text);
+//        audioLength = view.findViewById(R.id.file_length_text);
+        attemptTextView = view.findViewById(R.id.attemptTextView);
         playImageView = view.findViewById(R.id.imageView);
         averageRatingTextView = (TextView) view.findViewById(R.id.averageRatingTextView);
         ratingCounterTextView = (TextView) view.findViewById(R.id.ratingCounterTextView);
@@ -145,23 +147,29 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
                 if (onClickListener != null && position != RecyclerView.NO_POSITION) {
                     onClickListener.onPlayClick(getAdapterPosition(), ratingByCurrentUser, view);
                 }
-                analytics.logOpenAudio();
             }
         });
     }
 
 
     public void bindData(final Post post) {
-        final String title = formTitleText(post);
+        String title = removeNewLinesDividers(post.getTitle());
         fileName.setText(title);
-        long minutes = TimeUnit.MILLISECONDS.toMinutes(post.getAudioDuration());
-        long seconds = TimeUnit.MILLISECONDS.toSeconds(post.getAudioDuration())
-                - TimeUnit.MINUTES.toSeconds(minutes);
-        audioLength.setText(String.format("%02d:%02d", minutes, seconds));
+//        long minutes = TimeUnit.MILLISECONDS.toMinutes(post.getAudioDuration());
+//        long seconds = TimeUnit.MILLISECONDS.toSeconds(post.getAudioDuration())
+//                - TimeUnit.MINUTES.toSeconds(minutes);
+//        audioLength.setText(String.format("%02d:%02d", minutes, seconds));
+        if (TextUtils.isEmpty(post.getVersion())) {
+            attemptTextView.setVisibility(View.GONE);
+        } else {
+            attemptTextView.setVisibility(View.VISIBLE);
+            attemptTextView.setText(post.getVersion());
+        }
         String description = removeNewLinesDividers(post.getDescription());
         if (TextUtils.isEmpty(description)) {
             detailsTextView.setVisibility(View.GONE);
         } else {
+            detailsTextView.setVisibility(View.VISIBLE);
             detailsTextView.setText(description);
         }
         String avgRatingText = "";
@@ -176,9 +184,9 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         CharSequence date = FormatterUtil.getRelativeTimeSpanStringShort(context, post.getCreatedDate());
         dateTextView.setText(date);
 
-        String imageUrl = post.getImagePath();
-        int width = Utils.getDisplayWidth(context);
-        int height = (int) context.getResources().getDimension(R.dimen.post_detail_image_height);
+//        String imageUrl = post.getImagePath();
+//        int width = Utils.getDisplayWidth(context);
+//        int height = (int) context.getResources().getDimension(R.dimen.post_detail_image_height);
 
         // Displayed and saved to cache image, as needs for post detail.
 //        Glide.with(context)
@@ -190,15 +198,12 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 //                .error(R.drawable.ic_stub)
 //                .into(postImageView);
 
-        // define an on click listener to open PlaybackFragment
-
         if (post.getAuthorId() != null) {
             profileManager.getProfileSingleValue(post.getAuthorId(), createProfileChangeListener(authorImageView));
         }
 
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         if (firebaseUser != null) {
-//            postManager.hasCurrentUserLikeSingleValue(post.getId(), firebaseUser.getUid(), createOnLikeObjectExistListener());
             postManager.getCurrentUserRatingSingleValue(post.getId(), firebaseUser.getUid(), createOnRatingObjectChangedListener());
         }
     }
@@ -238,13 +243,6 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 //        };
 //    }
 
-    private String formTitleText(Post post) {
-        String title = removeNewLinesDividers(post.getTitle());
-        if (!TextUtils.isEmpty(post.getVersion())) {
-            title = title.concat("-"+post.getVersion());
-        }
-        return title;
-    }
 
     private OnObjectChangedListener<Rating> createOnRatingObjectChangedListener() {
         return new OnObjectChangedListener<Rating>() {

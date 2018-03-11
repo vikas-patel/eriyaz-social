@@ -204,7 +204,7 @@ public class DatabaseHelper {
             childUpdates.put("/posts/" + post.getId(), postValues);
 
             databaseReference.updateChildren(childUpdates);
-            analytics.logPost(firebaseAuth.getCurrentUser().getUid());
+            analytics.logPost();
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
         }
@@ -262,7 +262,7 @@ public class DatabaseHelper {
             Comment comment = new Comment(commentText);
             comment.setId(commentId);
             comment.setAuthorId(authorId);
-            analytics.logComment(authorId);
+            analytics.logComment();
 
             mCommentsReference.child(commentId).setValue(comment, new DatabaseReference.CompletionListener() {
                 @Override
@@ -373,7 +373,7 @@ public class DatabaseHelper {
                 String id = mLikesReference.push().getKey();
                 rating.setId(id);
                 rating.setAuthorId(authorId);
-                analytics.logRating(authorId, Math.round(rating.getRating()));
+                analytics.logRating(Math.round(rating.getRating()));
             }
             mLikesReference.child(rating.getId()).setValue(rating);
         } catch (Exception e) {
@@ -653,6 +653,10 @@ public class DatabaseHelper {
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists() == false) {
+                    listener.onObjectChanged(null);
+                    return;
+                }
                 if (isPostValid((Map<String, Object>) dataSnapshot.getValue())) {
                     Post post = dataSnapshot.getValue(Post.class);
                     post.setId(id);
