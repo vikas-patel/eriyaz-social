@@ -26,6 +26,7 @@
     <string name="title_activity_edit_profile">Edit profile</string>
     <string name="title_activity_edit_post">Edit post</string>
     <string name="title_activity_notification">Notifications</string>
+    <string name="title_activity_messages">Messages</string>
 
     <string name="text_take_photo">Take photo</string>
     <string name="text_pick_photo">Pick from Gallery</string>
@@ -55,8 +56,10 @@
     <string name="error_fail_update_post">Fail to update post</string>
     <string name="error_post_was_removed">Post was removed</string>
     <string name="confirm_deletion_post">Delete this post?</string>
+    <string name="confirm_deletion_message">Delete this message?</string>
 
     <string name="comment_text_hint">Enter your comment…</string>
+    <string name="message_text_hint">Enter your message…</string>
     <string name="button_post_comment">Post comment</string>
     <string name="comment_not_ok_hint">Please give feedback on what can be improved. It is mandatory for \'Not Ok\' rating.</string>
 
@@ -138,6 +141,11 @@
         <item quantity="other">contribution points</item>
     </plurals>
 
+    <plurals name="messages_counter_format">
+        <item quantity="one">Message (%1$d)</item>
+        <item quantity="other">Messages (%1$d)</item>
+    </plurals>
+
     <string name="posts_label">Posts:</string>
     <string name="complain_sent">Complain was sent successfully</string>
     <string name="now_time_range">now</string>
@@ -162,6 +170,7 @@
     <string name="message_comment_was_edited">Comment was edited</string>
     <string name="title_edit_comment">Edit comment</string>
     <string name="title_not_ok_comment">Why \'Not Ok\'?</string>
+    <string name="message_was_removed">Message was removed</string>
     <!-- Recording Screen -->
     <string name="pause_recording_button">Pause</string>
     <string name="resume_recording_button">Resume</string>

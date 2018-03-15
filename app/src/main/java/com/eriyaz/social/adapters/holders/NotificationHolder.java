@@ -41,7 +41,7 @@ public class NotificationHolder extends RecyclerView.ViewHolder {
         profileManager = ProfileManager.getInstance(itemView.getContext().getApplicationContext());
 
         avatarImageView = itemView.findViewById(R.id.avatarImageView);
-        messageTextView = itemView.findViewById(R.id.message);
+        messageTextView = itemView.findViewById(R.id.text);
         dateTextView = itemView.findViewById(R.id.dateTextView);
     }
 

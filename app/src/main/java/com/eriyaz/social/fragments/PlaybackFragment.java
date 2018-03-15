@@ -119,7 +119,7 @@ public class PlaybackFragment extends DialogFragment {
         super.onDismiss(dialog);
         if (post != null) {
             BaseActivity activity = (BaseActivity) getActivity();
-            activity.getAnalytics().logPlayedTime(post.getAuthorId(), maxPlayedTime);
+            activity.getAnalytics().logPlayedTime(post.getAuthorId(), post.getTitle(), maxPlayedTime);
         }
         if (!isRatingChanged) return;
         if (getActivity() instanceof MainActivity) {

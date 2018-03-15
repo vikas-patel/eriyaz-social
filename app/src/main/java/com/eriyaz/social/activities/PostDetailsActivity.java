@@ -97,7 +97,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 
     public static final String POST_ID_EXTRA_KEY = "PostDetailsActivity.POST_ID_EXTRA_KEY";
     public static final String AUTHOR_ANIMATION_NEEDED_EXTRA_KEY = "PostDetailsActivity.AUTHOR_ANIMATION_NEEDED_EXTRA_KEY";
-    private static final int TIME_OUT_LOADING_COMMENTS = 30000;
+    public static final int TIME_OUT_LOADING_COMMENTS = 30000;
     public static final int UPDATE_POST_REQUEST = 1;
     public static final String POST_STATUS_EXTRA_KEY = "PostDetailsActivity.POST_STATUS_EXTRA_KEY";
     public static final String POST_ORIGIN_EXTRA_KEY = "PostDetailsActivity.POST_ORIGIN_EXTRA_KEY";

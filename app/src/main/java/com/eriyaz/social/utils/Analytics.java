@@ -20,6 +20,7 @@ public class Analytics {
     private FirebaseAnalytics firebase;
     public static final String RATING = "rating";
     public static final String COMMENT = "comment";
+    public static final String MESSAGE = "message";
     public static final String POST = "Post";
     public static final String OPEN_OTHER_AUDIO = "OpenOtherAudio";
     public static final String OPEN_SELF_AUDIO = "OpenSelfAudio";
@@ -59,11 +60,12 @@ public class Analytics {
     }
 
     // log time only if played other author audio
-    public void logPlayedTime(String postAuthorId, int playedTime) {
+    public void logPlayedTime(String postAuthorId, String postTitle, int playedTime) {
         Bundle bundle = new Bundle();
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null && !currentUser.getUid().equals(postAuthorId)) {
             bundle.putString("UserName", currentUser.getDisplayName());
+            bundle.putString("postTitle", postTitle);
             bundle.putInt("PlayTime", playedTime);
             firebase.logEvent(PLAYED_TIME, bundle);
         }
@@ -96,6 +98,13 @@ public class Analytics {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) bundle.putString("UserName", currentUser.getDisplayName());
         firebase.logEvent(COMMENT, bundle);
+    }
+
+    public void logMessage() {
+        Bundle bundle = new Bundle();
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) bundle.putString("UserName", currentUser.getDisplayName());
+        firebase.logEvent(MESSAGE, bundle);
     }
 
     public void logPost() {

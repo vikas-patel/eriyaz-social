@@ -22,6 +22,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.eriyaz.social.model.Message;
 import com.eriyaz.social.model.Notification;
 import com.eriyaz.social.utils.Analytics;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -254,6 +255,31 @@ public class DatabaseHelper {
         return desertRef.delete();
     }
 
+    public void createMessage(String messageText, final String userId, final OnTaskCompleteListener onTaskCompleteListener) {
+        try {
+            String authorId = firebaseAuth.getCurrentUser().getUid();
+            DatabaseReference mMessagesReference = database.getReference().child("user-messages/" + userId);
+            String messageId = mMessagesReference.push().getKey();
+            Message message = new Message(messageText);
+            message.setId(messageId);
+            message.setSenderId(authorId);
+            analytics.logMessage();
+            mMessagesReference.child(messageId).setValue(message, new DatabaseReference.CompletionListener() {
+                @Override
+                public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                    if (databaseError == null) {
+                        onTaskCompleteListener.onTaskComplete(true);
+                    } else {
+                        onTaskCompleteListener.onTaskComplete(false);
+                        LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
+                    }
+                }
+            });
+        } catch (Exception e) {
+            LogUtil.logError(TAG, "createMessage()", e);
+        }
+    }
+
     public void createComment(String commentText, final String postId, final OnTaskCompleteListener onTaskCompleteListener) {
         try {
             String authorId = firebaseAuth.getCurrentUser().getUid();
@@ -349,6 +375,22 @@ public class DatabaseHelper {
         DatabaseReference databaseReference = database.getReference();
         DatabaseReference postRef = databaseReference.child("post-comments").child(postId).child(commentId);
         return postRef.removeValue();
+    }
+
+    public void removeMessage(String messageId,  String userId, final OnTaskCompleteListener onTaskCompleteListener) {
+        DatabaseReference databaseReference = database.getReference();
+        DatabaseReference postRef = databaseReference.child("user-messages").child(userId).child(messageId);
+        postRef.removeValue(new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                if (databaseError == null) {
+                    onTaskCompleteListener.onTaskComplete(true);
+                } else {
+                    onTaskCompleteListener.onTaskComplete(false);
+                    LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
+                }
+            }
+        });
     }
 
     public void onNewLikeAddedListener(ChildEventListener childEventListener) {
@@ -835,6 +877,38 @@ public class DatabaseHelper {
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 LogUtil.logError(TAG, "getCommentsList(), onCancelled", new Exception(databaseError.getMessage()));
+            }
+        });
+
+        activeListeners.put(valueEventListener, databaseReference);
+        return valueEventListener;
+    }
+
+    public ValueEventListener getMessagesList(String userId, final OnDataChangedListener<Message> onDataChangedListener) {
+        DatabaseReference databaseReference = database.getReference("user-messages").child(userId);
+        ValueEventListener valueEventListener = databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                List<Message> list = new ArrayList<>();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Message message = snapshot.getValue(Message.class);
+                    list.add(message);
+                }
+
+                Collections.sort(list, new Comparator<Message>() {
+                    @Override
+                    public int compare(Message lhs, Message rhs) {
+                        return ((Long) rhs.getCreatedDate()).compareTo((Long) lhs.getCreatedDate());
+                    }
+                });
+
+                onDataChangedListener.onListChanged(list);
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                LogUtil.logError(TAG, "getMessagesList(), onCancelled", new Exception(databaseError.getMessage()));
             }
         });
 

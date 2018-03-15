@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:focusableInTouchMode="true"
+    android:focusable="true"
+    android:background="@android:color/white"
+    tools:context=".activities.MessageActivity">
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/newMessageContainer"
+        android:layout_alignParentTop="true">
+        <RelativeLayout
+            android:id="@+id/messagesParentContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="@dimen/large_intrinsic_padding"
+            android:paddingRight="@dimen/large_intrinsic_padding">
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:layoutManager="LinearLayoutManager"
+                tools:listitem="@layout/message_list_item"
+                android:paddingBottom="@dimen/intrinsic_padding" />
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Large" />
+
+            <TextView
+                android:id="@+id/warningMessagesTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="@dimen/intrinsic_padding"
+                android:text="@string/internet_connection_failed"
+                android:visibility="gone" />
+
+        </RelativeLayout>
+    </ScrollView>
+
+
+
+    <!--<android.support.v4.widget.SwipeRefreshLayout-->
+        <!--android:id="@+id/swipeContainer"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:paddingLeft="@dimen/large_intrinsic_padding"-->
+        <!--android:paddingRight="@dimen/large_intrinsic_padding"-->
+        <!--app:layout_behavior="@string/appbar_scrolling_view_behavior">-->
+
+    <!--</android.support.v4.widget.SwipeRefreshLayout>-->
+    <View
+        android:id="@+id/shadow"
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        android:layout_above="@+id/newMessageContainer"
+        android:background="@drawable/top_shadow" />
+
+    <LinearLayout
+        android:id="@+id/newMessageContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/messageEditText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:background="@android:color/white"
+            android:hint="@string/message_text_hint"
+            android:inputType="textMultiLine"
+            android:maxHeight="@dimen/new_comment_max_height"
+            android:minHeight="@dimen/new_comment_min_height"
+            android:padding="@dimen/intrinsic_padding" />
+
+        <Button
+            android:id="@+id/sendButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_margin="@dimen/small_intrinsic_padding"
+            android:background="@drawable/send_comment_button_bg"
+            android:enabled="false"
+            android:minWidth="0dp"
+            android:paddingLeft="@dimen/large_intrinsic_padding"
+            android:paddingRight="@dimen/large_intrinsic_padding"
+            android:text="@string/send_comment_button_label"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+
+</RelativeLayout>

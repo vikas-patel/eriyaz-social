@@ -659,7 +659,52 @@ exports.appUninstall = functions.analytics.event('app_remove').onLog(event => {
     }
 });
 
-// exports.appSessionStart = functions.analytics.event('session_start').onLog(event => {
-//     const user = event.data.user;
-//     const uid = user.userId;
-// });
+exports.incrementUserMessageCount = functions.database.ref('/user-messages/{authorId}/{messageId}').onCreate(event => {
+    const authorId = event.params.authorId;
+    const authorProfileMessageCountRef = admin.database().ref(`/profiles/${authorId}/messageCount`);
+    return authorProfileMessageCountRef.transaction(current => {
+          return (current || 0) + 1;
+    }).then(() => {
+        console.log('User message count incremented.');
+    });
+});
+
+exports.decrementUserMessageCount = functions.database.ref('/user-messages/{authorId}/{messageId}').onDelete(event => {
+    const authorId = event.params.authorId;
+    const authorProfileMessageCountRef = admin.database().ref(`/profiles/${authorId}/messageCount`);
+    return authorProfileMessageCountRef.transaction(current => {
+          return (current || 1) - 1;
+    }).then(() => {
+        console.log('User message count decremented.');
+    });
+});
+
+exports.appNotificationMessages = functions.database.ref('/user-messages/{userId}/{messageId}').onCreate(event => {
+    console.log('App notification for new message');
+
+    const messageId = event.params.messageId;
+    const userId = event.params.userId;
+    const message = event.data.val();
+    const messageAuthorId = message.senderId;
+
+    if (messageAuthorId == userId) {
+        return console.log('User messaged on own wall');
+    }
+    // Get message author.
+    const getMessageAuthorProfileTask = admin.database().ref(`/profiles/${messageAuthorId}`).once('value');
+
+    return getMessageAuthorProfileTask.then(profile => {
+        // Get user notification ref
+        const userNotificationsRef = admin.database().ref(`/user-notifications/${userId}`);
+        var newNotificationRef = userNotificationsRef.push();
+        var msg = profile.val().username + " left a message on your profile page.";
+        newNotificationRef.set({
+            'action': 'com.eriyaz.social.activities.MessageActivity',
+            'fromUserId' : messageAuthorId,
+            'message': msg,
+            'extraKey' : 'ProfileActivity.USER_ID_EXTRA_KEY',
+            'extraKeyValue' : userId,
+            'createdDate': admin.database.ServerValue.TIMESTAMP
+        });
+    });
+});

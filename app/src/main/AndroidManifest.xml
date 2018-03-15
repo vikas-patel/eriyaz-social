@@ -34,6 +34,10 @@
             android:configChanges="orientation|screenSize"
             android:label="@string/label_post_detail_activity" />
         <activity
+            android:name=".activities.MessageActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/title_activity_messages"/>
+        <activity
             android:name=".activities.CreatePostActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/label_create_post_activity" />
@@ -71,7 +75,6 @@
             android:configChanges="orientation|screenSize"
             android:label="@string/title_activity_notification"
             android:theme="@style/AppCompat.NoActionBar" />
-
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="84e05e27c9fcba7e1de6a47e355a1aa247264a46" />

@@ -45,6 +45,7 @@ import com.bumptech.glide.request.target.Target;
 import com.eriyaz.social.adapters.ProfileTabAdapter;
 import com.eriyaz.social.enums.PostStatus;
 import com.eriyaz.social.fragments.PostsByUserFragment;
+import com.eriyaz.social.model.Message;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.firebase.auth.FirebaseAuth;
@@ -64,6 +65,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
 
     // UI references.
     private TextView nameEditText;
+    private TextView messagesEditText;
     private ImageView imageView;
     private ProgressBar progressBar;
 //    private TextView postsLabelTextView;
@@ -103,6 +105,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         imageView = (ImageView) findViewById(R.id.imageView);
         nameEditText = (TextView) findViewById(R.id.nameEditText);
+        messagesEditText = findViewById(R.id.messagesEditText);
         pointsCountersTextView = (TextView) findViewById(R.id.pointsCountersTextView);
 //        postsLabelTextView = (TextView) findViewById(R.id.postsLabelTextView);
 
@@ -112,6 +115,13 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
 
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(profileTabViewPager);
+
+        messagesEditText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startMessageActivity();
+            }
+        });
 
         supportPostponeEnterTransition();
     }
@@ -227,6 +237,10 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
                 imageView.setImageResource(R.drawable.ic_stub);
             }
 
+            int messageCount = profile.getMessageCount();
+            String messageFormat = getResources().getQuantityString(R.plurals.messages_counter_format, messageCount, messageCount);
+            messagesEditText.setText(String.format(messageFormat, messageCount));
+
             int pointsCount = (int) profile.getPoints();
             String pointsLabel = getResources().getString(R.string.score_label);
             pointsCountersTextView.setText(buildCounterSpannable(pointsLabel, pointsCount));
@@ -253,6 +267,16 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
     private void startEditProfileActivity() {
         if (hasInternetConnection()) {
             Intent intent = new Intent(ProfileActivity.this, EditProfileActivity.class);
+            startActivity(intent);
+        } else {
+            showSnackBar(R.string.internet_connection_failed);
+        }
+    }
+
+    private void startMessageActivity() {
+        if (hasInternetConnection()) {
+            Intent intent = new Intent(ProfileActivity.this, MessageActivity.class);
+            intent.putExtra(ProfileActivity.USER_ID_EXTRA_KEY, userID);
             startActivity(intent);
         } else {
             showSnackBar(R.string.internet_connection_failed);
