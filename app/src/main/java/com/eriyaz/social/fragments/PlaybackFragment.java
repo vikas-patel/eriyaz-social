@@ -67,6 +67,7 @@ public class PlaybackFragment extends DialogFragment {
     private boolean isRatingChanged = false;
     private View ratingLayout;
     private boolean animateRatingThumb = true;
+    private int maxPlayedTime;
 
     //stores whether or not the mediaplayer is currently playing audio
     private boolean isPlaying = false;
@@ -104,11 +105,22 @@ public class PlaybackFragment extends DialogFragment {
         minutes = TimeUnit.MILLISECONDS.toMinutes(itemDuration);
         seconds = TimeUnit.MILLISECONDS.toSeconds(itemDuration)
                 - TimeUnit.MINUTES.toSeconds(minutes);
+        // own recording yet to be submitted
+        BaseActivity activity = (BaseActivity) getActivity();
+        if (post == null) {
+            activity.getAnalytics().logOpenRecordedAudio();
+        } else {
+            activity.getAnalytics().logOpenAudio(post.getAuthorId());
+        }
     }
 
     @Override
     public void onDismiss(DialogInterface dialog) {
         super.onDismiss(dialog);
+        if (post != null) {
+            BaseActivity activity = (BaseActivity) getActivity();
+            activity.getAnalytics().logPlayedTime(post.getAuthorId(), post.getTitle(), maxPlayedTime);
+        }
         if (!isRatingChanged) return;
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).updatePost();
@@ -452,6 +464,7 @@ public class PlaybackFragment extends DialogFragment {
                 long minutes = TimeUnit.MILLISECONDS.toMinutes(mCurrentPosition);
                 long seconds = TimeUnit.MILLISECONDS.toSeconds(mCurrentPosition)
                         - TimeUnit.MINUTES.toSeconds(minutes);
+                maxPlayedTime = Math.max(maxPlayedTime, (int) TimeUnit.MILLISECONDS.toSeconds(mCurrentPosition));
                 mCurrentProgressTextView.setText(String.format("%02d:%02d", minutes, seconds));
                 if (animateRatingThumb && ratingController != null) {
                     ratingController.startAnimateRatingButton(LikeController.AnimationType.COLOR_ANIM);

@@ -78,7 +78,6 @@ public class FileViewerFragment extends Fragment {
                             .beginTransaction();
                     playbackFragment.show(transaction, "dialog_playback");
                     BaseActivity activity = (BaseActivity) getActivity();
-                    activity.getAnalytics().logOpenRecordedAudio();
                 } catch (Exception e) {
                     Log.e(LOG_TAG, "exception", e);
                 }

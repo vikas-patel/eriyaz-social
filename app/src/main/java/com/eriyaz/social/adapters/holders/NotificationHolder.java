@@ -13,7 +13,9 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
+import com.eriyaz.social.activities.PostDetailsActivity;
 import com.eriyaz.social.activities.ProfileActivity;
+import com.eriyaz.social.enums.PostOrigin;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.model.Notification;
@@ -39,7 +41,7 @@ public class NotificationHolder extends RecyclerView.ViewHolder {
         profileManager = ProfileManager.getInstance(itemView.getContext().getApplicationContext());
 
         avatarImageView = itemView.findViewById(R.id.avatarImageView);
-        messageTextView = itemView.findViewById(R.id.message);
+        messageTextView = itemView.findViewById(R.id.text);
         dateTextView = itemView.findViewById(R.id.dateTextView);
     }
 
@@ -78,6 +80,7 @@ public class NotificationHolder extends RecyclerView.ViewHolder {
                 Class<?> c = Class.forName(notification.getAction());
                 Intent intent = new Intent(context, c);
                 intent.putExtra(notification.getExtraKey(), notification.getExtraKeyValue());
+                intent.putExtra(PostDetailsActivity.POST_ORIGIN_EXTRA_KEY, PostOrigin.APP_NOTIFICATION);
                 ((Activity)context).startActivity(intent);
             } catch (ClassNotFoundException e) {
                 LogUtil.logError("NotificationHolder", e.getMessage(), e);

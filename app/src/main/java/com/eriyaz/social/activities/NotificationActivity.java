@@ -59,6 +59,7 @@ public class NotificationActivity extends BaseActivity {
 
         loadNotificationList();
         profileManager.resetUnseenNotificationCount();
+        analytics.openNotificationActivity();
         supportPostponeEnterTransition();
     }
 

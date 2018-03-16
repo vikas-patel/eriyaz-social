@@ -124,24 +124,29 @@
                         android:id="@+id/file_name_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="title title title titel titel title title"
                         android:maxLines="2"
                         android:textAppearance="@style/TextAppearance.Title" />
                     <TextView
                         android:id="@+id/detailsTextView"
-                        android:text="description"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:ellipsize="end"
                         android:maxLines="2"
                         android:textAppearance="@style/TextAppearance.Second" />
                     <TextView
-                        android:id="@+id/file_length_text"
+                        android:id="@+id/attemptTextView"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="12dp"
                         android:textAppearance="@style/TextAppearance.Second.Dark"
                         android:layout_marginTop="7dp"/>
+                    <!--<TextView-->
+                        <!--android:id="@+id/file_length_text"-->
+                        <!--android:layout_width="wrap_content"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:textSize="12dp"-->
+                        <!--android:textAppearance="@style/TextAppearance.Second.Dark"-->
+                        <!--android:layout_marginTop="7dp"/>-->
 
                 </LinearLayout>
 

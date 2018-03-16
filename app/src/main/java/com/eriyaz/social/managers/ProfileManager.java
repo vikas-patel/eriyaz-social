@@ -21,6 +21,8 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 
 import com.eriyaz.social.managers.listeners.OnDataChangedListener;
+import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
+import com.eriyaz.social.model.Message;
 import com.eriyaz.social.model.Notification;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -143,6 +145,10 @@ public class ProfileManager extends FirebaseListenersManager {
         addListenerToMap(activityContext, valueEventListener);
     }
 
+    public void createOrUpdateMessage(String messageText, String postId, OnTaskCompleteListener onTaskCompleteListener) {
+        ApplicationHelper.getDatabaseHelper().createMessage(messageText, postId, onTaskCompleteListener);
+    }
+
     public void resetUnseenNotificationCount() {
         DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
         databaseHelper.resetUnseenNotificationCount();
@@ -159,6 +165,16 @@ public class ProfileManager extends FirebaseListenersManager {
 
     public void getNotificationsList(String userId, OnDataChangedListener<Notification> onDataChangedListener) {
         ApplicationHelper.getDatabaseHelper().getNotificationsList(userId, onDataChangedListener);
+    }
+
+    public void getMessagesList(Context activityContext, String userId, OnDataChangedListener<Message> onDataChangedListener) {
+        ValueEventListener valueEventListener = ApplicationHelper.getDatabaseHelper().getMessagesList(userId, onDataChangedListener);
+        addListenerToMap(activityContext, valueEventListener);
+    }
+
+    public void removeMessage(String messageId, final String userId, final OnTaskCompleteListener onTaskCompleteListener) {
+        final DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
+        databaseHelper.removeMessage(messageId, userId, onTaskCompleteListener);
     }
 
     public ProfileStatus checkProfile() {

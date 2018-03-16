@@ -20,7 +20,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TabLayout;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
 import android.text.Spannable;
@@ -33,6 +32,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -52,7 +52,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.eriyaz.social.R;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
-import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.LogUtil;
 import com.eriyaz.social.utils.LogoutHelper;
@@ -64,6 +63,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
 
     // UI references.
     private TextView nameEditText;
+    private Button messageButton;
     private ImageView imageView;
     private ProgressBar progressBar;
 //    private TextView postsLabelTextView;
@@ -103,6 +103,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         imageView = (ImageView) findViewById(R.id.imageView);
         nameEditText = (TextView) findViewById(R.id.nameEditText);
+        messageButton = findViewById(R.id.messagesButton);
         pointsCountersTextView = (TextView) findViewById(R.id.pointsCountersTextView);
 //        postsLabelTextView = (TextView) findViewById(R.id.postsLabelTextView);
 
@@ -112,6 +113,14 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
 
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(profileTabViewPager);
+
+        messageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                startMessageActivity();
+            }
+        });
 
         supportPostponeEnterTransition();
     }
@@ -227,6 +236,10 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
                 imageView.setImageResource(R.drawable.ic_stub);
             }
 
+            int messageCount = profile.getMessageCount();
+            String messageFormat = getResources().getQuantityString(R.plurals.messages_counter_format, messageCount, messageCount);
+            messageButton.setText(String.format(messageFormat, messageCount));
+
             int pointsCount = (int) profile.getPoints();
             String pointsLabel = getResources().getString(R.string.score_label);
             pointsCountersTextView.setText(buildCounterSpannable(pointsLabel, pointsCount));
@@ -253,6 +266,16 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
     private void startEditProfileActivity() {
         if (hasInternetConnection()) {
             Intent intent = new Intent(ProfileActivity.this, EditProfileActivity.class);
+            startActivity(intent);
+        } else {
+            showSnackBar(R.string.internet_connection_failed);
+        }
+    }
+
+    private void startMessageActivity() {
+        if (hasInternetConnection()) {
+            Intent intent = new Intent(ProfileActivity.this, MessageActivity.class);
+            intent.putExtra(ProfileActivity.USER_ID_EXTRA_KEY, userID);
             startActivity(intent);
         } else {
             showSnackBar(R.string.internet_connection_failed);
