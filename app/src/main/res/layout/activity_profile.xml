@@ -111,14 +111,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:paddingTop="@dimen/intrinsic_padding"
+                            android:text="Vikas Patel"
                             android:textAppearance="@style/TextAppearance.Title" />
-                        <TextView
-                            android:id="@+id/messagesEditText"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="@dimen/small_intrinsic_padding"
-                            android:textSize="16dp"
-                            android:textAppearance="@style/TextAppearance.Highlight" />
 
                         <LinearLayout
                             android:layout_width="wrap_content"
@@ -130,22 +124,30 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:gravity="center"
+                                android:text="contribution score"
                                 android:textAppearance="@style/TextAppearance.Title" />
 
                         </LinearLayout>
 
                     </LinearLayout>
+                    <Button
+                        android:id="@+id/messagesButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:layout_alignParentBottom="true"
+                        android:layout_gravity="center_vertical"
+                        android:drawablePadding="@dimen/intrinsic_padding"
+                        android:drawableLeft="@drawable/ic_comments_white"
+                        android:background="@drawable/send_comment_button_bg"
+                        android:minWidth="0dp"
+                        android:paddingLeft="@dimen/intrinsic_padding"
+                        android:paddingRight="@dimen/intrinsic_padding"
+                        android:text="Message"
+                        android:textColor="@android:color/white" />
 
                 </RelativeLayout>
 
-                <!--<TextView-->
-                    <!--android:id="@+id/postsLabelTextView"-->
-                    <!--android:layout_width="match_parent"-->
-                    <!--android:layout_height="wrap_content"-->
-                    <!--android:layout_marginLeft="@dimen/post_card_content_padding_left"-->
-                    <!--android:paddingTop="@dimen/intrinsic_padding"-->
-                    <!--android:text="@string/posts_label"-->
-                    <!--android:textAppearance="@style/TextAppearance.Second.Light" />-->
                 <android.support.design.widget.TabLayout
                     android:id="@+id/tabs"
                     android:layout_width="match_parent"

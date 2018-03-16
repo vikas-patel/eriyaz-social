@@ -20,7 +20,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TabLayout;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
 import android.text.Spannable;
@@ -33,6 +32,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -45,7 +45,6 @@ import com.bumptech.glide.request.target.Target;
 import com.eriyaz.social.adapters.ProfileTabAdapter;
 import com.eriyaz.social.enums.PostStatus;
 import com.eriyaz.social.fragments.PostsByUserFragment;
-import com.eriyaz.social.model.Message;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.firebase.auth.FirebaseAuth;
@@ -53,7 +52,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.eriyaz.social.R;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
-import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.LogUtil;
 import com.eriyaz.social.utils.LogoutHelper;
@@ -65,7 +63,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
 
     // UI references.
     private TextView nameEditText;
-    private TextView messagesEditText;
+    private Button messageButton;
     private ImageView imageView;
     private ProgressBar progressBar;
 //    private TextView postsLabelTextView;
@@ -105,7 +103,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         imageView = (ImageView) findViewById(R.id.imageView);
         nameEditText = (TextView) findViewById(R.id.nameEditText);
-        messagesEditText = findViewById(R.id.messagesEditText);
+        messageButton = findViewById(R.id.messagesButton);
         pointsCountersTextView = (TextView) findViewById(R.id.pointsCountersTextView);
 //        postsLabelTextView = (TextView) findViewById(R.id.postsLabelTextView);
 
@@ -116,9 +114,10 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(profileTabViewPager);
 
-        messagesEditText.setOnClickListener(new View.OnClickListener() {
+        messageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 startMessageActivity();
             }
         });
@@ -239,7 +238,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
 
             int messageCount = profile.getMessageCount();
             String messageFormat = getResources().getQuantityString(R.plurals.messages_counter_format, messageCount, messageCount);
-            messagesEditText.setText(String.format(messageFormat, messageCount));
+            messageButton.setText(String.format(messageFormat, messageCount));
 
             int pointsCount = (int) profile.getPoints();
             String pointsLabel = getResources().getString(R.string.score_label);
