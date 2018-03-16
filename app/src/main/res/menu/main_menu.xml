@@ -14,5 +14,17 @@
         app:showAsAction="ifRoom"
         android:icon="@drawable/ic_menu_notification"
         android:orderInCategory="1" />
+    <item
+        android:id="@+id/share_app"
+        android:title="@string/share_app_menu_item"
+        app:showAsAction="never"
+        android:icon="@drawable/ic_menu_notification"
+        android:orderInCategory="1" />
+    <item
+        android:id="@+id/point_rule"
+        android:title="@string/point_rule_menu_item"
+        app:showAsAction="never"
+        android:icon="@drawable/ic_menu_notification"
+        android:orderInCategory="1" />
 </menu>
 

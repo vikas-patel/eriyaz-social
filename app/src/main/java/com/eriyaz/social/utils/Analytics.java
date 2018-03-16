@@ -70,4 +70,11 @@ public class Analytics {
         bundle.putString("Author", authorId);
         firebase.logEvent(POST, bundle);
     }
+
+    public void logShare(String byUserId) {
+        Bundle bundle = new Bundle();
+        bundle.putString(FirebaseAnalytics.Param.ITEM_ID, "ShareApp");
+        bundle.putString("Author", byUserId);
+        firebase.logEvent(POST, bundle);
+    }
 }

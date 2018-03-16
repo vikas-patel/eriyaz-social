@@ -17,6 +17,9 @@
 
 <resources>
     <string name="app_name">RateMySinging</string>
+    <string name="app_share_title">Try this singing App</string>
+    <string name="app_url">https://play.google.com/store/apps/details?id=com.eriyaz.social</string>
+    <string name="app_share_email_sub">Check out this singing App</string>
     <string name="label_create_post_activity">Create post</string>
     <string name="label_post_detail_activity">Post detail</string>
     <string name="label_image_detail_activity">Image</string>
@@ -107,6 +110,8 @@
 
     <string name="profile_menu_item">Profile</string>
     <string name="notification_menu_item">Notification</string>
+    <string name="share_app_menu_item">Share App</string>
+    <string name="point_rule_menu_item">Points Rule</string>
     <string name="collapse_text_label">show less</string>
     <string name="expand_text_label">show more</string>
     <string name="add_complain">Complain</string>
@@ -189,4 +194,26 @@
         <item>Attempt 9</item>
         <item>Attempt 10</item>
     </string-array>
+
+
+    <string name="point_rule_html">
+        <![CDATA[
+        <h1>Main Title</h1>
+        <h2>A sub-title</h2>
+        <p>This is some html. Look, here\'s an <u>underline</u>.</p>
+        <p>Look, this is <em>emphasized.</em> And here\'s some <b>bold</b>.</p>
+        <p>This is a UL list:
+        <ul>
+        <li>One</li>
+        <li>Two</li>
+        <li>Three</li>
+        </ul>
+        <p>This is an OL list:
+        <ol>
+        <li>One</li>
+        <li>Two</li>
+        <li>Three</li>
+        </ol>
+        ]]>
+    </string>
 </resources>

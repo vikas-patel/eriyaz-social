@@ -18,11 +18,17 @@
 package com.eriyaz.social.activities;
 
 import android.app.ActivityOptions;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.pm.LabeledIntent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.content.res.Resources;
 import android.graphics.drawable.LayerDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -63,6 +69,9 @@ import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.eriyaz.social.utils.ImageUtil.setBadgeCount;
 
@@ -521,8 +530,57 @@ public class MainActivity extends BaseActivity {
                 } else {
                     doAuthorization(profileStatus);
                 }
+            case R.id.share_app: {
+                String shareStr = "\n" + getString(R.string.app_share_title) + "\n\n";
+                shareStr = shareStr + getString(R.string.app_url) + "\n\n";
+                String emailSub = getString(R.string.app_share_email_sub);
+                onShareClick(shareStr,emailSub);
+                if( FirebaseAuth.getInstance().getCurrentUser() != null){
+                    getAnalytics().logShare(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                }else{
+                    getAnalytics().logShare("anonymous");
+                }
+            }
+            case R.id.point_rule:{
+
+            }
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    public void onShareClick(String shareText, String shareEmailSub) {
+        try {
+            Intent sendIntent = new Intent();
+            sendIntent.setAction(Intent.ACTION_SEND);
+            sendIntent.setType("text/plain");
+            PackageManager pm = getPackageManager();
+            List<ResolveInfo> resInfo = pm.queryIntentActivities(sendIntent, 0);
+            List<LabeledIntent> intentList = new ArrayList<>();
+            for (int i = 0; i < resInfo.size(); i++) {
+                ResolveInfo ri = resInfo.get(i);
+                String packageName = ri.activityInfo.packageName;
+                if( packageName.contains("whatsapp") || packageName.contains("twitter") || packageName.contains("facebook") || packageName.contains("android.gm")) {
+                    Intent intent = new Intent();
+                    intent.setComponent(new ComponentName(packageName, ri.activityInfo.name));
+                    intent.setAction(Intent.ACTION_SEND);
+                    intent.setType("text/plain");
+                    intent.putExtra(Intent.EXTRA_TEXT, shareText);
+                    if(packageName.contains("android.gm")) {
+                        intent.putExtra(Intent.EXTRA_TEXT, shareText);
+                        intent.putExtra(Intent.EXTRA_SUBJECT, shareEmailSub);
+                        intent.setType("message/rfc822");
+                    }
+                    intentList.add(new LabeledIntent(intent, packageName, ri.loadLabel(pm), ri.icon));
+                }
+            }
+            Intent chooserIntent = Intent.createChooser(intentList.get(0), getString(R.string.app_share_title));
+            intentList.remove(0);
+            Parcelable[] targetedIntentsParcelable = intentList.toArray(new Parcelable[intentList.size()]);
+            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, targetedIntentsParcelable);
+            startActivity(chooserIntent);
+        } catch (Exception e) {
+            LogUtil.logError(TAG,e.getMessage(),e);
         }
     }
 
