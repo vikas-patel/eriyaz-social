@@ -530,6 +530,7 @@ public class MainActivity extends BaseActivity {
                 } else {
                     doAuthorization(profileStatus);
                 }
+                return true;
             case R.id.share_app: {
                 String shareStr = "\n" + getString(R.string.app_share_title) + "\n\n";
                 shareStr = shareStr + getString(R.string.app_url) + "\n\n";
@@ -540,10 +541,12 @@ public class MainActivity extends BaseActivity {
                 }else{
                     getAnalytics().logShare("anonymous");
                 }
+                return true;
             }
-            case R.id.point_rule:{
-
-            }
+//            case R.id.point_rule:{
+//
+//            }
+//            return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
