@@ -9,6 +9,12 @@
     android:focusable="true"
     android:background="@android:color/white"
     tools:context=".activities.MessageActivity">
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Large" />
 
     <ScrollView
         android:id="@+id/scrollView"
@@ -31,13 +37,6 @@
                 app:layoutManager="LinearLayoutManager"
                 tools:listitem="@layout/message_list_item"
                 android:paddingBottom="@dimen/intrinsic_padding" />
-
-            <ProgressBar
-                android:id="@+id/progressBar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Large" />
 
             <TextView
                 android:id="@+id/warningMessagesTextView"

@@ -37,4 +37,5 @@
     <color name="dark_green">#33691E</color>
     <color name="red">#F44336</color>
     <color name="transparentColor">#00ffffff</color>
+    <color name="play_control_color">#FF00A6FF</color>
 </resources>

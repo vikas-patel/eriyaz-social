@@ -102,13 +102,8 @@ public class RecordingService extends Service {
         mRecorder.setOutputFile(mFilePath);
         mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
         mRecorder.setAudioChannels(1);
-        if (MySharedPreferences.getPrefHighQuality(this)) {
-            mRecorder.setAudioSamplingRate(44100);
-            mRecorder.setAudioEncodingBitRate(192000);
-        }
-
         mRecorder.setAudioSamplingRate(44100);
-        mRecorder.setAudioEncodingBitRate(192000);
+        mRecorder.setAudioEncodingBitRate(128000);
 
         try {
             mRecorder.prepare();

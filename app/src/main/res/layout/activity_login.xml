@@ -43,7 +43,8 @@
                 android:layout_centerVertical="true"
                 android:paddingLeft="@dimen/large_intrinsic_padding"
                 android:paddingRight="@dimen/large_intrinsic_padding"
-                app:srcCompat="@drawable/ic_bt_login_facebook" />
+                app:srcCompat="@drawable/ic_bt_login_facebook"
+                android:layout_alignParentLeft="true" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -70,7 +71,8 @@
                 android:layout_centerVertical="true"
                 android:paddingLeft="@dimen/large_intrinsic_padding"
                 android:paddingRight="@dimen/large_intrinsic_padding"
-                app:srcCompat="@drawable/ic_bt_login_google" />
+                app:srcCompat="@drawable/ic_bt_login_google"
+                android:layout_alignParentLeft="true" />
 
             <TextView
                 android:layout_width="wrap_content"
