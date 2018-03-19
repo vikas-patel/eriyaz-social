@@ -32,7 +32,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -42,19 +41,19 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.ProfileTabAdapter;
 import com.eriyaz.social.enums.PostStatus;
 import com.eriyaz.social.fragments.PostsByUserFragment;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.eriyaz.social.R;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.LogUtil;
 import com.eriyaz.social.utils.LogoutHelper;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnConnectionFailedListener {
     private static final String TAG = ProfileActivity.class.getSimpleName();
@@ -63,7 +62,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
 
     // UI references.
     private TextView nameEditText;
-    private Button messageButton;
+    private View messageTextLayout;
     private ImageView imageView;
     private ProgressBar progressBar;
 //    private TextView postsLabelTextView;
@@ -103,7 +102,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         imageView = (ImageView) findViewById(R.id.imageView);
         nameEditText = (TextView) findViewById(R.id.nameEditText);
-        messageButton = findViewById(R.id.messagesButton);
+        messageTextLayout = findViewById(R.id.messageTextLayout);
         pointsCountersTextView = (TextView) findViewById(R.id.pointsCountersTextView);
 //        postsLabelTextView = (TextView) findViewById(R.id.postsLabelTextView);
 
@@ -114,7 +113,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(profileTabViewPager);
 
-        messageButton.setOnClickListener(new View.OnClickListener() {
+        messageTextLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
@@ -235,10 +234,6 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
                 progressBar.setVisibility(View.GONE);
                 imageView.setImageResource(R.drawable.ic_stub);
             }
-
-            int messageCount = profile.getMessageCount();
-            String messageFormat = getResources().getQuantityString(R.plurals.messages_counter_format, messageCount, messageCount);
-            messageButton.setText(String.format(messageFormat, messageCount));
 
             int pointsCount = (int) profile.getPoints();
             String pointsLabel = getResources().getString(R.string.score_label);

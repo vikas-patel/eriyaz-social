@@ -46,7 +46,7 @@
 
     <dimen name="post_card_elevation">3dp</dimen>
 
-    <dimen name="profile_screen_avatar_size">100dp</dimen>
+    <dimen name="profile_screen_avatar_size">110dp</dimen>
 
     <dimen name="profile_screen_margin_top_progress_bar">120dp</dimen>
 

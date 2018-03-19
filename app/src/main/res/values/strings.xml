@@ -146,11 +146,7 @@
         <item quantity="other">contribution points</item>
     </plurals>
 
-    <plurals name="messages_counter_format">
-        <item quantity="one">Message (%1$d)</item>
-        <item quantity="other">Messages (%1$d)</item>
-    </plurals>
-
+    <string name="message_button">MESSAGE</string>
     <string name="posts_label">Posts:</string>
     <string name="complain_sent">Complain was sent successfully</string>
     <string name="now_time_range">now</string>

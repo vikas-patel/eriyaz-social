@@ -30,7 +30,6 @@ public class Profile implements Serializable {
     private long points;
     private int unseen;
     private String registrationToken;
-    private int messageCount;
 
     public Profile() {
         // Default constructor required for calls to DataSnapshot.getValue(Profile.class)
@@ -94,13 +93,5 @@ public class Profile implements Serializable {
 
     public void setRegistrationToken(String registrationToken) {
         this.registrationToken = registrationToken;
-    }
-
-    public int getMessageCount() {
-        return messageCount;
-    }
-
-    public void setMessageCount(int messageCount) {
-        this.messageCount = messageCount;
     }
 }

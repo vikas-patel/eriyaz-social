@@ -659,25 +659,25 @@ exports.appUninstall = functions.analytics.event('app_remove').onLog(event => {
     }
 });
 
-exports.incrementUserMessageCount = functions.database.ref('/user-messages/{authorId}/{messageId}').onCreate(event => {
-    const authorId = event.params.authorId;
-    const authorProfileMessageCountRef = admin.database().ref(`/profiles/${authorId}/messageCount`);
-    return authorProfileMessageCountRef.transaction(current => {
-          return (current || 0) + 1;
-    }).then(() => {
-        console.log('User message count incremented.');
-    });
-});
+// exports.incrementUserMessageCount = functions.database.ref('/user-messages/{authorId}/{messageId}').onCreate(event => {
+//     const authorId = event.params.authorId;
+//     const authorProfileMessageCountRef = admin.database().ref(`/profiles/${authorId}/messageCount`);
+//     return authorProfileMessageCountRef.transaction(current => {
+//           return (current || 0) + 1;
+//     }).then(() => {
+//         console.log('User message count incremented.');
+//     });
+// });
 
-exports.decrementUserMessageCount = functions.database.ref('/user-messages/{authorId}/{messageId}').onDelete(event => {
-    const authorId = event.params.authorId;
-    const authorProfileMessageCountRef = admin.database().ref(`/profiles/${authorId}/messageCount`);
-    return authorProfileMessageCountRef.transaction(current => {
-          return (current || 1) - 1;
-    }).then(() => {
-        console.log('User message count decremented.');
-    });
-});
+// exports.decrementUserMessageCount = functions.database.ref('/user-messages/{authorId}/{messageId}').onDelete(event => {
+//     const authorId = event.params.authorId;
+//     const authorProfileMessageCountRef = admin.database().ref(`/profiles/${authorId}/messageCount`);
+//     return authorProfileMessageCountRef.transaction(current => {
+//           return (current || 1) - 1;
+//     }).then(() => {
+//         console.log('User message count decremented.');
+//     });
+// });
 
 exports.appNotificationMessages = functions.database.ref('/user-messages/{userId}/{messageId}').onCreate(event => {
     console.log('App notification for new message');
