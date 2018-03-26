@@ -21,6 +21,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -35,7 +36,14 @@ import android.view.inputmethod.InputMethodManager;
 import com.eriyaz.social.R;
 import com.eriyaz.social.enums.ProfileStatus;
 import com.eriyaz.social.utils.Analytics;
+import com.eriyaz.social.utils.DeepLinkUtil;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.dynamiclinks.DynamicLink;
+import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
+import com.google.firebase.dynamiclinks.ShortDynamicLink;
 
 /**
  * Created by alexey on 05.12.16.
@@ -46,12 +54,14 @@ public class BaseActivity extends AppCompatActivity {
     public ProgressDialog progressDialog;
     public ActionBar actionBar;
     protected Analytics analytics;
+    protected DeepLinkUtil deepLinkUtil;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         actionBar = getSupportActionBar();
         analytics = new Analytics(this);
+        deepLinkUtil = new DeepLinkUtil(this);
     }
 
     @Override
@@ -158,6 +168,10 @@ public class BaseActivity extends AppCompatActivity {
         return analytics;
     }
 
+    public DeepLinkUtil getDeepLinkUtil() {
+        return deepLinkUtil;
+    }
+
     public boolean isActivityDestroyed() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1
                 && this != null && this.isDestroyed()) {
@@ -165,4 +179,7 @@ public class BaseActivity extends AppCompatActivity {
         }
         return false;
     }
+
+
+
 }

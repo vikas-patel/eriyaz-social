@@ -77,6 +77,8 @@ dependencies {
     compile 'com.facebook.android:facebook-android-sdk:4.17.0'
     compile 'com.melnykov:floatingactionbutton:1.1.0'
     compile 'com.xw.repo:bubbleseekbar:3.10-lite'
+
+    compile 'com.google.firebase:firebase-invites:11.8.0'
 }
 
 apply plugin: 'com.google.gms.google-services'
