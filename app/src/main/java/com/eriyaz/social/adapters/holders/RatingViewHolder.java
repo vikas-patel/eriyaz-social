@@ -35,10 +35,13 @@ import com.eriyaz.social.activities.BaseActivity;
 import com.eriyaz.social.adapters.RatingsAdapter;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
+import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.utils.FormatterUtil;
 import com.eriyaz.social.views.ExpandableTextView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 /**
  * Created by alexey on 10.05.17.
@@ -47,8 +50,10 @@ import com.eriyaz.social.views.ExpandableTextView;
 public class RatingViewHolder extends RecyclerView.ViewHolder {
 
     private final ImageView avatarImageView;
-    private final ExpandableTextView ratingTextView;
+    private final ExpandableTextView ratingExpandedTextView;
+    private final TextView ratingText;
     private final TextView dateTextView;
+    private final ImageView questionImageView;
     private final ProfileManager profileManager;
     private RatingsAdapter.Callback callback;
     private Context context;
@@ -61,7 +66,9 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
         profileManager = ProfileManager.getInstance(itemView.getContext().getApplicationContext());
 
         avatarImageView = (ImageView) itemView.findViewById(R.id.avatarImageView);
-        ratingTextView = (ExpandableTextView) itemView.findViewById(R.id.ratingText);
+        questionImageView = itemView.findViewById(R.id.questionImageView);
+        ratingExpandedTextView = (ExpandableTextView) itemView.findViewById(R.id.ratingText);
+        ratingText = itemView.findViewById(R.id.expandable_text);
         dateTextView = (TextView) itemView.findViewById(R.id.dateTextView);
 
         if (callback != null) {
@@ -80,13 +87,15 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
         }
     }
 
-    public void bindData(Rating rating) {
+    public void bindData(final Rating rating, final Post post) {
         final String authorId = rating.getAuthorId();
         if (authorId != null)
-            profileManager.getProfileSingleValue(authorId, createOnProfileChangeListener(ratingTextView,
+            profileManager.getProfileSingleValue(authorId, createOnProfileChangeListener(ratingExpandedTextView,
                     avatarImageView, String.valueOf(rating.getRating())));
+        questionImageView.setVisibility(View.GONE);
+        ratingText.setVisibility(View.VISIBLE);
 
-        ratingTextView.setText(String.valueOf(rating.getRating()));
+        ratingExpandedTextView.setText(String.valueOf(rating.getRating()));
 
         CharSequence date = FormatterUtil.getRelativeTimeSpanString(context, rating.getCreatedDate());
         dateTextView.setText(date);
@@ -97,6 +106,29 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                 callback.onAuthorClick(authorId, v);
             }
         });
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (firebaseUser != null) {
+            String currentUserId = firebaseUser.getUid();
+            if (currentUserId.equals(post.getAuthorId()) && !rating.isViewedByPostAuthor()) {
+                questionImageView.setVisibility(View.VISIBLE);
+                ratingText.setVisibility(View.GONE);
+                questionImageView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(final View v) {
+                        int position = getAdapterPosition();
+                        if (position != RecyclerView.NO_POSITION) {
+                            v.setEnabled(false);
+                            v.postDelayed(new Runnable() {
+                                public void run() {
+                                    v.setEnabled(true);
+                                }
+                            }, 1000);
+                            callback.makeRatingVisible(position);
+                        }
+                    }
+                });
+            }
+        }
     }
 
     private OnObjectChangedListener<Profile> createOnProfileChangeListener(final ExpandableTextView expandableTextView, final ImageView avatarImageView, final String rating) {

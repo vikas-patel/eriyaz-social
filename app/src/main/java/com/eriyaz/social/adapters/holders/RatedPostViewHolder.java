@@ -5,6 +5,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.eriyaz.social.R;
+import com.eriyaz.social.activities.BaseActivity;
 import com.eriyaz.social.managers.listeners.OnPostChangedListener;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Rating;
@@ -28,6 +29,10 @@ public class RatedPostViewHolder extends PostViewHolder {
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (post == null) {
+                    ((BaseActivity)v.getContext()).showSnackBar(R.string.message_post_was_removed);
+                    return;
+                }
                 int position = getAdapterPosition();
                 if (onClickListener != null && position != RecyclerView.NO_POSITION) {
                     onClickListener.onItemClick(getAdapterPosition(), post, v);
@@ -40,6 +45,10 @@ public class RatedPostViewHolder extends PostViewHolder {
             public void onClick(View v) {
                 int position = getAdapterPosition();
                 if (onClickListener != null && position != RecyclerView.NO_POSITION) {
+                    if (post == null) {
+                        ((BaseActivity)v.getContext()).showSnackBar(R.string.message_post_was_removed);
+                        return;
+                    }
                     onClickListener.onAuthorClick(post.getAuthorId(), v);
                 }
             }
@@ -48,6 +57,10 @@ public class RatedPostViewHolder extends PostViewHolder {
         playImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (post == null) {
+                    ((BaseActivity)view.getContext()).showSnackBar(R.string.message_post_was_removed);
+                    return;
+                }
                 int position = getAdapterPosition();
                 if (onClickListener != null && position != RecyclerView.NO_POSITION) {
                     onClickListener.onPlayClick(getAdapterPosition(), post, ratingByCurrentUser, view);
@@ -58,17 +71,17 @@ public class RatedPostViewHolder extends PostViewHolder {
 
     public void bindData(final Rating ratingByProfileUser) {
         ratedValueTextView.setText(Integer.toString((int) ratingByProfileUser.getRating()));
-        postManager.getSinglePostValue(ratingByProfileUser.getPostId(), createOnPostChangeListener());
+        postManager.getSinglePostValue(ratingByProfileUser.getPostId(), createOnPostChangeListener(ratingByProfileUser.getPostId()));
     }
 
-    private OnPostChangedListener createOnPostChangeListener() {
+    private OnPostChangedListener createOnPostChangeListener(final String postId) {
         return new OnPostChangedListener() {
             @Override
             public void onObjectChanged(Post obj) {
                 if (obj != null) {
                     post = obj;
-                    RatedPostViewHolder.super.bindData(obj);
                 }
+                RatedPostViewHolder.super.bindData(post);
             }
 
             @Override

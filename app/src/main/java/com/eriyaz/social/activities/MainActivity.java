@@ -532,15 +532,11 @@ public class MainActivity extends BaseActivity {
                 }
                 return true;
             case R.id.share_app: {
-                String shareStr = "\n" + getString(R.string.app_share_title) + "\n\n";
+                String shareStr = "\n" + getString(R.string.app_name) + " : ";
                 shareStr = shareStr + getString(R.string.app_url) + "\n\n";
                 String emailSub = getString(R.string.app_share_email_sub);
                 onShareClick(shareStr,emailSub);
-                if( FirebaseAuth.getInstance().getCurrentUser() != null){
-                    getAnalytics().logShare(FirebaseAuth.getInstance().getCurrentUser().getUid());
-                }else{
-                    getAnalytics().logShare("anonymous");
-                }
+                getAnalytics().logShare();
                 return true;
             }
 //            case R.id.point_rule:{

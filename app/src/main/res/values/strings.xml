@@ -17,7 +17,7 @@
 
 <resources>
     <string name="app_name">RateMySinging</string>
-    <string name="app_share_title">Try this singing App</string>
+    <string name="app_share_title">Share this app on :</string>
     <string name="app_url">https://play.google.com/store/apps/details?id=com.eriyaz.social</string>
     <string name="app_share_email_sub">Check out this singing App</string>
     <string name="label_create_post_activity">Create post</string>
@@ -127,6 +127,8 @@
     <string name="send_comment_button_label">Send</string>
     <string name="posted_by_label">Posted by:</string>
     <string name="score_label">contribution score</string>
+    <string name="insufficient_points_view_rating">Need 1 point to view the rating. Please rate other people to earn points.</string>
+    <string name="point_spent_view_rating">1 point spent to view rating.</string>
     <plurals name="points_needed_text">
         <item quantity="one">Please rate %1$d other person and then you can add your recording.</item>
         <item quantity="other">Please rate %1$d other people and then you can add your recording.</item>

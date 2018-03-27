@@ -31,6 +31,7 @@ public class Analytics {
     public static final String RECEIVED_NOTIFICATION = "ReceivedNotification";
     public static final String OPEN_NOTIFICATION_ACTIVITY = "OpenNotificationActivity";
     public static final String PLAYED_TIME = "AudioPlayedTime";
+    public static final String SHARE_APP = "ShareApp";
 
     public Analytics(Context context) {
         firebase = FirebaseAnalytics.getInstance(context);
@@ -143,11 +144,15 @@ public class Analytics {
         firebase.logEvent(OPEN_NOTIFICATION_ACTIVITY, bundle);
     }
 
-    public void logShare(String byUserId) {
+    public void logShare() {
         Bundle bundle = new Bundle();
-        bundle.putString(FirebaseAnalytics.Param.ITEM_ID, "ShareApp");
-        bundle.putString("Author", byUserId);
-        firebase.logEvent(POST, bundle);
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            bundle.putString("UserName", currentUser.getDisplayName());
+        } else {
+            bundle.putString("UserName", "Anonymous");
+        }
+        firebase.logEvent(SHARE_APP, bundle);
     }
 
     public FirebaseAnalytics getFirebase() {

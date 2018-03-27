@@ -31,11 +31,15 @@ import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
+import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
+import com.google.android.exoplayer2.upstream.FileDataSource;
 import com.google.android.exoplayer2.util.Util;
 import com.xw.repo.BubbleSeekBar;
 
@@ -212,8 +216,38 @@ public class PlaybackFragment extends DialogFragment {
         player.setPlayWhenReady(playWhenReady);
         player.seekTo(currentWindow, playbackPosition);
         Uri uri = Uri.parse(item.getFilePath());
-        MediaSource mediaSource = buildMediaSource(uri);
+        // play from fileSystem
+        MediaSource mediaSource;
+        if (post == null) {
+            mediaSource = buildMediaSourceFromFileUrl(uri);
+        } else {
+            mediaSource = buildMediaSource(uri);
+        }
         player.prepare(mediaSource, true, false);
+    }
+
+    private MediaSource buildMediaSourceFromFileUrl(Uri uri){
+        DataSpec dataSpec = new DataSpec(uri);
+        final FileDataSource fileDataSource = new FileDataSource();
+        try {
+            fileDataSource.open(dataSpec);
+        } catch (FileDataSource.FileDataSourceException e) {
+            e.printStackTrace();
+        }
+
+        DataSource.Factory factory = new DataSource.Factory() {
+            @Override
+            public DataSource createDataSource() {
+                return fileDataSource;
+            }
+        };
+        return new ExtractorMediaSource.Factory(factory).createMediaSource(uri);
+    }
+
+    private MediaSource buildMediaSource(Uri uri) {
+        return new ExtractorMediaSource.Factory(
+                new DefaultHttpDataSourceFactory("eriyaz.social-exoplayer")).
+                createMediaSource(uri);
     }
 
     private void releasePlayer() {
@@ -225,12 +259,6 @@ public class PlaybackFragment extends DialogFragment {
             player.release();
             player = null;
         }
-    }
-
-    private MediaSource buildMediaSource(Uri uri) {
-        return new ExtractorMediaSource.Factory(
-                new DefaultHttpDataSourceFactory("eriyaz.social-exoplayer")).
-                createMediaSource(uri);
     }
 
 

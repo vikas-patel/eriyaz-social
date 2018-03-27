@@ -25,6 +25,7 @@ import android.view.ViewGroup;
 
 import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.holders.RatingViewHolder;
+import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Rating;
 
 import java.util.ArrayList;
@@ -37,6 +38,11 @@ import java.util.List;
 public class RatingsAdapter extends RecyclerView.Adapter<RatingViewHolder> {
     private List<Rating> list = new ArrayList<>();
     private Callback callback;
+    private Post post;
+
+    public RatingsAdapter(Post aPost) {
+        post = aPost;
+    }
 
     @Override
     public RatingViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -48,7 +54,7 @@ public class RatingsAdapter extends RecyclerView.Adapter<RatingViewHolder> {
     @Override
     public void onBindViewHolder(RatingViewHolder holder, int position) {
         holder.itemView.setLongClickable(true);
-        holder.bindData(getItemByPosition(position));
+        holder.bindData(getItemByPosition(position), post);
     }
 
     public Rating getItemByPosition(int position) {
@@ -73,5 +79,7 @@ public class RatingsAdapter extends RecyclerView.Adapter<RatingViewHolder> {
         void onLongItemClick(View view, int position);
 
         void onAuthorClick(String authorId, View view);
+
+        void makeRatingVisible(int position);
     }
 }

@@ -14,6 +14,7 @@ public class Rating implements Serializable {
     private long createdDate;
     private float rating;
     private String postId;
+    private boolean viewedByPostAuthor;
 
     public Rating() {
         // Default constructor required for calls to DataSnapshot.getValue(Rating.class)
@@ -67,5 +68,13 @@ public class Rating implements Serializable {
 
     public void setPostId(String postId) {
         this.postId = postId;
+    }
+
+    public boolean isViewedByPostAuthor() {
+        return viewedByPostAuthor;
+    }
+
+    public void setViewedByPostAuthor(boolean viewedByPostAuthor) {
+        this.viewedByPostAuthor = viewedByPostAuthor;
     }
 }

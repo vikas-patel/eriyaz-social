@@ -44,8 +44,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingLeft="@dimen/small_intrinsic_padding"
-                    android:textColor="@color/like_icon_activated"
-                    android:text="18" />
+                    android:textColor="@color/like_icon_activated" />
                 <ImageView
                     android:id="@+id/ratedImageView"
                     app:srcCompat="@drawable/ic_star_active"

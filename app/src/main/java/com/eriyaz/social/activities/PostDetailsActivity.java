@@ -57,6 +57,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -105,6 +106,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private EditText commentEditText;
     @Nullable
     private Post post;
+    private Profile profile;
     private ScrollView scrollView;
 //    private ViewGroup likesContainer;
 //    private ImageView likesImageView;
@@ -234,7 +236,6 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         final Button sendButton = (Button) findViewById(R.id.sendButton);
 
         initRecyclerView();
-        initRatingRecyclerView();
 
         postManager.getPost(this, postId, createOnPostChangeListener());
 
@@ -396,7 +397,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     }
 
     private void initRatingRecyclerView() {
-        ratingsAdapter = new RatingsAdapter();
+        ratingsAdapter = new RatingsAdapter(post);
         ratingsAdapter.setCallback(new RatingsAdapter.Callback() {
             @Override
             public void onLongItemClick(View view, int position) {
@@ -408,6 +409,27 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             public void onAuthorClick(String authorId, View view) {
                 openProfileActivity(authorId, view);
             }
+
+            @Override
+            public void makeRatingVisible(int position) {
+                Rating selectedRating = ratingsAdapter.getItemByPosition(position);
+                // check if sufficient points
+                if (profile != null) {
+                    if (profile.getPoints() > 0) {
+                        // decrement user points
+                        profile.setPoints(profile.getPoints()-1);
+                        profileManager.decrementUserPoints(profile.getId());
+                        showToastPointLost();
+                    } else {
+                        showPointsNeededDialog();
+                        return;
+                    }
+                }
+                //mark rating viewed
+                selectedRating.setViewedByPostAuthor(true);
+                ratingsAdapter.notifyItemChanged(position);
+                profileManager.markRatingViewed(post.getId(), selectedRating);
+            }
         });
         ratingsRecyclerView.setAdapter(ratingsAdapter);
         ratingsRecyclerView.setNestedScrollingEnabled(false);
@@ -415,6 +437,21 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
                 ((LinearLayoutManager) ratingsRecyclerView.getLayoutManager()).getOrientation()));
 
         postManager.getRatingsList(this, postId, createOnRatingsChangedDataListener());
+    }
+
+    private void showToastPointLost() {
+        Toast toast = Toast.makeText(getApplicationContext(), R.string.point_spent_view_rating, Toast.LENGTH_LONG);
+        toast.getView().setBackgroundColor(getResources().getColor(R.color.red));
+        TextView text = toast.getView().findViewById(android.R.id.message);
+        text.setTextColor(getResources().getColor(R.color.icons));
+        toast.show();
+    }
+
+    private void showPointsNeededDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(getResources().getString(R.string.insufficient_points_view_rating));
+        builder.setPositiveButton(R.string.button_ok, null);
+        builder.show();
     }
 
     private void startActionMode(Comment selectedComment) {
@@ -461,6 +498,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 
     private void afterPostLoaded() {
         isPostExist = true;
+        initRatingRecyclerView();
         initLikes();
         fillPostFields();
         updateCounters();
@@ -612,6 +650,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             @Override
             public void onObjectChanged(Profile obj) {
                 if (isActivityDestroyed()) return;
+                profile = obj;
                 if (obj.getPhotoUrl() != null) {
                     Glide.with(PostDetailsActivity.this)
                             .load(obj.getPhotoUrl())

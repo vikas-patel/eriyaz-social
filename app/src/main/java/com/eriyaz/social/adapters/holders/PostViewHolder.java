@@ -153,6 +153,10 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 
 
     public void bindData(final Post post) {
+        if (post == null) {
+            fileName.setText("Post was removed by author");
+            return;
+        }
         String title = removeNewLinesDividers(post.getTitle());
         fileName.setText(title);
 //        long minutes = TimeUnit.MILLISECONDS.toMinutes(post.getAudioDuration());
@@ -203,7 +207,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         }
 
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (firebaseUser != null) {
+        if (firebaseUser != null && post.getId() != null) {
             postManager.getCurrentUserRatingSingleValue(post.getId(), firebaseUser.getUid(), createOnRatingObjectChangedListener());
         }
     }
