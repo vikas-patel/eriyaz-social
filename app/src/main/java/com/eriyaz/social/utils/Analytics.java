@@ -150,6 +150,13 @@ public class Analytics {
         firebase.logEvent(POST, bundle);
     }
 
+    public void logInvite(String byUserId) {
+        Bundle bundle = new Bundle();
+        bundle.putString(FirebaseAnalytics.Param.ITEM_ID, "InviteAppInstall");
+        bundle.putString("InvitedBy", byUserId);
+        firebase.logEvent(POST, bundle);
+    }
+
     public FirebaseAnalytics getFirebase() {
         return firebase;
     }
