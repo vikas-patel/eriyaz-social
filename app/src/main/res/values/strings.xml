@@ -19,6 +19,8 @@
     <string name="app_name">RateMySinging</string>
     <string name="app_share_title">Share this app on :</string>
     <string name="app_url">https://play.google.com/store/apps/details?id=com.eriyaz.social</string>
+    <string name="dynamic_link_domain2">eriyaz.app.goo.gl</string>
+    <string name="dynamic_link_domain">t6kaz.app.goo.gl</string>
     <string name="app_share_email_sub">Check out this singing App</string>
     <string name="label_create_post_activity">Create post</string>
     <string name="label_post_detail_activity">Post detail</string>

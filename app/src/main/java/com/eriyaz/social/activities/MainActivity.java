@@ -25,6 +25,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
 import android.graphics.drawable.LayerDrawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -61,13 +62,20 @@ import com.eriyaz.social.model.Point;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.AnimationUtils;
+import com.eriyaz.social.utils.DeepLinkUtil;
 import com.eriyaz.social.utils.LogUtil;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.dynamiclinks.DynamicLink;
+import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
+import com.google.firebase.dynamiclinks.PendingDynamicLinkData;
+import com.google.firebase.dynamiclinks.ShortDynamicLink;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 
 import java.util.ArrayList;
@@ -91,9 +99,9 @@ public class MainActivity extends BaseActivity {
     private boolean counterAnimationInProgress = false;
     private long userPoints = 0;
     private FirebaseRemoteConfig mFirebaseRemoteConfig;
-//    private Snackbar karmaSnackbar;
-    static
-    {
+
+    //    private Snackbar karmaSnackbar;
+    static {
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
     }
 
@@ -120,22 +128,23 @@ public class MainActivity extends BaseActivity {
         mFirebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
         mFirebaseRemoteConfig.setDefaults(R.xml.remote_config_defaults);
         fetchRemoteConfig();
+        getDynamicLink();
     }
 
     private void fetchRemoteConfig() {
         mFirebaseRemoteConfig.fetch()
-            .addOnCompleteListener(this, new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
-                    if (task.isSuccessful()) {
-                        // After config data is successfully fetched, it must be activated before newly fetched
-                        // values are returned.
-                        mFirebaseRemoteConfig.activateFetched();
-                    } else {
-                        // don't do anything
+                .addOnCompleteListener(this, new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            // After config data is successfully fetched, it must be activated before newly fetched
+                            // values are returned.
+                            mFirebaseRemoteConfig.activateFetched();
+                        } else {
+                            // don't do anything
+                        }
                     }
-                }
-            });
+                });
     }
 
     private OnObjectChangedListener<Profile> createOnProfileChangedListener() {
@@ -175,6 +184,7 @@ public class MainActivity extends BaseActivity {
         super.onDestroy();
         profileManager.closeListeners(this);
     }
+
     //TODO: Close this listener on destroy
     private void setOnPointAddedListener() {
         DatabaseHelper.getInstance(this).onNewPointAddedListener(new ChildEventListener() {
@@ -184,7 +194,7 @@ public class MainActivity extends BaseActivity {
                 Toast toast;
                 int absValue = Math.abs(point.getValue());
                 String pointsLabel = getResources().getQuantityString(R.plurals.points_counter_format, absValue, absValue);
-                if (point.getValue()>0){
+                if (point.getValue() > 0) {
                     String earned = " earned";
                     if (point.getType().equalsIgnoreCase("post")) earned = " restored";
                     String msg = absValue + " " + pointsLabel + earned + " for " + point.getType() + " " + point.getAction();
@@ -193,7 +203,7 @@ public class MainActivity extends BaseActivity {
                 } else {
                     String lost = " lost";
                     if (point.getType().equalsIgnoreCase("post")) lost = " used";
-                    String msg = absValue + " " + pointsLabel +  lost +" for " + point.getType() + " " + point.getAction();
+                    String msg = absValue + " " + pointsLabel + lost + " for " + point.getType() + " " + point.getAction();
                     toast = Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG);
                     toast.getView().setBackgroundColor(getResources().getColor(R.color.red));
                 }
@@ -223,37 +233,38 @@ public class MainActivity extends BaseActivity {
             }
         });
     }
-/*
-    private void setOnLikeAddedListener() {
-        DatabaseHelper.getInstance(this).onNewLikeAddedListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                counter++;
-                showSnackBar("You have " + counter + " new likes");
-            }
 
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+    /*
+        private void setOnLikeAddedListener() {
+            DatabaseHelper.getInstance(this).onNewLikeAddedListener(new ChildEventListener() {
+                @Override
+                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                    counter++;
+                    showSnackBar("You have " + counter + " new likes");
+                }
 
-            }
+                @Override
+                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
 
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                }
 
-            }
+                @Override
+                public void onChildRemoved(DataSnapshot dataSnapshot) {
 
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                }
 
-            }
+                @Override
+                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+                }
 
-            }
-        });
-    }
-*/
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+        }
+    */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -299,7 +310,7 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void onClick(View v) {
                         if (hasInternetConnection()) {
-                             addPostClickAction();
+                            addPostClickAction();
                         } else {
                             showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
                         }
@@ -364,7 +375,8 @@ public class MainActivity extends BaseActivity {
                     super.onScrolled(recyclerView, dx, dy);
                 }
             });
-            if (!hasInternetConnection()) showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
+            if (!hasInternetConnection())
+                showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
         }
     }
 
@@ -510,6 +522,7 @@ public class MainActivity extends BaseActivity {
         return true;
     }
 
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         ProfileStatus profileStatus = profileManager.checkProfile();
@@ -532,11 +545,7 @@ public class MainActivity extends BaseActivity {
                 }
                 return true;
             case R.id.share_app: {
-                String shareStr = "\n" + getString(R.string.app_name) + " : ";
-                shareStr = shareStr + getString(R.string.app_url) + "\n\n";
-                String emailSub = getString(R.string.app_share_email_sub);
-                onShareClick(shareStr,emailSub);
-                getAnalytics().logShare();
+                onShareClick();
                 return true;
             }
 //            case R.id.point_rule:{
@@ -548,42 +557,88 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    public void onShareClick(String shareText, String shareEmailSub) {
-        try {
-            Intent sendIntent = new Intent();
-            sendIntent.setAction(Intent.ACTION_SEND);
-            sendIntent.setType("text/plain");
-            PackageManager pm = getPackageManager();
-            List<ResolveInfo> resInfo = pm.queryIntentActivities(sendIntent, 0);
-            List<LabeledIntent> intentList = new ArrayList<>();
-            for (int i = 0; i < resInfo.size(); i++) {
-                ResolveInfo ri = resInfo.get(i);
-                String packageName = ri.activityInfo.packageName;
-                if( packageName.contains("whatsapp") || packageName.contains("twitter") || packageName.contains("facebook") || packageName.contains("android.gm")) {
-                    Intent intent = new Intent();
-                    intent.setComponent(new ComponentName(packageName, ri.activityInfo.name));
-                    intent.setAction(Intent.ACTION_SEND);
-                    intent.setType("text/plain");
-                    intent.putExtra(Intent.EXTRA_TEXT, shareText);
-                    if(packageName.contains("android.gm")) {
-                        intent.putExtra(Intent.EXTRA_TEXT, shareText);
-                        intent.putExtra(Intent.EXTRA_SUBJECT, shareEmailSub);
-                        intent.setType("message/rfc822");
+    public void onShareClick1() {
+        String linkStr = "http://eriyaz.com/?invitedby=" + "anan";
+        DynamicLink dynamicLink = FirebaseDynamicLinks.getInstance().createDynamicLink()
+                .setLink(Uri.parse(linkStr))
+                .setDynamicLinkDomain("t6kaz.app.goo.gl")
+                .setAndroidParameters(new DynamicLink.AndroidParameters.Builder().build())
+                .buildDynamicLink();
+
+        Uri dynamicLinkUri = dynamicLink.getUri();
+        LogUtil.logInfo(TAG, "dynamicLinkUri :" + dynamicLinkUri);
+
+        Task<ShortDynamicLink> shortLinkTask = FirebaseDynamicLinks.getInstance().createDynamicLink()
+                .setLink(Uri.parse("https://google.com/"))
+                .setDynamicLinkDomain("t6kaz.app.goo.gl")
+                // Set parameters
+                // ...
+                .buildShortDynamicLink()
+                .addOnCompleteListener(this, new OnCompleteListener<ShortDynamicLink>() {
+                    @Override
+                    public void onComplete(@NonNull Task<ShortDynamicLink> task) {
+                        if (task.isSuccessful()) {
+                            // Short link created
+
+                            Uri shortLink = task.getResult().getShortLink();
+                            Uri flowchartLink = task.getResult().getPreviewLink();
+                            LogUtil.logInfo(TAG, "getLinkSuccess: " + shortLink.toString());
+                        } else {
+                            // Error
+                            LogUtil.logInfo(TAG, "getLinkFailed");
+                        }
                     }
-                    intentList.add(new LabeledIntent(intent, packageName, ri.loadLabel(pm), ri.icon));
-                }
-            }
-            Intent chooserIntent = Intent.createChooser(intentList.get(0), getString(R.string.app_share_title));
-            intentList.remove(0);
-            Parcelable[] targetedIntentsParcelable = intentList.toArray(new Parcelable[intentList.size()]);
-            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, targetedIntentsParcelable);
-            startActivity(chooserIntent);
-        } catch (Exception e) {
-            LogUtil.logError(TAG,e.getMessage(),e);
-        }
+                });
     }
+
+    public void onShareClick() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        String uid = "anonymous";
+        if (user != null) {
+            uid = user.getUid();
+        }
+        final String emailSub = getString(R.string.app_share_email_sub);
+        final String linkStr = "http://eriyaz.com/?invitedby=" + uid;
+        getAnalytics().logShare();
+
+        final Integer minVersion = 25;
+        getDeepLinkUtil().getLink(linkStr,  minVersion, new DeepLinkUtil.DynamicLinkCallback() {
+            @Override
+            public void getLinkSuccess(Uri uri) {
+                LogUtil.logInfo(TAG, "getLinkSuccess: " + uri.toString());
+                getDeepLinkUtil().onShare("test", emailSub);
+            }
+
+            @Override
+            public void getLinkFailed() {
+                LogUtil.logInfo(TAG, "getLinkFailed");
+                /*
+                String shareStr = "\n" + getString(R.string.app_share_title) + "\n\n";
+                shareStr = shareStr + getString(R.string.app_url) + "\n\n";
+                String emailSub = getString(R.string.app_share_email_sub)+"...";
+                getDeepLinkUtil().onShare(shareStr,emailSub);
+                */
+
+                DynamicLink dynamicLink = FirebaseDynamicLinks.getInstance().createDynamicLink()
+                        .setLink(Uri.parse(linkStr))
+                        .setDynamicLinkDomain("t6kaz.app.goo.gl")
+                        .setAndroidParameters(new DynamicLink.AndroidParameters.Builder("com.eriyaz.social")
+                                .setMinimumVersion(minVersion)
+                                .build())
+                        .buildDynamicLink();
+
+                Uri dynamicLinkUri = dynamicLink.getUri();
+                LogUtil.logInfo(TAG, "dynamicLinkUri :" + dynamicLinkUri);
+                getDeepLinkUtil().onShare(dynamicLinkUri.toString(), emailSub);
+
+            }
+        });
+    }
+
 
     public void updatePost() {
         postsAdapter.updateSelectedPost();
     }
+
+
 }
