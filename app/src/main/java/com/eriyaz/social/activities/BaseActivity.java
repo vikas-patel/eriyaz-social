@@ -185,11 +185,11 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     public void getDynamicLink() {
+        Toast.makeText(getApplicationContext(),"getDynamicLink", Toast.LENGTH_SHORT).show();
         FirebaseDynamicLinks.getInstance().getDynamicLink(getIntent())
                 .addOnSuccessListener(this, new OnSuccessListener<PendingDynamicLinkData>() {
                     @Override
                     public void onSuccess(PendingDynamicLinkData pendingDynamicLinkData) {
-                        // Get deep link from result (may be null if no link is found)
                         LogUtil.logInfo(TAG,"getDynamicLink.onSuccess");
                         Uri deepLink = null;
                         if (pendingDynamicLinkData != null) {
@@ -197,15 +197,12 @@ public class BaseActivity extends AppCompatActivity {
                             LogUtil.logInfo(TAG,"getDynamicLink.onSuccess :" +deepLink);
                             Toast.makeText(getApplicationContext(),deepLink.toString(), Toast.LENGTH_SHORT).show();
                         }
-                        //
-                        // If the user isn't signed in and the pending Dynamic Link is
-                        // an invitation, sign in the user anonymously, and record the
-                        // referrer's UID.
-                        //
+
                         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                         if (user == null && deepLink != null && deepLink.getBooleanQueryParameter("invitedby", false)) {
                             String referrerUid = deepLink.getQueryParameter("invitedby");
                             getAnalytics().logInvite(referrerUid);
+                            Toast.makeText(getApplicationContext(),referrerUid, Toast.LENGTH_LONG).show();
                             //createAnonymousAccountWithReferrerInfo(referrerUid);
                         }
                     }

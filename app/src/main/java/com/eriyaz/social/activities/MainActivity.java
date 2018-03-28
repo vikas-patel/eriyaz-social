@@ -78,6 +78,8 @@ import com.google.firebase.dynamiclinks.PendingDynamicLinkData;
 import com.google.firebase.dynamiclinks.ShortDynamicLink;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -557,39 +559,6 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    public void onShareClick1() {
-        String linkStr = "http://eriyaz.com/?invitedby=" + "anan";
-        DynamicLink dynamicLink = FirebaseDynamicLinks.getInstance().createDynamicLink()
-                .setLink(Uri.parse(linkStr))
-                .setDynamicLinkDomain("t6kaz.app.goo.gl")
-                .setAndroidParameters(new DynamicLink.AndroidParameters.Builder().build())
-                .buildDynamicLink();
-
-        Uri dynamicLinkUri = dynamicLink.getUri();
-        LogUtil.logInfo(TAG, "dynamicLinkUri :" + dynamicLinkUri);
-
-        Task<ShortDynamicLink> shortLinkTask = FirebaseDynamicLinks.getInstance().createDynamicLink()
-                .setLink(Uri.parse("https://google.com/"))
-                .setDynamicLinkDomain("t6kaz.app.goo.gl")
-                // Set parameters
-                // ...
-                .buildShortDynamicLink()
-                .addOnCompleteListener(this, new OnCompleteListener<ShortDynamicLink>() {
-                    @Override
-                    public void onComplete(@NonNull Task<ShortDynamicLink> task) {
-                        if (task.isSuccessful()) {
-                            // Short link created
-
-                            Uri shortLink = task.getResult().getShortLink();
-                            Uri flowchartLink = task.getResult().getPreviewLink();
-                            LogUtil.logInfo(TAG, "getLinkSuccess: " + shortLink.toString());
-                        } else {
-                            // Error
-                            LogUtil.logInfo(TAG, "getLinkFailed");
-                        }
-                    }
-                });
-    }
 
     public void onShareClick() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -599,37 +568,18 @@ public class MainActivity extends BaseActivity {
         }
         final String emailSub = getString(R.string.app_share_email_sub);
         final String linkStr = "http://eriyaz.com/?invitedby=" + uid;
+        //final String linkStr = "https://play.google.com/store/apps/details?id=com.eriyaz.social&hl=en";//&invitedby=" + uid;
         getAnalytics().logShare(uid);
-
         final Integer minVersion = 25;
-        getDeepLinkUtil().getLink(linkStr,  minVersion, new DeepLinkUtil.DynamicLinkCallback() {
+        getDeepLinkUtil().getLink(linkStr, minVersion, new DeepLinkUtil.DynamicLinkCallback() {
             @Override
             public void getLinkSuccess(Uri uri) {
-                LogUtil.logInfo(TAG, "getLinkSuccess: " + uri.toString());
-                getDeepLinkUtil().onShare("test", emailSub);
+                getDeepLinkUtil().onShare(uri.toString(), emailSub);
             }
 
             @Override
-            public void getLinkFailed() {
-                LogUtil.logInfo(TAG, "getLinkFailed");
-                /*
-                String shareStr = "\n" + getString(R.string.app_share_title) + "\n\n";
-                shareStr = shareStr + getString(R.string.app_url) + "\n\n";
-                String emailSub = getString(R.string.app_share_email_sub)+"...";
-                getDeepLinkUtil().onShare(shareStr,emailSub);
-                */
-
-                DynamicLink dynamicLink = FirebaseDynamicLinks.getInstance().createDynamicLink()
-                        .setLink(Uri.parse(linkStr))
-                        .setDynamicLinkDomain("t6kaz.app.goo.gl")
-                        .setAndroidParameters(new DynamicLink.AndroidParameters.Builder("com.eriyaz.social")
-                                .setMinimumVersion(minVersion)
-                                .build())
-                        .buildDynamicLink();
-
-                Uri dynamicLinkUri = dynamicLink.getUri();
-                LogUtil.logInfo(TAG, "dynamicLinkUri :" + dynamicLinkUri);
-                getDeepLinkUtil().onShare(dynamicLinkUri.toString(), emailSub);
+            public void getShortLinkFailed(String dynamicLinkStr) {
+                getDeepLinkUtil().onShare(dynamicLinkStr, emailSub);
 
             }
         });
