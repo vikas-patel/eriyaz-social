@@ -24,6 +24,7 @@ import com.eriyaz.social.managers.listeners.OnDataChangedListener;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
 import com.eriyaz.social.model.Message;
 import com.eriyaz.social.model.Notification;
+import com.eriyaz.social.model.Rating;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -154,9 +155,19 @@ public class ProfileManager extends FirebaseListenersManager {
         databaseHelper.resetUnseenNotificationCount();
     }
 
+    public void markRatingViewed(String postId, Rating rating) {
+        DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
+        databaseHelper.markRatingViewed(postId, rating);
+    }
+
     public void markNotificationRead(Notification notification) {
         DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
         databaseHelper.markNotificationRead(notification);
+    }
+
+    public void decrementUserPoints(String userId) {
+        DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
+        databaseHelper.decrementUserPoints(userId);
     }
 
     public void getProfileSingleValue(String id, final OnObjectChangedListener<Profile> listener) {

@@ -504,6 +504,27 @@ public class DatabaseHelper {
         });
      }
 
+    public void decrementUserPoints(String userId) {
+        DatabaseReference pointRef = database.getReference("profiles/" + userId + "/points");
+        pointRef.runTransaction(new Transaction.Handler() {
+            @Override
+            public Transaction.Result doTransaction(MutableData mutableData) {
+                Integer currentValue = mutableData.getValue(Integer.class);
+                if (currentValue == null) {
+                    mutableData.setValue(-1);
+                } else {
+                    mutableData.setValue(currentValue - 1);
+                }
+                return Transaction.success(mutableData);
+            }
+
+            @Override
+            public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+                LogUtil.logInfo(TAG, "Updating Watchers count transaction is completed.");
+            }
+        });
+    }
+
      public void resetUnseenNotificationCount() {
          String userId = firebaseAuth.getCurrentUser().getUid();
          DatabaseReference unseenCountRef = database.getReference("profiles/" + userId + "/unseen");
@@ -553,8 +574,15 @@ public class DatabaseHelper {
     public void removeRating(final String postId, final Rating rating) {
         if (rating.getId() == null) return;
         String authorId = firebaseAuth.getCurrentUser().getUid();
-        DatabaseReference mLikesReference = database.getReference().child("post-ratings").child(postId).child(authorId);
-        mLikesReference.removeValue();
+        DatabaseReference ratingRef = database.getReference().child("post-ratings").child(postId).child(authorId);
+        ratingRef.removeValue();
+    }
+
+    public void markRatingViewed(String postId, Rating rating) {
+        DatabaseReference ratingViewedRef = database.getReference().child("post-ratings")
+                                        .child(postId).child(rating.getAuthorId())
+                                        .child(rating.getId()).child("viewedByPostAuthor");
+        ratingViewedRef.setValue(Boolean.TRUE);
     }
 
     public UploadTask uploadImage(Uri uri, String imageTitle) {

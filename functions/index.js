@@ -574,15 +574,19 @@ function nextPostRating(res, key) {
 function processAuthorRatingNode(postSnap) {
     postSnap.forEach(function(authorSnap) {
         var postId = postSnap.key;
+        console.log('Rating updated for post ', postId);
         const ratingAuthorId = authorSnap.key;
         authorSnap.forEach(function(ratingSnap) {
-            const rating = ratingSnap.val();
-            if (rating != null) {
-                rating.postId = postId;
-                const ratingId = ratingSnap.key;
-                const userRatingRef = admin.database().ref(`/user-ratings/${ratingAuthorId}/${ratingId}`);
-                return userRatingRef.set(rating);
-            }
+            const ratingId = ratingSnap.key;
+            var ratingRef = admin.database().ref(`/post-ratings/${postId}/${ratingAuthorId}/${ratingId}`);
+            return ratingRef.transaction(current => {
+                if (current == null) {
+                    console.log('Rating object null for post ', postId);
+                    return false;
+                }
+                current.viewedByPostAuthor = true;
+                return current;
+            });
         });
     });
 }
