@@ -54,6 +54,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
     private final TextView ratingText;
     private final TextView dateTextView;
     private final ImageView questionImageView;
+    private final ImageView replyImageView;
     private final ProfileManager profileManager;
     private RatingsAdapter.Callback callback;
     private Context context;
@@ -70,6 +71,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
         ratingExpandedTextView = (ExpandableTextView) itemView.findViewById(R.id.ratingText);
         ratingText = itemView.findViewById(R.id.expandable_text);
         dateTextView = (TextView) itemView.findViewById(R.id.dateTextView);
+        replyImageView = itemView.findViewById(R.id.replyImageView);
 
         if (callback != null) {
             itemView.setOnLongClickListener(new View.OnLongClickListener() {
@@ -82,6 +84,16 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                     }
 
                     return false;
+                }
+            });
+
+            replyImageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int position = getAdapterPosition();
+                    if (position != RecyclerView.NO_POSITION) {
+                        callback.onReplyClick(position);
+                    }
                 }
             });
         }

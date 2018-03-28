@@ -15,6 +15,14 @@
         app:shadow="false"
         app:border="true"
         app:border_width="0dp" />
+    <ImageView
+        android:id="@+id/replyImageView"
+        app:srcCompat="@drawable/ic_message_reply"
+        android:layout_width="wrap_content"
+        android:paddingRight="@dimen/intrinsic_padding"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_height="wrap_content" />
 
     <com.eriyaz.social.views.ExpandableTextView
         android:id="@+id/ratingText"

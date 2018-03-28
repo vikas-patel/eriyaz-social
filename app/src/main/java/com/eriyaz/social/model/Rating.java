@@ -77,4 +77,22 @@ public class Rating implements Serializable {
     public void setViewedByPostAuthor(boolean viewedByPostAuthor) {
         this.viewedByPostAuthor = viewedByPostAuthor;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Rating rating1 = (Rating) o;
+
+        if (Float.compare(rating1.rating, rating) != 0) return false;
+        return id.equals(rating1.id);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id.hashCode();
+        result = 31 * result + (rating != +0.0f ? Float.floatToIntBits(rating) : 0);
+        return result;
+    }
 }

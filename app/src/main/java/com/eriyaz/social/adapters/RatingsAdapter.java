@@ -66,8 +66,11 @@ public class RatingsAdapter extends RecyclerView.Adapter<RatingViewHolder> {
     }
 
     public void setList(List<Rating> list) {
+        boolean notify = true;
+        // don't notify when rating is made visible by post author.
+        if (this.list != null && this.list.equals(list)) notify = false;
         this.list = list;
-        notifyDataSetChanged();
+        if (notify) notifyDataSetChanged();
     }
 
     @Override
@@ -81,5 +84,7 @@ public class RatingsAdapter extends RecyclerView.Adapter<RatingViewHolder> {
         void onAuthorClick(String authorId, View view);
 
         void makeRatingVisible(int position);
+
+        void onReplyClick(int position);
     }
 }
