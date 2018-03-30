@@ -571,7 +571,7 @@ public class MainActivity extends BaseActivity {
         //final String linkStr = "https://play.google.com/store/apps/details?id=com.eriyaz.social&hl=en";//&invitedby=" + uid;
         //getAnalytics().logShare(uid);
         getAnalytics().logShare();
-        final Integer minVersion = 25;
+        final Integer minVersion = 0;
         getDeepLinkUtil().getLink(linkStr, minVersion, new DeepLinkUtil.DynamicLinkCallback() {
             @Override
             public void getLinkSuccess(Uri uri) {
