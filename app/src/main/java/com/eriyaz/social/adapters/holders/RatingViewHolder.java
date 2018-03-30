@@ -19,11 +19,7 @@
 package com.eriyaz.social.adapters.holders;
 
 import android.content.Context;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
-import android.text.Spannable;
-import android.text.SpannableStringBuilder;
-import android.text.style.ForegroundColorSpan;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -52,6 +48,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
     private final ImageView avatarImageView;
     private final ExpandableTextView ratingExpandedTextView;
     private final TextView ratingText;
+    private final TextView authorNameTextView;
     private final TextView dateTextView;
     private final ImageView questionImageView;
     private final ImageView replyImageView;
@@ -70,6 +67,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
         questionImageView = itemView.findViewById(R.id.questionImageView);
         ratingExpandedTextView = (ExpandableTextView) itemView.findViewById(R.id.ratingText);
         ratingText = itemView.findViewById(R.id.expandable_text);
+        authorNameTextView = itemView.findViewById(R.id.authorNameTextView);
         dateTextView = (TextView) itemView.findViewById(R.id.dateTextView);
         replyImageView = itemView.findViewById(R.id.replyImageView);
 
@@ -101,9 +99,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
 
     public void bindData(final Rating rating, final Post post) {
         final String authorId = rating.getAuthorId();
-        if (authorId != null)
-            profileManager.getProfileSingleValue(authorId, createOnProfileChangeListener(ratingExpandedTextView,
-                    avatarImageView, String.valueOf(rating.getRating())));
+
         questionImageView.setVisibility(View.GONE);
         ratingText.setVisibility(View.VISIBLE);
 
@@ -121,7 +117,11 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         if (firebaseUser != null) {
             String currentUserId = firebaseUser.getUid();
-            if (currentUserId.equals(post.getAuthorId()) && !rating.isViewedByPostAuthor()) {
+            if (currentUserId.equals(post.getAuthorId()) && !currentUserId.equals(rating.getAuthorId())) {
+                replyImageView.setVisibility(View.VISIBLE);
+            }
+            if (currentUserId.equals(post.getAuthorId()) && !currentUserId.equals(rating.getAuthorId())
+                    &&  !rating.isViewedByPostAuthor()) {
                 questionImageView.setVisibility(View.VISIBLE);
                 ratingText.setVisibility(View.GONE);
                 questionImageView.setOnClickListener(new View.OnClickListener() {
@@ -134,23 +134,25 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                                 public void run() {
                                     v.setEnabled(true);
                                 }
-                            }, 1000);
+                            }, 500);
                             callback.makeRatingVisible(position);
                         }
                     }
                 });
             }
         }
+        if (authorId != null)
+            profileManager.getProfileSingleValue(authorId, createOnProfileChangeListener(ratingExpandedTextView,
+                    avatarImageView));
     }
 
-    private OnObjectChangedListener<Profile> createOnProfileChangeListener(final ExpandableTextView expandableTextView, final ImageView avatarImageView, final String rating) {
+    private OnObjectChangedListener<Profile> createOnProfileChangeListener(final ExpandableTextView expandableTextView,
+                                                                           final ImageView avatarImageView) {
         return new OnObjectChangedListener<Profile>() {
             @Override
             public void onObjectChanged(Profile obj) {
                 if (((BaseActivity)context).isActivityDestroyed()) return;
-                String userName = obj.getUsername();
-                fillRating(userName, rating, expandableTextView);
-
+                authorNameTextView.setText(obj.getUsername());
                 if (obj.getPhotoUrl() != null) {
                     Glide.with(context)
                             .load(obj.getPhotoUrl())
@@ -161,13 +163,5 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                 }
             }
         };
-    }
-
-    private void fillRating(String userName, String rating, ExpandableTextView ratingTextView) {
-        Spannable contentString = new SpannableStringBuilder(userName + "   " + rating);
-        contentString.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.highlight_text)),
-                0, userName.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-        ratingTextView.setText(contentString);
     }
 }

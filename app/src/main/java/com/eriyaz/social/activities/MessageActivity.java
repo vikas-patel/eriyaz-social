@@ -20,13 +20,17 @@ import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.MessagesAdapter;
 import com.eriyaz.social.enums.ProfileStatus;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnDataChangedListener;
+import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
 import com.eriyaz.social.model.Message;
+import com.eriyaz.social.model.Profile;
 
 import java.util.List;
 
@@ -108,7 +112,20 @@ public class MessageActivity extends BaseActivity {
 
 
         loadMessageList();
+        profileManager.getProfileSingleValue(userId, createProfileChangeListener());
         supportPostponeEnterTransition();
+    }
+
+    private OnObjectChangedListener<Profile> createProfileChangeListener() {
+        return new OnObjectChangedListener<Profile>() {
+            @Override
+            public void onObjectChanged(Profile obj) {
+                if (isActivityDestroyed()) return;
+                if (obj != null && actionBar != null) {
+                    actionBar.setTitle(obj.getUsername() + " " + getString(R.string.title_activity_messages));
+                }
+            }
+        };
     }
 
     private void onRefreshAction() {
