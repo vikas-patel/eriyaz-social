@@ -411,6 +411,12 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             }
 
             @Override
+            public void onReplyClick(int position) {
+                Rating selectedRating = ratingsAdapter.getItemByPosition(position);
+                openRaterMessageActivity(selectedRating.getAuthorId());
+            }
+
+            @Override
             public void makeRatingVisible(int position) {
                 Rating selectedRating = ratingsAdapter.getItemByPosition(position);
                 // check if sufficient points
@@ -437,6 +443,16 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
                 ((LinearLayoutManager) ratingsRecyclerView.getLayoutManager()).getOrientation()));
 
         postManager.getRatingsList(this, postId, createOnRatingsChangedDataListener());
+    }
+
+    private void openRaterMessageActivity(String userId) {
+        if (hasInternetConnection()) {
+            Intent intent = new Intent(PostDetailsActivity.this, MessageActivity.class);
+            intent.putExtra(ProfileActivity.USER_ID_EXTRA_KEY, userId);
+            startActivity(intent);
+        } else {
+            showSnackBar(R.string.internet_connection_failed);
+        }
     }
 
     private void showToastPointLost() {
