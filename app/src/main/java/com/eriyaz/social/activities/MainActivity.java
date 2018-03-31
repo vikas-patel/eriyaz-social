@@ -567,8 +567,8 @@ public class MainActivity extends BaseActivity {
             uid = user.getUid();
         }
         final String emailSub = getString(R.string.app_share_email_sub);
-        final String linkStr = "http://eriyaz.com/?invitedby=" + uid;
-        //final String linkStr = "https://play.google.com/store/apps/details?id=com.eriyaz.social&hl=en";//&invitedby=" + uid;
+        //final String linkStr = "http://eriyaz.com/?invitedby=" + uid;
+        final String linkStr = "https://play.google.com/store/apps/details?id=com.eriyaz.social&hl=en"+"&invitedby=" + uid;
         //getAnalytics().logShare(uid);
         getAnalytics().logShare();
         final Integer minVersion = 0;

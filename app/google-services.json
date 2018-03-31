@@ -15,23 +15,15 @@
       },
       "oauth_client": [
         {
-          "client_id": "440689392536-2ddg2477a7esi87g1alveronolhr2kvt.apps.googleusercontent.com",
+          "client_id": "440689392536-joniunq7ho1ngtqcm159ffdn2u39g0ej.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.eriyaz.social",
-            "certificate_hash": "283b4a44a7f80446f010ae2b928d7b2d2a5116ce"
+            "certificate_hash": "6bb6efae2541b4064ac02108ee24891dbd7d390d"
           }
         },
         {
-          "client_id": "440689392536-dljj9u8lo3or4qufm09mbor0amvidguf.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.eriyaz.social",
-            "certificate_hash": "04295069dc964c291394db01bda91f6c98fbcf43"
-          }
-        },
-        {
-          "client_id": "440689392536-sacjqpo7h6ms7oqqjiqc9sqrhbvv9gie.apps.googleusercontent.com",
+          "client_id": "440689392536-3m4u7g3ah23sjj83jceocovgbcogs8f8.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.eriyaz.social",

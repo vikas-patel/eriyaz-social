@@ -1,5 +1,6 @@
 package com.eriyaz.social.utils;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -10,12 +11,15 @@ import android.net.Uri;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.MainActivity;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -43,6 +47,30 @@ public class DeepLinkUtil {
 
     public DeepLinkUtil(Context context) {
         this.context = context;
+    }
+
+    public void getshortLink(final String link, final DynamicLinkCallback dynamicLinkCallback) {
+        Task<ShortDynamicLink> shortLinkTask = FirebaseDynamicLinks.getInstance().createDynamicLink()
+                .setLongLink(Uri.parse(link+"&d=1"))//+"&d=1"
+                //.setLongLink(Uri.parse("https://abc123.app.goo.gl/?link=https://example.com/&apn=com.example.android&ibn=com.example.ios&d=1"))
+                .buildShortDynamicLink()
+                .addOnCompleteListener((Activity) context, new OnCompleteListener<ShortDynamicLink>() {
+                    @Override
+                    public void onComplete(@NonNull Task<ShortDynamicLink> task) {
+                        if (task.isSuccessful()) {
+                            // Short link created
+                            Uri shortLink = task.getResult().getShortLink();
+                            Uri flowchartLink = task.getResult().getPreviewLink();
+                            dynamicLinkCallback.getLinkSuccess(shortLink);
+                            LogUtil.logInfo(TAG,shortLink.toString());
+                            Toast.makeText(context.getApplicationContext(),shortLink.toString(), Toast.LENGTH_SHORT).show();
+                        } else {
+                            // Error
+                            // ...
+                            Toast.makeText(context.getApplicationContext(),"error", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
     }
 
     public void getLink(final String link, final Integer minVersion, final DynamicLinkCallback dynamicLinkCallback) {
@@ -76,6 +104,7 @@ public class DeepLinkUtil {
                                 .setDynamicLinkDomain(context.getString(R.string.dynamic_link_domain))
                                 .setAndroidParameters(new DynamicLink.AndroidParameters.Builder("com.eriyaz.social")
                                         .setMinimumVersion(minVersion)
+                                         //.setFallbackUrl(Uri.parse("https://google.com"))
                                         .build())
                                 .setSocialMetaTagParameters(   new DynamicLink.SocialMetaTagParameters.Builder()
                                         .setTitle(context.getString(R.string.app_share_title))
@@ -85,7 +114,13 @@ public class DeepLinkUtil {
                         Uri dynamicLinkUri = dynamicLink.getUri();
                         String dynamicLin = dynamicLinkUri.toString();
                         dynamicLin = dynamicLin.replace("goo.gl", "goo.gl/");
+
                         LogUtil.logInfo(TAG, "dynamicLinkUri :" + dynamicLinkUri);
+
+
+                        //getshortLink(dynamicLin,dynamicLinkCallback);
+
+
                         //Toast.makeText(getApplicationContext(),dynamicLinkUri.toString(), Toast.LENGTH_SHORT).show();
                         dynamicLinkCallback.getShortLinkFailed(dynamicLin);
                     }
