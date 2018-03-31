@@ -189,7 +189,7 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     public void getDynamicLink() {
-        Toast.makeText(getApplicationContext(),"getDynamicLink", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(getApplicationContext(),"getDynamicLink", Toast.LENGTH_SHORT).show();
         FirebaseDynamicLinks.getInstance().getDynamicLink(getIntent())
                 .addOnSuccessListener(this, new OnSuccessListener<PendingDynamicLinkData>() {
                     @Override
