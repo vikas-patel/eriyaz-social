@@ -161,6 +161,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void updateUnseenNotificationCount(int count) {
+        if (mOptionsMenu == null) return;
         MenuItem itemNotification = mOptionsMenu.findItem(R.id.notification);
         LayerDrawable icon = (LayerDrawable) itemNotification.getIcon();
         setBadgeCount(this, icon, Integer.toString(count));
