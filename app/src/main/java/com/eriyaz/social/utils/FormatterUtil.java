@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.Formatter;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Kristina on 10/17/16.
@@ -56,6 +57,14 @@ public class FormatterUtil {
         SimpleDateFormat cbDateFormat = new SimpleDateFormat(dateTime);
         cbDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         return cbDateFormat.format(date);
+    }
+
+    public static String countDownFormat(long millis) {
+        return String.format("%02d:%02d",
+                TimeUnit.MILLISECONDS.toMinutes(millis),
+                TimeUnit.MILLISECONDS.toSeconds(millis) -
+                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)));
+
     }
 
     public static CharSequence getRelativeTimeSpanString(Context context, long time) {

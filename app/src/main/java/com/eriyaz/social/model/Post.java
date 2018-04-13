@@ -48,6 +48,7 @@ public class Post implements Serializable, LazyLoading {
     private ItemType itemType;
     private long audioDuration;
     private String version;
+    private boolean longRecording;
 
     @Override
     public boolean equals(Object o) {
@@ -194,6 +195,14 @@ public class Post implements Serializable, LazyLoading {
         this.version = version;
     }
 
+    public boolean isLongRecording() {
+        return longRecording;
+    }
+
+    public void setLongRecording(boolean longRecording) {
+        this.longRecording = longRecording;
+    }
+
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
 
@@ -211,6 +220,7 @@ public class Post implements Serializable, LazyLoading {
         result.put("watchersCount", watchersCount);
         result.put("hasComplain", hasComplain);
         result.put("version", version);
+        result.put("longRecording", longRecording);
         result.put("createdDateText", FormatterUtil.getFirebaseDateFormat().format(new Date(createdDate)));
 
         return result;

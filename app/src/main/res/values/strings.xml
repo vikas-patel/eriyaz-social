@@ -17,11 +17,13 @@
 
 <resources>
     <string name="app_name">RateMySinging</string>
-    <string name="app_share_title">Share this app on :</string>
+    <string name="app_share_description">Community of singing lovers</string>
+    <string name="app_share_title">RateMySinging - Android Play Store App</string>
+    <string name="app_share_popup_title">Share this app on :</string>
     <string name="app_url">https://play.google.com/store/apps/details?id=com.eriyaz.social</string>
     <string name="dynamic_link_domain2">eriyaz.app.goo.gl</string>
     <string name="dynamic_link_domain">t6kaz.app.goo.gl</string>
-    <string name="app_share_email_sub">Check out this singing App</string>
+    <string name="app_share_email_sub">RateMySinging : Community of singing lovers</string>
     <string name="app_share_preview">"https://firebasestorage.googleapis.com/v0/b/eriyaz-social.appspot.com/o/images%2FApp_related%2Fpreview_app_share.png?alt=media&amp;token=dfa71a95-f5b4-4fee-81e6-e03c4400f309"</string>
     <string name="label_create_post_activity">Create post</string>
     <string name="label_post_detail_activity">Post detail</string>
@@ -130,17 +132,19 @@
     <string name="send_comment_button_label">Send</string>
     <string name="posted_by_label">Posted by:</string>
     <string name="score_label">contribution score</string>
-    <string name="insufficient_points_view_rating">Need 1 point to view the rating. Please rate other people to earn points.</string>
+    <string name="insufficient_points_view_rating">Dear %1$s, this is a rating for rating exchange platform. You need 1 point to view this rating. Please rate others to earn points.</string>
     <string name="point_spent_view_rating">1 point spent to view rating.</string>
-    <plurals name="points_needed_text">
-        <item quantity="one">Please rate %1$d other person and then you can add your recording.</item>
-        <item quantity="other">Please rate %1$d other people and then you can add your recording.</item>
-    </plurals>
+    <string name="points_needed_text">You need 3 points to post your recording. Please rate other people to earn points.</string>
+    <string name="rating_self_recording">This is your own recording so your rating is not considered. Please wait for others to rate you.</string>
+    <string name="confirm_longer_recording">Statistics suggests people decide on rating after listening to just 30 secs on an average. So it is best to put shorter recordings to get more accurate evaluation. Shorter recordings also load faster and consume lest data. \nIf you still want to proceed with longer recording you will need to spend 10 points.</string>
     <plurals name="posts_counter_format">
         <item quantity="one">post</item>
         <item quantity="other">posts</item>
     </plurals>
-
+    <plurals name="points_needed_longer_recording">
+        <item quantity="one">You have 1 point right now. Please rate others to earn points.</item>
+        <item quantity="other">You have %1$d points right now. Please rate others to earn points.</item>
+    </plurals>
     <plurals name="likes_counter_format">
         <item quantity="one">like</item>
         <item quantity="other">likes</item>
@@ -182,6 +186,8 @@
     <string name="resume_recording_button">Resume</string>
     <string name="default_file_name">My Recording</string>
     <string name="record_prompt">Tap the button to start recording</string>
+    <string name="toggle_longer_recording">Want to upload longer recording?</string>
+    <string name="toggle_shorter_recording">Back to shorter recording</string>
     <string name="record_in_progress">Recording</string>
     <string name="notification_recording">Recording...</string>
     <string name="toast_recording_start">Recording started</string>

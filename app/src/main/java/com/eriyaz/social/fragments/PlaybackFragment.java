@@ -66,7 +66,7 @@ public class PlaybackFragment extends DialogFragment {
     private SimpleExoPlayer player;
     private int currentWindow = 0;
     private long playbackPosition = 0;
-    private boolean playWhenReady = true;
+    private boolean playWhenReady = false;
     private ComponentListener componentListener;
 
     public PlaybackFragment newInstance(RecordingItem item) {
@@ -294,6 +294,11 @@ public class PlaybackFragment extends DialogFragment {
 
             @Override
             public void getProgressOnActionUp(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
+                if (RatingUtil.viewedByAuthor(post)) {
+                    showRatingSelfRecordingDialog();
+                    ratingBar.setProgress(rating.getRating());
+                    return;
+                }
                 ratingController.setUpdatingRatingCounter(false);
                 isRatingChanged = true;
                 if (progress > 0 && progress <= 5) {
@@ -314,6 +319,13 @@ public class PlaybackFragment extends DialogFragment {
         } else {
             ratingBar.setProgress(rating.getRating());
         }
+    }
+
+    private void showRatingSelfRecordingDialog() {
+        android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(this.getActivity());
+        builder.setMessage(getResources().getString(R.string.rating_self_recording));
+        builder.setPositiveButton(R.string.button_ok, null);
+        builder.show();
     }
 
 

@@ -452,10 +452,11 @@ public class MainActivity extends BaseActivity {
         int points_post_create = (int) mFirebaseRemoteConfig.getLong("points_post_create");
 //        if (userPoints == null) userPoints = 0L;
         if (userPoints < points_post_create) {
-            showPointsNeededDialog(points_post_create - (int) userPoints);
+            showPointsNeededDialog();
             return;
         }
         Intent intent = new Intent(this, CreatePostActivity.class);
+        intent.putExtra(ProfileActivity.USER_POINTS_EXTRA_KEY, (int) userPoints);
         startActivityForResult(intent, CreatePostActivity.CREATE_NEW_POST_REQUEST);
     }
 
@@ -509,9 +510,9 @@ public class MainActivity extends BaseActivity {
         });
     }
 
-    private void showPointsNeededDialog(int pointsNeeded) {
+    private void showPointsNeededDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage(getResources().getQuantityString(R.plurals.points_needed_text, pointsNeeded, pointsNeeded));
+        builder.setMessage(getResources().getString(R.string.points_needed_text));
         builder.setPositiveButton(R.string.button_ok, null);
         builder.show();
     }

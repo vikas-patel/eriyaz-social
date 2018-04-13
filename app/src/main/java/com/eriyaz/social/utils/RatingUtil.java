@@ -20,7 +20,9 @@ import android.content.Context;
 import android.support.v4.content.ContextCompat;
 
 import com.eriyaz.social.R;
-import com.eriyaz.social.enums.UploadImagePrefix;
+import com.eriyaz.social.model.Post;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.util.Date;
 
@@ -41,5 +43,16 @@ public class RatingUtil {
             color = ContextCompat.getColor(context, R.color.dark_green);
         }
         return color;
+    }
+
+    public static boolean viewedByAuthor(Post post) {
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (firebaseUser != null) {
+            String currentUserId = firebaseUser.getUid();
+            if (currentUserId.equals(post.getAuthorId())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

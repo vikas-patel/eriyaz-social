@@ -32,6 +32,7 @@ public class Analytics {
     public static final String OPEN_NOTIFICATION_ACTIVITY = "OpenNotificationActivity";
     public static final String PLAYED_TIME = "AudioPlayedTime";
     public static final String SHARE_APP = "ShareApp";
+    public static final String SIGNIN = "SignIn";
 
     public Analytics(Context context) {
         firebase = FirebaseAnalytics.getInstance(context);
@@ -160,6 +161,13 @@ public class Analytics {
         bundle.putString(FirebaseAnalytics.Param.ITEM_ID, "InviteAppInstall");
         bundle.putString("InvitedBy", byUserId);
         firebase.logEvent(POST, bundle);
+    }
+
+    public void signIn() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        Bundle bundle = new Bundle();
+        if (currentUser != null) bundle.putString("UserName", currentUser.getDisplayName());
+        firebase.logEvent(SIGNIN, bundle);
     }
 
     public FirebaseAnalytics getFirebase() {

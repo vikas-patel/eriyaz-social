@@ -92,7 +92,7 @@ public class DeepLinkUtil {
                                 */
                 .setSocialMetaTagParameters(   new DynamicLink.SocialMetaTagParameters.Builder()
                         .setTitle(context.getString(R.string.app_share_title))
-                        .setDescription(context.getString(R.string.app_share_email_sub))
+                        .setDescription(context.getString(R.string.app_share_description))
                         .build())
                 .buildShortDynamicLink()
                 .addOnFailureListener(new OnFailureListener() {
@@ -108,7 +108,7 @@ public class DeepLinkUtil {
                                         .build())
                                 .setSocialMetaTagParameters(   new DynamicLink.SocialMetaTagParameters.Builder()
                                         .setTitle(context.getString(R.string.app_share_title))
-                                        .setDescription(context.getString(R.string.app_share_email_sub))
+                                        .setDescription(context.getString(R.string.app_share_description))
                                         .build())
                                 .buildDynamicLink();
                         Uri dynamicLinkUri = dynamicLink.getUri();
@@ -165,7 +165,7 @@ public class DeepLinkUtil {
                     intentList.add(new LabeledIntent(intent, packageName, ri.loadLabel(pm), ri.icon));
                 }
             }
-            Intent chooserIntent = Intent.createChooser(intentList.get(0), context.getString(R.string.app_share_title));
+            Intent chooserIntent = Intent.createChooser(intentList.get(0), context.getString(R.string.app_share_popup_title));
             intentList.remove(0);
             Parcelable[] targetedIntentsParcelable = intentList.toArray(new Parcelable[intentList.size()]);
             chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, targetedIntentsParcelable);

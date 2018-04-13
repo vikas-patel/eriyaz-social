@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
+import com.eriyaz.social.Constants;
 import com.google.firebase.auth.FirebaseAuth;
 import com.eriyaz.social.R;
 import com.eriyaz.social.fragments.FileViewerFragment;
@@ -31,6 +32,7 @@ import com.eriyaz.social.model.Post;
 import com.eriyaz.social.utils.LogUtil;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 public class CreatePostActivity extends BaseActivity implements OnPostCreatedListener {
     private static final String TAG = CreatePostActivity.class.getSimpleName();
@@ -38,6 +40,7 @@ public class CreatePostActivity extends BaseActivity implements OnPostCreatedLis
 
     protected ImageView imageView;
     protected ProgressBar progressBar;
+    private int userPoints;
 //    protected EditText titleEditText;
 //    protected EditText descriptionEditText;
 
@@ -52,13 +55,13 @@ public class CreatePostActivity extends BaseActivity implements OnPostCreatedLis
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
-
+        userPoints = getIntent().getIntExtra(ProfileActivity.USER_POINTS_EXTRA_KEY, 0);
         postManager = PostManager.getInstance(CreatePostActivity.this);
 
 //        titleEditText = (EditText) findViewById(R.id.titleEditText);
 //        descriptionEditText = (EditText) findViewById(R.id.descriptionEditText);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        recordFragment  = RecordFragment.newInstance();
+        recordFragment  = RecordFragment.newInstance(userPoints);
         getFragmentManager()
                 .beginTransaction()
                 .add(R.id.record_fragment, recordFragment, "record_fragment")
@@ -137,6 +140,9 @@ public class CreatePostActivity extends BaseActivity implements OnPostCreatedLis
         post.setAuthorId(FirebaseAuth.getInstance().getCurrentUser().getUid());
         FileViewerFragment fileFragment = (FileViewerFragment) getFragmentManager().findFragmentById(R.id.record_fragment);
         post.setAudioDuration(fileFragment.getRecordingItem().getLength());
+        if (TimeUnit.MILLISECONDS.toSeconds(post.getAudioDuration()) > Constants.RECORDING.DEFAULT_RECORDING) {
+            post.setLongRecording(true);
+        }
         Uri audioUri = Uri.fromFile(new File(audioFilePath));
         postManager.createOrUpdatePostWithAudio(audioUri, CreatePostActivity.this, post);
     }

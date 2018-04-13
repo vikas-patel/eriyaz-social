@@ -230,52 +230,52 @@ exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{aut
    });
 });
 
-exports.commentsPoints = functions.database.ref('/post-comments/{postId}/{commentId}').onWrite(event => {
+// exports.commentsPoints = functions.database.ref('/post-comments/{postId}/{commentId}').onWrite(event => {
 
-    if (event.data.exists() && event.data.previous.exists()) {
-        return console.log("no points for comment updates");
-    }
-    const commentId = event.params.commentId;
-    const postId = event.params.postId;
-    const comment = event.data.exists() ? event.data.val() : event.data.previous.val();
-    const commentAuthorId = comment.authorId;
-    const comment_points = 2;
+//     if (event.data.exists() && event.data.previous.exists()) {
+//         return console.log("no points for comment updates");
+//     }
+//     const commentId = event.params.commentId;
+//     const postId = event.params.postId;
+//     const comment = event.data.exists() ? event.data.val() : event.data.previous.val();
+//     const commentAuthorId = comment.authorId;
+//     const comment_points = 2;
 
-    console.log('New comment was added, post id: ', postId);
+//     console.log('New comment was added, post id: ', postId);
 
-    // Get the commented post .
-    const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
+//     // Get the commented post .
+//     const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
 
-    return getPostTask.then(post => {
+//     return getPostTask.then(post => {
 
-        if (commentAuthorId == post.val().authorId) {
-            return console.log('User commented on own post');
-        }
+//         if (commentAuthorId == post.val().authorId) {
+//             return console.log('User commented on own post');
+//         }
 
-        // Get user points ref
-        const userPointsRef = admin.database().ref(`/user-points/${commentAuthorId}`);
-        var newPointRef = userPointsRef.push();
-        newPointRef.set({
-            'action': event.data.exists() ? "add":"remove",
-            'type': 'comment',
-            'value': event.data.exists() ? comment_points:-comment_points,
-            'creationDate': admin.database.ServerValue.TIMESTAMP
-        });
+//         // Get user points ref
+//         const userPointsRef = admin.database().ref(`/user-points/${commentAuthorId}`);
+//         var newPointRef = userPointsRef.push();
+//         newPointRef.set({
+//             'action': event.data.exists() ? "add":"remove",
+//             'type': 'comment',
+//             'value': event.data.exists() ? comment_points:-comment_points,
+//             'creationDate': admin.database.ServerValue.TIMESTAMP
+//         });
 
-        // Get rating author.
-        const authorProfilePointsRef = admin.database().ref(`/profiles/${commentAuthorId}/points`);
-        return authorProfilePointsRef.transaction(current => {
-            if (event.data.exists()) {
-              return (current || 0) + comment_points;
-            } else {
-              return (current || 0) - comment_points;
-            }
-        }).then(() => {
-            console.log('User comment points updated.');
-        });
+//         // Get rating author.
+//         const authorProfilePointsRef = admin.database().ref(`/profiles/${commentAuthorId}/points`);
+//         return authorProfilePointsRef.transaction(current => {
+//             if (event.data.exists()) {
+//               return (current || 0) + comment_points;
+//             } else {
+//               return (current || 0) - comment_points;
+//             }
+//         }).then(() => {
+//             console.log('User comment points updated.');
+//         });
 
-    })
-});
+//     })
+// });
 
 // Two different fuctions for post add and remove, because there were too many post update request
 // and firebase has restriction on frequency of function calls.
@@ -283,8 +283,9 @@ exports.postAddedPoints = functions.database.ref('/posts/{postId}').onCreate(eve
     const postId = event.params.postId;
     const post = event.data.val();
     const postAuthorId = post.authorId;
-    const post_points = 3;
+    var post_points = 3;
     console.log('Post created. ', postId);
+    if (post.longRecording) post_points = 10;
     // Get user points ref
     const userPointsRef = admin.database().ref(`/user-points/${postAuthorId}`);
     var newPointRef = userPointsRef.push();
@@ -640,28 +641,28 @@ exports.appUpdateNotification = functions.https.onRequest((req, res) => {
     });
 });
 
-exports.appUninstall = functions.analytics.event('app_remove').onLog(event => {
-    const user = event.data.user;
-    const uid = user.userId;
-    console.log("app uninstall detected for uid ",uid);
-    // Get profile of user and set user details
-    if (uid) {
-        const profileUninstallRef = admin.database().ref(`/uninstall/track/${uid}`);
-        const newProfileUninstallRef = profileUninstallRef.push();
-        user.uninstallTime = event.data.logTime;
-        return newProfileUninstallRef.set(user).then(() => {
-            console.log('uninstall user profile updated with event details.');
-        });
-    } else {
-        const appInstanceId = user.appInfo.appInstanceId;
-        const uninstallUntrackRef = admin.database().ref(`/uninstall/untrack/${appInstanceId}`);
-        const newUninstallUntrackRef = uninstallUntrackRef.push();
-        user.uninstallTime = event.data.logTime;
-        return newUninstallUntrackRef.set(user).then(() => {
-            console.log('updated uninstall details of untracked user.');
-        });
-    }
-});
+// exports.appUninstall = functions.analytics.event('app_remove').onLog(event => {
+//     const user = event.data.user;
+//     const uid = user.userId;
+//     console.log("app uninstall detected for uid ",uid);
+//     // Get profile of user and set user details
+//     if (uid) {
+//         const profileUninstallRef = admin.database().ref(`/uninstall/track/${uid}`);
+//         const newProfileUninstallRef = profileUninstallRef.push();
+//         user.uninstallTime = event.data.logTime;
+//         return newProfileUninstallRef.set(user).then(() => {
+//             console.log('uninstall user profile updated with event details.');
+//         });
+//     } else {
+//         const appInstanceId = user.appInfo.appInstanceId;
+//         const uninstallUntrackRef = admin.database().ref(`/uninstall/untrack/${appInstanceId}`);
+//         const newUninstallUntrackRef = uninstallUntrackRef.push();
+//         user.uninstallTime = event.data.logTime;
+//         return newUninstallUntrackRef.set(user).then(() => {
+//             console.log('updated uninstall details of untracked user.');
+//         });
+//     }
+// });
 
 // exports.incrementUserMessageCount = functions.database.ref('/user-messages/{authorId}/{messageId}').onCreate(event => {
 //     const authorId = event.params.authorId;

@@ -59,6 +59,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
     private static final String TAG = ProfileActivity.class.getSimpleName();
     public static final int CREATE_POST_FROM_PROFILE_REQUEST = 22;
     public static final String USER_ID_EXTRA_KEY = "ProfileActivity.USER_ID_EXTRA_KEY";
+    public static final String USER_POINTS_EXTRA_KEY = "ProfileActivity.USER_POINTS_EXTRA_KEY";
 
     // UI references.
     private TextView nameEditText;
@@ -71,6 +72,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
     private GoogleApiClient mGoogleApiClient;
     private String currentUserId;
     private String userID;
+    private int userPoints;
 
     private TabLayout tabLayout;
     private ViewPager profileTabViewPager;
@@ -235,9 +237,9 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
                 imageView.setImageResource(R.drawable.ic_stub);
             }
 
-            int pointsCount = (int) profile.getPoints();
+            userPoints = (int) profile.getPoints();
             String pointsLabel = getResources().getString(R.string.score_label);
-            pointsCountersTextView.setText(buildCounterSpannable(pointsLabel, pointsCount));
+            pointsCountersTextView.setText(buildCounterSpannable(pointsLabel, userPoints));
         }
     }
 
@@ -284,6 +286,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
 
     private void openCreatePostActivity() {
         Intent intent = new Intent(this, CreatePostActivity.class);
+        intent.putExtra(ProfileActivity.USER_POINTS_EXTRA_KEY, userPoints);
         startActivityForResult(intent, CreatePostActivity.CREATE_NEW_POST_REQUEST);
     }
 

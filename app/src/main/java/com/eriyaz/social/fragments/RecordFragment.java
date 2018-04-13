@@ -5,29 +5,34 @@ import android.annotation.SuppressLint;
 import android.app.Fragment;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.os.IBinder;
-import android.os.SystemClock;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.Chronometer;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.eriyaz.social.activities.BaseActivity;
-import com.eriyaz.social.utils.Analytics;
-import com.melnykov.fab.FloatingActionButton;
+import com.eriyaz.social.Constants;
 import com.eriyaz.social.R;
+import com.eriyaz.social.activities.BaseActivity;
+import com.eriyaz.social.activities.ProfileActivity;
 import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.services.RecordingService;
+import com.eriyaz.social.utils.FormatterUtil;
 import com.eriyaz.social.utils.PermissionsUtil;
+import com.melnykov.fab.FloatingActionButton;
 
 import java.io.File;
 
@@ -48,14 +53,20 @@ public class RecordFragment extends Fragment {
     //Recording controls
     private FloatingActionButton mRecordButton = null;
     private Button mPauseButton = null;
+    private CountDownTimer countDownTimer;
 
     private TextView mRecordingPrompt;
+    private TextView mToggleRecordingText;
+    private TextView mCountDownText;
+    private ProgressBar recordProgressBar;
     private int mRecordPromptCount = 0;
+    private int userPoints = 0;
 
     private boolean mStartRecording = true;
     private boolean mPauseRecording = true;
+    private boolean isShortRecording = true;
 
-    private Chronometer mChronometer = null;
+//    private Chronometer mChronometer = null;
     long timeWhenPaused = 0; //stores time when user clicks pause button
     private RecordingService recordingService;
 
@@ -83,8 +94,11 @@ public class RecordFragment extends Fragment {
      *
      * @return A new instance of fragment Record_Fragment.
      */
-    public static RecordFragment newInstance() {
+    public static RecordFragment newInstance(int userPoints) {
         RecordFragment f = new RecordFragment();
+        Bundle b = new Bundle();
+        b.putInt(ProfileActivity.USER_POINTS_EXTRA_KEY, userPoints);
+        f.setArguments(b);
         return f;
     }
 
@@ -95,6 +109,7 @@ public class RecordFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         BaseActivity activity = (BaseActivity) getActivity();
+        userPoints = getArguments().getInt(ProfileActivity.USER_POINTS_EXTRA_KEY);
         activity.getAnalytics().logRecording();
         //position = getArguments().getInt(ARG_POSITION);
     }
@@ -103,10 +118,12 @@ public class RecordFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View recordView = inflater.inflate(R.layout.fragment_record, container, false);
+        mCountDownText = (TextView) recordView.findViewById(R.id.countDownTimer);
 
-        mChronometer = (Chronometer) recordView.findViewById(R.id.chronometer);
+//        mChronometer = (Chronometer) recordView.findViewById(R.id.chronometer);
         //update recording prompt text
         mRecordingPrompt = (TextView) recordView.findViewById(R.id.recording_status_text);
+        mToggleRecordingText = (TextView) recordView.findViewById(R.id.toggle_recording_type);
 
         mRecordButton = (FloatingActionButton) recordView.findViewById(R.id.btnRecord);
         mRecordButton.setColorNormal(getResources().getColor(R.color.primary));
@@ -115,6 +132,23 @@ public class RecordFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 onRecord();
+            }
+        });
+        recordProgressBar = recordView.findViewById(R.id.recordProgressBar);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            recordProgressBar.setVisibility(View.INVISIBLE);
+        }
+
+        mToggleRecordingText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isShortRecording) {
+                    openConfirmSwitchDialog();
+                } else {
+                    mToggleRecordingText.setText(getResources().getString(R.string.toggle_longer_recording));
+                    mCountDownText.setText(Constants.RECORDING.DEFAULT_RECORDING_TEXT);
+                }
+                isShortRecording = !isShortRecording;
             }
         });
 
@@ -155,7 +189,7 @@ public class RecordFragment extends Fragment {
     }
 
     private void startRecording() {
-        Intent intent = new Intent(getActivity(), RecordingService.class);
+        final Intent intent = new Intent(getActivity(), RecordingService.class);
         //remove log
         if (mStartRecording) {
             // start recording
@@ -169,11 +203,9 @@ public class RecordFragment extends Fragment {
             }
 
             //start Chronometer
-            mChronometer.setBase(SystemClock.elapsedRealtime());
-            mChronometer.start();
-            mChronometer.setOnChronometerTickListener(new Chronometer.OnChronometerTickListener() {
-                @Override
-                public void onChronometerTick(Chronometer chronometer) {
+            countDownTimer = new CountDownTimer(isShortRecording ? Constants.RECORDING.DEFAULT_RECORDING*1000 : Constants.RECORDING.LARGE_RECORDING*1000, 1000){
+                public void onTick(long millisUntilFinished){
+                    mCountDownText.setText(FormatterUtil.countDownFormat(millisUntilFinished));
                     if (mRecordPromptCount == 0) {
                         mRecordingPrompt.setText(getString(R.string.record_in_progress) + ".");
                     } else if (mRecordPromptCount == 1) {
@@ -182,10 +214,31 @@ public class RecordFragment extends Fragment {
                         mRecordingPrompt.setText(getString(R.string.record_in_progress) + "...");
                         mRecordPromptCount = -1;
                     }
-
                     mRecordPromptCount++;
                 }
-            });
+                public  void onFinish(){
+                    mStartRecording = !mStartRecording;
+                    stopRecording(intent);
+                }
+            }.start();
+
+//            mChronometer.setBase(SystemClock.elapsedRealtime());
+//            mChronometer.start();
+//            mChronometer.setOnChronometerTickListener(new Chronometer.OnChronometerTickListener() {
+//                @Override
+//                public void onChronometerTick(Chronometer chronometer) {
+//                    if (mRecordPromptCount == 0) {
+//                        mRecordingPrompt.setText(getString(R.string.record_in_progress) + ".");
+//                    } else if (mRecordPromptCount == 1) {
+//                        mRecordingPrompt.setText(getString(R.string.record_in_progress) + "..");
+//                    } else if (mRecordPromptCount == 2) {
+//                        mRecordingPrompt.setText(getString(R.string.record_in_progress) + "...");
+//                        mRecordPromptCount = -1;
+//                    }
+//
+//                    mRecordPromptCount++;
+//                }
+//            });
 
             //start RecordingService
             getActivity().startService(intent);
@@ -198,19 +251,25 @@ public class RecordFragment extends Fragment {
 
         } else {
             //stop recording
-            mRecordButton.setImageResource(R.drawable.ic_mic_white_36dp);
-            //mPauseButton.setVisibility(View.GONE);
-            mChronometer.stop();
-            mChronometer.setBase(SystemClock.elapsedRealtime());
-            timeWhenPaused = 0;
-            mRecordingPrompt.setText(getString(R.string.record_prompt));
+            stopRecording(intent);
 
-            getActivity().stopService(intent);
-            getActivity().unbindService(mConnection);
-            //allow the screen to turn off again once recording is finished
-            getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
         mStartRecording = !mStartRecording;
+    }
+
+    private void stopRecording(Intent intent) {
+        mRecordButton.setImageResource(R.drawable.ic_mic_white_36dp);
+        if (countDownTimer != null) countDownTimer.cancel();
+        //mPauseButton.setVisibility(View.GONE);
+//            mChronometer.stop();
+//            mChronometer.setBase(SystemClock.elapsedRealtime());
+        timeWhenPaused = 0;
+        mRecordingPrompt.setText(getString(R.string.record_prompt));
+
+        getActivity().stopService(intent);
+        getActivity().unbindService(mConnection);
+        //allow the screen to turn off again once recording is finished
+        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     public void onIntentResult(RecordingItem item) {
@@ -253,22 +312,46 @@ public class RecordFragment extends Fragment {
 
     }
 
-    //TODO: implement pause recording
-    private void onPauseRecord(boolean pause) {
-        if (pause) {
-            //pause recording
-            mPauseButton.setCompoundDrawablesWithIntrinsicBounds
-                    (R.drawable.ic_media_play ,0 ,0 ,0);
-            mRecordingPrompt.setText((String)getString(R.string.resume_recording_button).toUpperCase());
-            timeWhenPaused = mChronometer.getBase() - SystemClock.elapsedRealtime();
-            mChronometer.stop();
-        } else {
-            //resume recording
-            mPauseButton.setCompoundDrawablesWithIntrinsicBounds
-                    (R.drawable.ic_media_pause ,0 ,0 ,0);
-            mRecordingPrompt.setText((String)getString(R.string.pause_recording_button).toUpperCase());
-            mChronometer.setBase(SystemClock.elapsedRealtime() + timeWhenPaused);
-            mChronometer.start();
-        }
+    private void openConfirmSwitchDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
+        builder.setMessage(R.string.confirm_longer_recording)
+                .setNegativeButton(R.string.button_title_cancel, null)
+                .setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        if (userPoints < Constants.POINT.LARGE_RECORDING) {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                            builder.setMessage(getResources().getQuantityString(R.plurals.points_needed_longer_recording, userPoints, userPoints));
+                            builder.setPositiveButton(R.string.button_ok, null);
+                            builder.show();
+                            return;
+                        }
+                        mToggleRecordingText.setText(getResources().getString(R.string.toggle_shorter_recording));
+                        mCountDownText.setText(Constants.RECORDING.LARGE_RECORDING_TEXT);
+                    }
+                });
+
+        AlertDialog dialog = builder.create();
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.show();
     }
+
+    //TODO: implement pause recording
+//    private void onPauseRecord(boolean pause) {
+//        if (pause) {
+//            //pause recording
+//            mPauseButton.setCompoundDrawablesWithIntrinsicBounds
+//                    (R.drawable.ic_media_play ,0 ,0 ,0);
+//            mRecordingPrompt.setText((String)getString(R.string.resume_recording_button).toUpperCase());
+//            timeWhenPaused = mChronometer.getBase() - SystemClock.elapsedRealtime();
+//            mChronometer.stop();
+//        } else {
+//            //resume recording
+//            mPauseButton.setCompoundDrawablesWithIntrinsicBounds
+//                    (R.drawable.ic_media_pause ,0 ,0 ,0);
+//            mRecordingPrompt.setText((String)getString(R.string.pause_recording_button).toUpperCase());
+//            mChronometer.setBase(SystemClock.elapsedRealtime() + timeWhenPaused);
+//            mChronometer.start();
+//        }
+//    }
 }

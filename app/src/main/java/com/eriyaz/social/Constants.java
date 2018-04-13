@@ -42,4 +42,16 @@ public class Constants {
     public static class PushNotification {
         public static final int LARGE_ICONE_SIZE = 256; //px
     }
+
+    public static class POINT {
+        public static final int LARGE_RECORDING = 10;
+        public static final int DEFAULT_RECORDING = 3;
+    }
+
+    public static class RECORDING {
+        public static final int LARGE_RECORDING = 150;
+        public static final String LARGE_RECORDING_TEXT = "02:30";
+        public static final int DEFAULT_RECORDING = 45;
+        public static final String DEFAULT_RECORDING_TEXT = "00:45";
+    }
 }

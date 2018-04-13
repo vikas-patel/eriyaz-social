@@ -465,7 +465,14 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 
     private void showPointsNeededDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage(getResources().getString(R.string.insufficient_points_view_rating));
+        builder.setMessage(String.format(getResources().getString(R.string.insufficient_points_view_rating), profile.getUsername()));
+        builder.setPositiveButton(R.string.button_ok, null);
+        builder.show();
+    }
+
+    private void showRatingSelfRecordingDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(getResources().getString(R.string.rating_self_recording));
         builder.setPositiveButton(R.string.button_ok, null);
         builder.show();
     }
@@ -825,6 +832,11 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             @Override
             public void getProgressOnActionUp(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
                 if (isPostExist) {
+                    if (RatingUtil.viewedByAuthor(post)) {
+                        showRatingSelfRecordingDialog();
+                        ratingBar.setProgress(ratingController.getRating().getRating());
+                        return;
+                    }
                     if (progress > 0 && progress <= 5) {
                         openCommentDialog();
                         return;
@@ -862,6 +874,8 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 //            }
 //        });
     }
+
+
 
     private void openCommentDialog() {
         CommentDialog commentDialog = new CommentDialog();

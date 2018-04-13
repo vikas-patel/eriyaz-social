@@ -100,6 +100,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                     // Profile is signed in
                     LogUtil.logDebug(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
                     analytics.getFirebase().setUserId(user.getUid());
+                    analytics.signIn();
                     checkIsProfileExist(user.getUid());
                 } else {
                     // Profile is signed out
