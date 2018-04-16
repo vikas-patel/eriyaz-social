@@ -25,34 +25,45 @@
             android:theme="@style/AppCompat.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
             <!-- [START link_intent_filter] -->
             <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:host="eriyaz.com" android:scheme="http"/>
-                <!--<data android:host="eriyaz.com" android:scheme="https"/>-->
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:host="eriyaz.com" android:scheme="http"/>
-                <!--<data android:host="eriyaz.com" android:scheme="https"/>-->
-            </intent-filter>
+                <action android:name="android.intent.action.VIEW" />
 
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="eriyaz.com"
+                    android:scheme="http" />
+                <!-- <data android:host="eriyaz.com" android:scheme="https"/> -->
+            </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:host="play.google.com/store/apps/details" android:scheme="https"/>
-                <!--<data android:host="eriyaz.com" android:scheme="https"/>-->
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="eriyaz.com"
+                    android:scheme="http" />
+                <!-- <data android:host="eriyaz.com" android:scheme="https"/> -->
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="play.google.com/store/apps/details"
+                    android:scheme="https" />
+                <!-- <data android:host="eriyaz.com" android:scheme="https"/> -->
             </intent-filter>
             <!-- [END link_intent_filter] -->
-
 
         </activity>
         <activity
@@ -62,7 +73,11 @@
         <activity
             android:name=".activities.MessageActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/title_activity_messages"/>
+            android:label="@string/title_activity_messages" />
+        <activity
+            android:name=".activities.FeedbackActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/title_activity_feedback" />
         <activity
             android:name=".activities.CreatePostActivity"
             android:configChanges="orientation|screenSize"
@@ -101,6 +116,7 @@
             android:configChanges="orientation|screenSize"
             android:label="@string/title_activity_notification"
             android:theme="@style/AppCompat.NoActionBar" />
+
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="84e05e27c9fcba7e1de6a47e355a1aa247264a46" />

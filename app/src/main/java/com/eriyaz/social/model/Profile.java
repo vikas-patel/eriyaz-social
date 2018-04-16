@@ -28,6 +28,7 @@ public class Profile implements Serializable {
     private String email;
     private String photoUrl;
     private long points;
+    private int postCount;
     private int unseen;
     private String registrationToken;
 
@@ -93,5 +94,13 @@ public class Profile implements Serializable {
 
     public void setRegistrationToken(String registrationToken) {
         this.registrationToken = registrationToken;
+    }
+
+    public int getPostCount() {
+        return postCount;
+    }
+
+    public void setPostCount(int postCount) {
+        this.postCount = postCount;
     }
 }

@@ -73,6 +73,11 @@ public class RatingController {
         return rating;
     }
 
+    public boolean isRatingPresent() {
+        if (this.rating == null || this.rating.getId() == null) return false;
+        return true;
+    }
+
     public void ratingClickActionLocal(Post post, float ratingValue) {
         setUpdatingRatingCounter(false);
         if (ratingValue > 0) {

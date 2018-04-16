@@ -5,5 +5,13 @@
         <key>points_post_create</key>
         <value>3</value>
     </entry>
+    <entry>
+        <key>current_version</key>
+        <value>1.4</value>
+    </entry>
+    <entry>
+        <key>update_required</key>
+        <value>false</value>
+    </entry>
 </defaultsMap>
     <!-- END xml_defaults -->

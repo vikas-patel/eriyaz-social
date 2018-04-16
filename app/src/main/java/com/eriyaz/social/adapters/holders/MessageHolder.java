@@ -105,6 +105,8 @@ public class MessageHolder extends RecyclerView.ViewHolder {
 
         CharSequence date = FormatterUtil.getRelativeTimeSpanString(context, message.getCreatedDate());
         dateTextView.setText(date);
+        deleteImageView.setVisibility(View.GONE);
+        replyImageView.setVisibility(View.GONE);
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         if (firebaseUser != null) {
             String currentUserId = firebaseUser.getUid();

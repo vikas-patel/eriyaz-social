@@ -114,7 +114,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private ImageView ratingsImageView;
     private TextView ratingCounterTextView;
     private TextView averageRatingTextView;
-    private BubbleSeekBar ratingBar;
+//    private BubbleSeekBar ratingBar;
 
     private TextView commentsLabel;
 //    private TextView likeCounterTextView;
@@ -151,7 +151,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private CommentManager commentManager;
     private ProfileManager profileManager;
 //    private LikeController likeController;
-    private RatingController ratingController;
+//    private RatingController ratingController;
     private boolean postRemovingProcess = false;
     private boolean isPostExist;
     private boolean authorAnimationInProgress = false;
@@ -161,6 +161,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private RatingsAdapter ratingsAdapter;
     private ActionMode mActionMode;
     private boolean isEnterTransitionFinished = false;
+    private Rating rating;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -201,7 +202,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         ratingsImageView = (ImageView) findViewById(R.id.ratingImageView);
         ratingCounterTextView = (TextView) findViewById(R.id.ratingCounterTextView);
         averageRatingTextView = (TextView) findViewById(R.id.averageRatingTextView);
-        ratingBar = (BubbleSeekBar) findViewById(R.id.ratingBar);
+//        ratingBar = (BubbleSeekBar) findViewById(R.id.ratingBar);
 
         authorImageView = (ImageView) findViewById(R.id.authorImageView);
         authorTextView = (TextView) findViewById(R.id.authorTextView);
@@ -257,7 +258,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
                     item.setLength(post.getAudioDuration());
                     item.setFilePath(post.getImagePath());
                     PlaybackFragment playbackFragment =
-                            new PlaybackFragment().newInstance(item, post, ratingController.getRating());
+                            new PlaybackFragment().newInstance(item, post, rating);
                     android.app.FragmentTransaction transaction = getFragmentManager()
                             .beginTransaction();
                     playbackFragment.show(transaction, "dialog_playback");
@@ -644,7 +645,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         averageRatingTextView.setText(avgRatingText);
 
 //        likeController.setUpdatingLikeCounter(false);
-        ratingController.setUpdatingRatingCounter(false);
+//        ratingController.setUpdatingRatingCounter(false);
 
         watcherCounterTextView.setText(String.valueOf(post.getWatchersCount()));
 
@@ -777,10 +778,12 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         return new OnObjectChangedListener<Rating>() {
             @Override
             public void onObjectChanged(Rating obj) {
-                ratingController.initRating(obj);
+//                ratingController.initRating(obj);
                 if (obj != null && obj.getRating() > 0) {
+                    rating = obj;
                     ratingsImageView.setImageResource(R.drawable.ic_star_active);
                 } else {
+                    rating = new Rating();
                     ratingsImageView.setImageResource(R.drawable.ic_star);
                 }
             }
@@ -797,7 +800,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 
     private void initLikes() {
 //        likeController = new LikeController(this, post, likeCounterTextView, likesImageView, false);
-        ratingController = new RatingController(post.getId(), ratingCounterTextView, averageRatingTextView, ratingBar, false);
+//        ratingController = new RatingController(post.getId(), ratingCounterTextView, averageRatingTextView, ratingBar, false);
         //if ratingByCurrentUser value is changed.
 //        ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
 //            @Override
@@ -808,43 +811,43 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 //            }
 //        });
         // customize section texts
-        ratingBar.setCustomSectionTextArray(new BubbleSeekBar.CustomSectionTextArray() {
-            @NonNull
-            @Override
-            public SparseArray<String> onCustomize(int sectionCount, @NonNull SparseArray<String> array) {
-                array.clear();
-                array.put(1, "not ok");
-                array.put(3, "ok");
-                array.put(5, "good");
-                array.put(7, "amazing");
-                return array;
-            }
-        });
-        ratingBar.setOnProgressChangedListener(new BubbleSeekBar.OnProgressChangedListenerAdapter() {
-            @Override
-            public void onProgressChanged(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
-                int color = RatingUtil.getRatingColor(PostDetailsActivity.this, progress);
-                bubbleSeekBar.setSecondTrackColor(color);
-                bubbleSeekBar.setThumbColor(color);
-                bubbleSeekBar.setBubbleColor(color);
-            }
+//        ratingBar.setCustomSectionTextArray(new BubbleSeekBar.CustomSectionTextArray() {
+//            @NonNull
+//            @Override
+//            public SparseArray<String> onCustomize(int sectionCount, @NonNull SparseArray<String> array) {
+//                array.clear();
+//                array.put(1, "not ok");
+//                array.put(3, "ok");
+//                array.put(5, "good");
+//                array.put(7, "amazing");
+//                return array;
+//            }
+//        });
+//        ratingBar.setOnProgressChangedListener(new BubbleSeekBar.OnProgressChangedListenerAdapter() {
+//            @Override
+//            public void onProgressChanged(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
+//                int color = RatingUtil.getRatingColor(PostDetailsActivity.this, progress);
+//                bubbleSeekBar.setSecondTrackColor(color);
+//                bubbleSeekBar.setThumbColor(color);
+//                bubbleSeekBar.setBubbleColor(color);
+//            }
 
-            @Override
-            public void getProgressOnActionUp(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
-                if (isPostExist) {
-                    if (RatingUtil.viewedByAuthor(post)) {
-                        showRatingSelfRecordingDialog();
-                        ratingBar.setProgress(ratingController.getRating().getRating());
-                        return;
-                    }
-                    if (progress > 0 && progress <= 5) {
-                        openCommentDialog();
-                        return;
-                    }
-                    ratingController.handleRatingClickAction(PostDetailsActivity.this, post, progress);
-                }
-            }
-        });
+//            @Override
+//            public void getProgressOnActionUp(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
+//                if (isPostExist) {
+//                    if (RatingUtil.viewedByAuthor(post)) {
+//                        showRatingSelfRecordingDialog();
+//                        ratingBar.setProgress(ratingController.getRating().getRating());
+//                        return;
+//                    }
+//                    if (progress > 0 && progress <= 5) {
+//                        openCommentDialog();
+//                        return;
+//                    }
+//                    ratingController.handleRatingClickAction(PostDetailsActivity.this, post, progress);
+//                }
+//            }
+//        });
 
 
 //        likesContainer.setOnClickListener(new View.OnClickListener() {
@@ -877,22 +880,22 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 
 
 
-    private void openCommentDialog() {
-        CommentDialog commentDialog = new CommentDialog();
-        Bundle args = new Bundle();
-        args.putString(PostDetailsActivity.POST_ID_EXTRA_KEY, post.getId());
-        commentDialog.setArguments(args);
-        commentDialog.show(getFragmentManager(), CommentDialog.TAG);
-    }
+//    private void openCommentDialog() {
+//        CommentDialog commentDialog = new CommentDialog();
+//        Bundle args = new Bundle();
+//        args.putString(PostDetailsActivity.POST_ID_EXTRA_KEY, post.getId());
+//        commentDialog.setArguments(args);
+//        commentDialog.show(getFragmentManager(), CommentDialog.TAG);
+//    }
 
-    public void onCommentDialogResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == Activity.RESULT_OK) {
-            ratingController.handleRatingClickAction(PostDetailsActivity.this, post, ratingBar.getProgress());
-        } else {
-            ratingBar.setProgress(ratingController.getRating().getRating());
-        }
-    }
+//    public void onCommentDialogResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        if (resultCode == Activity.RESULT_OK) {
+//            ratingController.handleRatingClickAction(PostDetailsActivity.this, post, ratingBar.getProgress());
+//        } else {
+//            ratingBar.setProgress(ratingController.getRating().getRating());
+//        }
+//    }
 
     private void sendComment() {
         if (post == null) {

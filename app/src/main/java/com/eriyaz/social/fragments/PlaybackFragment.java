@@ -15,6 +15,7 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.eriyaz.social.Constants;
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
 import com.eriyaz.social.activities.MainActivity;
@@ -25,6 +26,7 @@ import com.eriyaz.social.dialogs.CommentDialog;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.model.RecordingItem;
+import com.eriyaz.social.utils.LogUtil;
 import com.eriyaz.social.utils.RatingUtil;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
@@ -60,7 +62,6 @@ public class PlaybackFragment extends DialogFragment {
     private RatingController ratingController;
     private boolean isRatingChanged = false;
     private View ratingLayout;
-    private int maxPlayedTime;
     private long startTimePlayer;
     private SimpleExoPlayerView playerView;
     private SimpleExoPlayer player;
@@ -108,8 +109,10 @@ public class PlaybackFragment extends DialogFragment {
         super.onDismiss(dialog);
         if (post != null) {
             BaseActivity activity = (BaseActivity) getActivity();
-            maxPlayedTime = Math.max(maxPlayedTime, Math.round(player.getCurrentPosition()/1000));
-            activity.getAnalytics().logPlayedTime(post.getAuthorId(), post.getTitle(), maxPlayedTime);
+            if (player.getPlayWhenReady() && player.getPlaybackState() == Player.STATE_READY) {
+                markPlayerPositions();
+            }
+            activity.getAnalytics().logPlayedTime(post.getAuthorId(), post.getTitle(), (int) totalPlayed/1000);
         }
         if (!isRatingChanged) return;
         if (getActivity() instanceof MainActivity) {
@@ -295,9 +298,22 @@ public class PlaybackFragment extends DialogFragment {
             @Override
             public void getProgressOnActionUp(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
                 if (RatingUtil.viewedByAuthor(post)) {
-                    showRatingSelfRecordingDialog();
+                    showDialog(R.string.rating_self_recording);
                     ratingBar.setProgress(rating.getRating());
                     return;
+                }
+                // rating first time
+                if (!ratingController.isRatingPresent()) {
+                    if (player.getPlayWhenReady() && player.getPlaybackState() == Player.STATE_READY) {
+                        markPlayerPositions();
+                    }
+                    if (totalPlayed < Constants.RECORDING.MIN_PLAY_RECORDING*1000
+                            && player.getDuration() > Constants.RECORDING.MIN_PLAY_RECORDING*1000) {
+                        // show warning
+                        showDialog(R.string.min_play_record);
+                        ratingBar.setProgress(rating.getRating());
+                        return;
+                    }
                 }
                 ratingController.setUpdatingRatingCounter(false);
                 isRatingChanged = true;
@@ -321,9 +337,10 @@ public class PlaybackFragment extends DialogFragment {
         }
     }
 
-    private void showRatingSelfRecordingDialog() {
+
+    private void showDialog(int messageId) {
         android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(this.getActivity());
-        builder.setMessage(getResources().getString(R.string.rating_self_recording));
+        builder.setMessage(getResources().getString(messageId));
         builder.setPositiveButton(R.string.button_ok, null);
         builder.show();
     }
@@ -338,16 +355,36 @@ public class PlaybackFragment extends DialogFragment {
         commentDialog.show(getFragmentManager(), CommentDialog.TAG);
     }
 
+    private long startPosition = 0;
+    private long endPosition = 0;
+    private long totalPlayed = 0;
+    private boolean isPlaying = false;
+
     private class ComponentListener extends Player.DefaultEventListener {
 
         @Override
         public void onPlayerStateChanged(boolean playWhenReady,
                                          int playbackState) {
-            if (player != null) {
-                maxPlayedTime = Math.max(maxPlayedTime, Math.round(player.getCurrentPosition()/1000));
+            if (playWhenReady && playbackState == Player.STATE_READY) {
+                // fast fwd, don't do anything
+                if (isPlaying == true) return;
+                startPosition = System.currentTimeMillis();
+                endPosition = startPosition;
+                isPlaying = true;
+            }
+            if (playbackState == Player.STATE_ENDED || (!playWhenReady && playbackState == Player.STATE_READY)) {
+                markPlayerPositions();
+                isPlaying = false;
             }
         }
+    }
 
+    private void markPlayerPositions() {
+        // player hasn't started yet
+        if (startPosition == 0) return;
+        endPosition = System.currentTimeMillis();
+        totalPlayed = totalPlayed + endPosition - startPosition;
+        startPosition = endPosition;
     }
 }
 

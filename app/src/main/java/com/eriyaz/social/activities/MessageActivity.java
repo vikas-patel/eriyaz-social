@@ -31,6 +31,8 @@ import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
 import com.eriyaz.social.model.Message;
 import com.eriyaz.social.model.Profile;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.util.List;
 
@@ -50,6 +52,7 @@ public class MessageActivity extends BaseActivity {
     private ProfileManager profileManager;
     private TextView warningMessagesTextView;
     private boolean attemptToLoadMessages = false;
+    private View newMessageContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +67,7 @@ public class MessageActivity extends BaseActivity {
         scrollView = (ScrollView) findViewById(R.id.scrollView);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         warningMessagesTextView = (TextView) findViewById(R.id.warningMessagesTextView);
+        newMessageContainer = findViewById(R.id.newMessageContainer);
 
 //        swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
 //        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -113,6 +117,14 @@ public class MessageActivity extends BaseActivity {
 
         loadMessageList();
         profileManager.getProfileSingleValue(userId, createProfileChangeListener());
+        // don't show message box on self profile
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (firebaseUser != null) {
+            String currentUserId = firebaseUser.getUid();
+            if (currentUserId.equals(userId)) {
+                newMessageContainer.setVisibility(View.GONE);
+            }
+        }
         supportPostponeEnterTransition();
     }
 

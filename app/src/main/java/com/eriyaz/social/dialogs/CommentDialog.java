@@ -97,8 +97,8 @@ public class CommentDialog extends DialogFragment {
         if (targetFragment != null) {
             targetFragment.onActivityResult(getTargetRequestCode(), code, null);
         } else {
-            PostDetailsActivity activity = (PostDetailsActivity) getActivity();
-            activity.onCommentDialogResult(getTargetRequestCode(), code, null);
+//            PostDetailsActivity activity = (PostDetailsActivity) getActivity();
+//            activity.onCommentDialogResult(getTargetRequestCode(), code, null);
         }
     }
 }

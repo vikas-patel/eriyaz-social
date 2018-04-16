@@ -57,6 +57,7 @@ android {
 }
 
 dependencies {
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.google.android.exoplayer:exoplayer-core:2.6.1'
     compile 'com.google.android.exoplayer:exoplayer-ui:2.6.1'

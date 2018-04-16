@@ -18,18 +18,13 @@
 package com.eriyaz.social.activities;
 
 import android.app.ActivityOptions;
-import android.content.ComponentName;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.LabeledIntent;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
-import android.content.res.Resources;
 import android.graphics.drawable.LayerDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -49,6 +44,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.eriyaz.social.ForceUpdateChecker;
 import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.PostsAdapter;
 import com.eriyaz.social.enums.PostStatus;
@@ -63,29 +59,18 @@ import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.AnimationUtils;
 import com.eriyaz.social.utils.DeepLinkUtil;
-import com.eriyaz.social.utils.LogUtil;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.dynamiclinks.DynamicLink;
-import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
-import com.google.firebase.dynamiclinks.PendingDynamicLinkData;
-import com.google.firebase.dynamiclinks.ShortDynamicLink;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.eriyaz.social.utils.ImageUtil.setBadgeCount;
 
-public class MainActivity extends BaseActivity {
+public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnUpdateNeededListener{
     private static final String TAG = MainActivity.class.getSimpleName();
 
     private PostsAdapter postsAdapter;
@@ -100,9 +85,9 @@ public class MainActivity extends BaseActivity {
     private PostManager.PostCounterWatcher postCounterWatcher;
     private boolean counterAnimationInProgress = false;
     private long userPoints = 0;
-    private FirebaseRemoteConfig mFirebaseRemoteConfig;
+    final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
 
-    //    private Snackbar karmaSnackbar;
+    // private Snackbar karmaSnackbar;
     static {
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
     }
@@ -127,27 +112,33 @@ public class MainActivity extends BaseActivity {
         };
 
         postManager.setPostCounterWatcher(postCounterWatcher);
-        mFirebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
-        mFirebaseRemoteConfig.setDefaults(R.xml.remote_config_defaults);
-        fetchRemoteConfig();
+
         getDynamicLink();
+        ForceUpdateChecker.with(this).onUpdateNeeded(this).check();
     }
 
-    private void fetchRemoteConfig() {
-        mFirebaseRemoteConfig.fetch()
-                .addOnCompleteListener(this, new OnCompleteListener<Void>() {
+    @Override
+    public void onUpdateNeeded() {
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("New version available")
+                .setMessage("Please, update app to new version to continue reposting.")
+                .setNegativeButton("No, thanks", null)
+                .setPositiveButton("Update", new DialogInterface.OnClickListener() {
                     @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            // After config data is successfully fetched, it must be activated before newly fetched
-                            // values are returned.
-                            mFirebaseRemoteConfig.activateFetched();
-                        } else {
-                            // don't do anything
-                        }
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        redirectStore();
                     }
-                });
+                }).create();
+
+        dialog.show();
     }
+
+    private void redirectStore() {
+        final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.app_url)));
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+    }
+
 
     private OnObjectChangedListener<Profile> createOnProfileChangedListener() {
         return new OnObjectChangedListener<Profile>() {
@@ -280,6 +271,7 @@ public class MainActivity extends BaseActivity {
                 case CreatePostActivity.CREATE_NEW_POST_REQUEST:
                     refreshPostList();
                     showFloatButtonRelatedSnackBar(R.string.message_post_was_created);
+                    profileManager.getProfileSingleValue(FirebaseAuth.getInstance().getCurrentUser().getUid(), createProfilePostCountListener());
                     break;
 
                 case PostDetailsActivity.UPDATE_POST_REQUEST:
@@ -293,8 +285,23 @@ public class MainActivity extends BaseActivity {
                         }
                     }
                     break;
+                case FeedbackActivity.CREATE_FEEDBACK:
+                    showFloatButtonRelatedSnackBar(R.string.feedback_sent);
+                    break;
             }
         }
+    }
+
+    private OnObjectChangedListener<Profile> createProfilePostCountListener() {
+        return new OnObjectChangedListener<Profile>() {
+            @Override
+            public void onObjectChanged(Profile profile) {
+                if (profile.getPostCount() == 1) {
+                    // show first post popup
+                    showPopupDialog(R.string.rating_benchmark);
+                }
+            }
+        };
     }
 
     private void refreshPostList() {
@@ -449,10 +456,10 @@ public class MainActivity extends BaseActivity {
     }
 
     private void openCreatePostActivity() {
-        int points_post_create = (int) mFirebaseRemoteConfig.getLong("points_post_create");
+        int points_post_create = (int) remoteConfig.getLong("points_post_create");
 //        if (userPoints == null) userPoints = 0L;
         if (userPoints < points_post_create) {
-            showPointsNeededDialog();
+            showPopupDialog(R.string.points_needed_text);
             return;
         }
         Intent intent = new Intent(this, CreatePostActivity.class);
@@ -462,6 +469,11 @@ public class MainActivity extends BaseActivity {
 
     private void openProfileActivity(String userId) {
         openProfileActivity(userId, null);
+    }
+
+    private void openFeedbackActivity() {
+        Intent intent = new Intent(MainActivity.this, FeedbackActivity.class);
+        startActivityForResult(intent, FeedbackActivity.CREATE_FEEDBACK);
     }
 
     private void openProfileActivity(String userId, View view) {
@@ -510,9 +522,9 @@ public class MainActivity extends BaseActivity {
         });
     }
 
-    private void showPointsNeededDialog() {
+    private void showPopupDialog(int messageId) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage(getResources().getString(R.string.points_needed_text));
+        builder.setMessage(getResources().getString(messageId));
         builder.setPositiveButton(R.string.button_ok, null);
         builder.show();
     }
@@ -526,7 +538,6 @@ public class MainActivity extends BaseActivity {
         return true;
     }
 
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         ProfileStatus profileStatus = profileManager.checkProfile();
@@ -539,6 +550,9 @@ public class MainActivity extends BaseActivity {
                 } else {
                     doAuthorization(profileStatus);
                 }
+                return true;
+            case R.id.feedback:
+                openFeedbackActivity();
                 return true;
             case R.id.notification:
                 if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {

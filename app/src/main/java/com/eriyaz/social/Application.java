@@ -17,11 +17,18 @@
 
 package com.eriyaz.social;
 
+import android.support.annotation.NonNull;
+
 import com.eriyaz.social.managers.DatabaseHelper;
+import com.eriyaz.social.utils.LogUtil;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 
 public class Application extends android.app.Application {
 
     public static final String TAG = Application.class.getSimpleName();
+    private FirebaseRemoteConfig mFirebaseRemoteConfig;
 
     @Override
     public void onCreate() {
@@ -29,5 +36,24 @@ public class Application extends android.app.Application {
 
         ApplicationHelper.initDatabaseHelper(this);
         DatabaseHelper.getInstance(this).subscribeToNewPosts();
+        mFirebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
+        mFirebaseRemoteConfig.setDefaults(R.xml.remote_config_defaults);
+        fetchRemoteConfig();
+    }
+
+    private void fetchRemoteConfig() {
+        mFirebaseRemoteConfig.fetch()
+            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+                        // After config data is successfully fetched, it must be activated before newly fetched
+                        // values are returned.
+                        mFirebaseRemoteConfig.activateFetched();
+                    } else {
+                        // don't do anything
+                    }
+                }
+            });
     }
 }

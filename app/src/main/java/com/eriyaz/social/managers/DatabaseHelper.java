@@ -22,6 +22,8 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.eriyaz.social.managers.listeners.OnPostCreatedListener;
+import com.eriyaz.social.model.Feedback;
 import com.eriyaz.social.model.Message;
 import com.eriyaz.social.model.Notification;
 import com.eriyaz.social.utils.Analytics;
@@ -196,7 +198,7 @@ public class DatabaseHelper {
         return databaseReference.child("posts").push().getKey();
     }
 
-    public void createOrUpdatePost(Post post) {
+    public void createOrUpdatePost(final Post post, final OnPostCreatedListener onPostCreatedListener) {
         try {
             DatabaseReference databaseReference = database.getReference();
 
@@ -204,7 +206,40 @@ public class DatabaseHelper {
             Map<String, Object> childUpdates = new HashMap<>();
             childUpdates.put("/posts/" + post.getId(), postValues);
 
-            databaseReference.updateChildren(childUpdates);
+            databaseReference.updateChildren(childUpdates, new DatabaseReference.CompletionListener() {
+                @Override
+                public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                    if (databaseError == null) {
+                        DatabaseReference postCountRef = database.getReference("profiles/" + post.getAuthorId() + "/postCount");
+                        incrementPostCount(postCountRef);
+                    } else {
+                        onPostCreatedListener.onPostSaved(false);
+                        LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
+                    }
+                }
+
+                private void incrementPostCount(DatabaseReference postRef) {
+                    postRef.runTransaction(new Transaction.Handler() {
+                        @Override
+                        public Transaction.Result doTransaction(MutableData mutableData) {
+                            Integer currentValue = mutableData.getValue(Integer.class);
+                            if (currentValue == null) {
+                                mutableData.setValue(1);
+                            } else {
+                                mutableData.setValue(currentValue + 1);
+                            }
+
+                            return Transaction.success(mutableData);
+                        }
+
+                        @Override
+                        public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+                            onPostCreatedListener.onPostSaved(true);
+                            LogUtil.logInfo(TAG, "Updating post count transaction is completed.");
+                        }
+                    });
+                }
+            });
             analytics.logPost();
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
@@ -278,6 +313,25 @@ public class DatabaseHelper {
         } catch (Exception e) {
             LogUtil.logError(TAG, "createMessage()", e);
         }
+    }
+
+    public void createFeedback(String feedbackText, final OnTaskCompleteListener onTaskCompleteListener) {
+            FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+            DatabaseReference mFeedbacksReference = database.getReference().child("feedbacks");
+            String feedbackId = mFeedbacksReference.push().getKey();
+            Feedback feedback = new Feedback(feedbackText);
+            feedback.setId(feedbackId);
+            if (firebaseUser != null) {
+                feedback.setAuthorId(firebaseUser.getUid());
+            }
+            analytics.logFeedback();
+            mFeedbacksReference.child(feedbackId).setValue(feedback, new DatabaseReference.CompletionListener() {
+                @Override
+                public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                    if (onTaskCompleteListener != null) {
+                        onTaskCompleteListener.onTaskComplete(true);
+                    }
+                }});
     }
 
     public void createComment(String commentText, final String postId, final OnTaskCompleteListener onTaskCompleteListener) {

@@ -17,13 +17,13 @@
 
 <resources>
     <string name="app_name">RateMySinging</string>
-    <string name="app_share_description">Community of singing lovers</string>
+    <string name="app_share_description">Connect with other singers and get their feedback on your singing. </string>
     <string name="app_share_title">RateMySinging - Android Play Store App</string>
     <string name="app_share_popup_title">Share this app on :</string>
     <string name="app_url">https://play.google.com/store/apps/details?id=com.eriyaz.social</string>
     <string name="dynamic_link_domain2">eriyaz.app.goo.gl</string>
     <string name="dynamic_link_domain">t6kaz.app.goo.gl</string>
-    <string name="app_share_email_sub">RateMySinging : Community of singing lovers</string>
+    <string name="app_share_email_sub">RateMySinging : Connect with other singers and get their feedback on your singing.</string>
     <string name="app_share_preview">"https://firebasestorage.googleapis.com/v0/b/eriyaz-social.appspot.com/o/images%2FApp_related%2Fpreview_app_share.png?alt=media&amp;token=dfa71a95-f5b4-4fee-81e6-e03c4400f309"</string>
     <string name="label_create_post_activity">Create post</string>
     <string name="label_post_detail_activity">Post detail</string>
@@ -35,6 +35,7 @@
     <string name="title_activity_edit_post">Edit post</string>
     <string name="title_activity_notification">Notifications</string>
     <string name="title_activity_messages">Messages</string>
+    <string name="title_activity_feedback">Feedback</string>
 
     <string name="text_take_photo">Take photo</string>
     <string name="text_pick_photo">Pick from Gallery</string>
@@ -44,8 +45,10 @@
     <string name="hint_title">Song name</string>
     <string name="hint_description">Additional notes</string>
     <string name="attempt_label">Attempt</string>
+    <string name="hint_feedback">Report an issue, suggest a feature, or send feedback.</string>
 
     <string name="message_post_was_created">Post was created</string>
+    <string name="feedback_sent">Your feedback was sent</string>
     <string name="error_fail_create_post">Fail to create post</string>
     <string name="error_fail_load_image">Fail to load image</string>
     <string name="error_fail_crop_image">Fail to crop image</string>
@@ -117,6 +120,7 @@
     </string>
 
     <string name="profile_menu_item">Profile</string>
+    <string name="feedback_menu_item">Give Feedback</string>
     <string name="notification_menu_item">Notification</string>
     <string name="share_app_menu_item">Share App</string>
     <string name="point_rule_menu_item">Points Rule</string>
@@ -136,7 +140,9 @@
     <string name="point_spent_view_rating">1 point spent to view rating.</string>
     <string name="points_needed_text">You need 3 points to post your recording. Please rate other people to earn points.</string>
     <string name="rating_self_recording">This is your own recording so your rating is not considered. Please wait for others to rate you.</string>
+    <string name="min_play_record">Dear user, it is not fair to evaluate someone before even listening properly. Please listen for at least 10 seconds before rating.</string>
     <string name="confirm_longer_recording">Statistics suggests people decide on rating after listening to just 30 secs on an average. So it is best to put shorter recordings to get more accurate evaluation. Shorter recordings also load faster and consume lest data. \nIf you still want to proceed with longer recording you will need to spend 10 points.</string>
+    <string name="rating_benchmark">Congratulations for posting your first recording! Your ratings will arrive shortly. Do note all the raters here are singers themselves and hence more critical than the general population. Hence it is safe to assume an "average" recording here will be considered "good" in the general population. Keep Singing!</string>
     <plurals name="posts_counter_format">
         <item quantity="one">post</item>
         <item quantity="other">posts</item>

@@ -20,6 +20,7 @@ public class Analytics {
     private FirebaseAnalytics firebase;
     public static final String RATING = "rating";
     public static final String COMMENT = "comment";
+    public static final String FEEDBACK = "feedback";
     public static final String MESSAGE = "message";
     public static final String POST = "Post";
     public static final String OPEN_OTHER_AUDIO = "OpenOtherAudio";
@@ -100,6 +101,11 @@ public class Analytics {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) bundle.putString("UserName", currentUser.getDisplayName());
         firebase.logEvent(COMMENT, bundle);
+    }
+
+    public void logFeedback() {
+        Bundle bundle = new Bundle();
+        firebase.logEvent(FEEDBACK, bundle);
     }
 
     public void logMessage() {

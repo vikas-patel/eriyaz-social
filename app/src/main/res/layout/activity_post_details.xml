@@ -141,19 +141,19 @@
                     android:textAppearance="@style/TextAppearance.Highlight" />
 
             </LinearLayout>
-            <include
-                android:id="@+id/seekbarContainer"
-                layout="@layout/seekbar_container"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/authorContainer" />
+            <!--<include-->
+                <!--android:id="@+id/seekbarContainer"-->
+                <!--layout="@layout/seekbar_container"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_below="@+id/authorContainer" />-->
 
             <include
                 android:id="@+id/countersContainer"
                 layout="@layout/counters_panel"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_below="@+id/seekbarContainer"
+                android:layout_below="@+id/authorContainer"
                 android:layout_marginBottom="@dimen/intrinsic_padding"
                 android:layout_marginLeft="@dimen/large_intrinsic_padding"
                 android:layout_marginRight="@dimen/large_intrinsic_padding" />
