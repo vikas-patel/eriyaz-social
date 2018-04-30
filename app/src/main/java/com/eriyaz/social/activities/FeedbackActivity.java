@@ -164,6 +164,7 @@ public class FeedbackActivity extends BaseActivity {
     }
 
     private void openProfileActivity(String userId) {
+        if (userId == null || userId.isEmpty()) return;
         Intent intent = new Intent(FeedbackActivity.this, ProfileActivity.class);
         intent.putExtra(ProfileActivity.USER_ID_EXTRA_KEY, userId);
         startActivity(intent);

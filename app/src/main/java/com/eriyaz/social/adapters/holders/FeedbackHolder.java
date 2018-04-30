@@ -102,9 +102,13 @@ public class FeedbackHolder extends ViewHolder {
             msgText = feedback.getText();
         }
         messageTextView.setText(msgText);
-        if (senderId != null)
+        if (senderId != null) {
             profileManager.getProfileSingleValue(senderId, createOnProfileChangeListener(messageTextView,
                     avatarImageView, msgText));
+        } else {
+            avatarImageView.setImageResource(R.drawable.ic_person);
+        }
+
 
 
         CharSequence date = FormatterUtil.getRelativeTimeSpanString(context, feedback.getCreatedDate());

@@ -93,6 +93,8 @@ public class ReplyTextViewHolder extends ViewHolder {
         if (firebaseUser != null) {
             String currentUserId = firebaseUser.getUid();
             profileManager.getProfileSingleValue(currentUserId, createOnProfileChangeListener(avatarImageView));
+        } else {
+            avatarImageView.setImageResource(R.drawable.ic_person);
         }
     }
 

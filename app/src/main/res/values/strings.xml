@@ -142,7 +142,7 @@
     <string name="points_needed_text">You need 3 points to post your recording. Please rate other people to earn points.</string>
     <string name="rating_self_recording">This is your own recording so your rating is not considered. Please wait for others to rate you.</string>
     <string name="min_play_record">Dear user, it is not fair to evaluate someone without listening properly. Please listen for at least 10 seconds before rating.</string>
-    <string name="confirm_longer_recording"><![CDATA[Statistics suggests people decide on rating after listening to just 30 secs on an average. So it is best to put shorter recordings to get more accurate evaluation. Shorter recordings also load faster and consume less data. \nIf you still want to proceed with longer recording <font color=\'#FF7F27\'>you will need to spend 10 points.</font>]]></string>
+    <string name="confirm_longer_recording"><![CDATA[Statistics suggests people decide on rating after listening to just 30 secs on an average. So it is best to put shorter recordings to get more accurate evaluation. Shorter recordings also load faster and consume less data. \nIf you still want to proceed with longer recording <font color=\'#17a1d7\'>you will need to spend 10 points.</font>]]></string>
     <string name="rating_benchmark">Congrats on your first recording. This is a hard to please audience of all singers. So, don\'t lose hope.</string>
     <plurals name="posts_counter_format">
         <item quantity="one">post</item>
