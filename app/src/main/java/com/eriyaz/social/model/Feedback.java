@@ -17,6 +17,8 @@
 package com.eriyaz.social.model;
 
 
+import android.support.annotation.NonNull;
+
 import com.eriyaz.social.utils.FormatterUtil;
 
 import java.util.Calendar;
@@ -24,12 +26,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Feedback {
+public class Feedback implements ListItem {
 
     private String id;
+    private String parentId;
     private String text;
     private String authorId;
     private long createdDate;
+    private boolean removed;
 
 
     public Feedback() {
@@ -74,13 +78,67 @@ public class Feedback {
         this.createdDate = createdDate;
     }
 
+    public String getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
+    }
+
+    public boolean isRemoved() {
+        return removed;
+    }
+
+    public void setRemoved(boolean removed) {
+        this.removed = removed;
+    }
+
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
 
         result.put("text", text);
+        result.put("parentId", parentId);
         result.put("createdDate", createdDate);
+        result.put("removed", removed);
         result.put("createdDateText", FormatterUtil.getFirebaseDateFormat().format(new Date(createdDate)));
 
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "Feedback{" +
+                "id='" + id + '\'' +
+                ", parentId='" + parentId + '\'' +
+                ", text='" + text + '\'' +
+                ", authorId='" + authorId + '\'' +
+                ", createdDate=" + createdDate +
+                ", removed=" + removed +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Feedback feedback = (Feedback) o;
+
+        return id.equals(feedback.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+
+    @Override
+    public int getListItemType() {
+        if (getParentId() != null) {
+            return ListItem.TEXT_CHILD;
+        } else {
+            return ListItem.TEXT;
+        }
     }
 }

@@ -128,6 +128,12 @@ public class MessageActivity extends BaseActivity {
         supportPostponeEnterTransition();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        profileManager.closeListeners(this);
+    }
+
     private OnObjectChangedListener<Profile> createProfileChangeListener() {
         return new OnObjectChangedListener<Profile>() {
             @Override

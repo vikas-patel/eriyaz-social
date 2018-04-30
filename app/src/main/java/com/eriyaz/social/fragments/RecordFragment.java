@@ -15,6 +15,7 @@ import android.os.CountDownTimer;
 import android.os.Environment;
 import android.os.IBinder;
 import android.support.v7.app.AlertDialog;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -296,6 +297,7 @@ public class RecordFragment extends Fragment {
             Intent intent = new Intent(getActivity(), RecordingService.class);
             getActivity().stopService(intent);
             getActivity().unbindService(mConnection);
+            if (countDownTimer != null) countDownTimer.cancel();
         }
         super.onDestroy();
     }
@@ -314,7 +316,7 @@ public class RecordFragment extends Fragment {
 
     private void openConfirmSwitchDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
-        builder.setMessage(R.string.confirm_longer_recording)
+        builder.setMessage(Html.fromHtml(getString(R.string.confirm_longer_recording)))
                 .setNegativeButton(R.string.button_title_cancel, null)
                 .setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
                     @Override

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="@dimen/message_avatar_height"
+    android:paddingTop="@dimen/small_intrinsic_padding">
+        <com.eriyaz.social.views.CircularImageView
+            android:id="@+id/avatarImageView"
+            android:layout_width="@dimen/reply_avatar_height"
+            android:layout_height="@dimen/reply_avatar_height"
+            app:srcCompat="@drawable/ic_person"
+            android:layout_gravity="center_vertical"
+            app:shadow="false"
+            app:border="true"
+            app:border_width="0dp" />
+
+        <EditText
+            android:id="@+id/messageEditText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:background="@android:color/white"
+            android:hint="@string/smaller_reply_text_hint"
+            android:inputType="textMultiLine"
+            android:maxHeight="@dimen/reply_max_height"
+            android:minHeight="@dimen/reply_min_height"
+            android:padding="@dimen/intrinsic_padding" />
+
+        <Button
+            android:id="@+id/sendButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_margin="@dimen/small_intrinsic_padding"
+            android:background="@drawable/send_comment_button_bg"
+            android:enabled="false"
+            android:minWidth="0dp"
+            android:paddingLeft="@dimen/intrinsic_padding"
+            android:paddingRight="@dimen/intrinsic_padding"
+            android:text="@string/send_comment_button_label"
+            android:maxHeight="@dimen/reply_max_height"
+            android:minHeight="@dimen/reply_min_height"
+            android:textColor="@android:color/white" />
+
+</LinearLayout>

@@ -122,14 +122,15 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("New version available")
                 .setMessage("Please, update app to new version to continue reposting.")
-                .setNegativeButton("No, thanks", null)
+//                .setNegativeButton("No, thanks", null)
                 .setPositiveButton("Update", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         redirectStore();
                     }
                 }).create();
-
+        dialog.setCancelable(false);
+//        dialog.setCanceledOnTouchOutside(false);
         dialog.show();
     }
 

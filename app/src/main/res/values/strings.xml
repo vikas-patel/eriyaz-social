@@ -35,7 +35,7 @@
     <string name="title_activity_edit_post">Edit post</string>
     <string name="title_activity_notification">Notifications</string>
     <string name="title_activity_messages">Messages</string>
-    <string name="title_activity_feedback">Feedback</string>
+    <string name="title_activity_feedback">Contact Us</string>
 
     <string name="text_take_photo">Take photo</string>
     <string name="text_pick_photo">Pick from Gallery</string>
@@ -71,6 +71,7 @@
 
     <string name="comment_text_hint">Enter your comment…</string>
     <string name="message_text_hint">Enter your message…</string>
+    <string name="smaller_reply_text_hint"><font size='12'>Enter your reply...</font></string>
     <string name="button_post_comment">Post comment</string>
     <string name="comment_not_ok_hint">Please give feedback on what can be improved. It is mandatory for \'Not Ok\' rating.</string>
 
@@ -120,7 +121,7 @@
     </string>
 
     <string name="profile_menu_item">Profile</string>
-    <string name="feedback_menu_item">Give Feedback</string>
+    <string name="feedback_menu_item">Contact Us</string>
     <string name="notification_menu_item">Notification</string>
     <string name="share_app_menu_item">Share App</string>
     <string name="point_rule_menu_item">Points Rule</string>
@@ -140,9 +141,9 @@
     <string name="point_spent_view_rating">1 point spent to view rating.</string>
     <string name="points_needed_text">You need 3 points to post your recording. Please rate other people to earn points.</string>
     <string name="rating_self_recording">This is your own recording so your rating is not considered. Please wait for others to rate you.</string>
-    <string name="min_play_record">Dear user, it is not fair to evaluate someone before even listening properly. Please listen for at least 10 seconds before rating.</string>
-    <string name="confirm_longer_recording">Statistics suggests people decide on rating after listening to just 30 secs on an average. So it is best to put shorter recordings to get more accurate evaluation. Shorter recordings also load faster and consume lest data. \nIf you still want to proceed with longer recording you will need to spend 10 points.</string>
-    <string name="rating_benchmark">Congratulations for posting your first recording! Your ratings will arrive shortly. Do note all the raters here are singers themselves and hence more critical than the general population. Hence it is safe to assume an "average" recording here will be considered "good" in the general population. Keep Singing!</string>
+    <string name="min_play_record">Dear user, it is not fair to evaluate someone without listening properly. Please listen for at least 10 seconds before rating.</string>
+    <string name="confirm_longer_recording"><![CDATA[Statistics suggests people decide on rating after listening to just 30 secs on an average. So it is best to put shorter recordings to get more accurate evaluation. Shorter recordings also load faster and consume less data. \nIf you still want to proceed with longer recording <font color=\'#FF7F27\'>you will need to spend 10 points.</font>]]></string>
+    <string name="rating_benchmark">Congrats on your first recording. This is a hard to please audience of all singers. So, don\'t lose hope.</string>
     <plurals name="posts_counter_format">
         <item quantity="one">post</item>
         <item quantity="other">posts</item>
@@ -187,6 +188,8 @@
     <string name="title_edit_comment">Edit comment</string>
     <string name="title_not_ok_comment">Why \'Not Ok\'?</string>
     <string name="message_was_removed">Message was removed</string>
+    <string name="feedback_was_removed">Feedback was removed</string>
+    <string name="placeholder_feedback_removed">[removed by author]</string>
     <!-- Recording Screen -->
     <string name="pause_recording_button">Pause</string>
     <string name="resume_recording_button">Resume</string>
