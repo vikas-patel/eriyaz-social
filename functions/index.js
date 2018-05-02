@@ -713,3 +713,18 @@ exports.appNotificationMessages = functions.database.ref('/user-messages/{userId
         });
     });
 });
+
+
+const bigquery = require('@google-cloud/bigquery')();
+
+// exports.syncBigQueryPost = functions.database.ref('/posts/{postId}').onCreate((snapshot,context) => {
+  
+// 	const dataset = bigquery.dataset("com_eriyaz_social_ANDROID");
+// 	const table = dataset.table("post");
+  
+// 	const postTitle = snapshot.val().title;
+// 	return table.insert({
+// 		id: context.params.postId,
+// 		title : postTitle,
+// 	  });
+// });
