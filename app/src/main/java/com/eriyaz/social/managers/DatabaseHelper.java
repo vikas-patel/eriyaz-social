@@ -315,11 +315,10 @@ public class DatabaseHelper {
         }
     }
 
-    public void createFeedback(String feedbackText, final OnTaskCompleteListener onTaskCompleteListener) {
+    public void createFeedback(Feedback feedback, final OnTaskCompleteListener onTaskCompleteListener) {
             FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
             DatabaseReference mFeedbacksReference = database.getReference().child("feedbacks");
             String feedbackId = mFeedbacksReference.push().getKey();
-            Feedback feedback = new Feedback(feedbackText);
             feedback.setId(feedbackId);
             if (firebaseUser != null) {
                 feedback.setAuthorId(firebaseUser.getUid());
@@ -435,6 +434,22 @@ public class DatabaseHelper {
         DatabaseReference databaseReference = database.getReference();
         DatabaseReference postRef = databaseReference.child("user-messages").child(userId).child(messageId);
         postRef.removeValue(new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                if (databaseError == null) {
+                    onTaskCompleteListener.onTaskComplete(true);
+                } else {
+                    onTaskCompleteListener.onTaskComplete(false);
+                    LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
+                }
+            }
+        });
+    }
+
+    public void removeFeedback(String feedbackId, final OnTaskCompleteListener onTaskCompleteListener) {
+        DatabaseReference databaseReference = database.getReference();
+        DatabaseReference removeAttributetRef = databaseReference.child("feedbacks").child(feedbackId).child("removed");
+        removeAttributetRef.setValue(true, new DatabaseReference.CompletionListener() {
             @Override
             public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
                 if (databaseError == null) {
@@ -954,6 +969,37 @@ public class DatabaseHelper {
 
                 onDataChangedListener.onListChanged(list);
 
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                LogUtil.logError(TAG, "getCommentsList(), onCancelled", new Exception(databaseError.getMessage()));
+            }
+        });
+
+        activeListeners.put(valueEventListener, databaseReference);
+        return valueEventListener;
+    }
+
+    public ValueEventListener getFeedbackList(final OnDataChangedListener<Feedback> onDataChangedListener) {
+        DatabaseReference databaseReference = database.getReference("feedbacks");
+        ValueEventListener valueEventListener = databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                List<Feedback> list = new ArrayList<>();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Feedback feedback = snapshot.getValue(Feedback.class);
+                    list.add(feedback);
+                }
+
+                Collections.sort(list, new Comparator<Feedback>() {
+                    @Override
+                    public int compare(Feedback lhs, Feedback rhs) {
+                        return ((Long) rhs.getCreatedDate()).compareTo((Long) lhs.getCreatedDate());
+                    }
+                });
+
+                onDataChangedListener.onListChanged(list);
             }
 
             @Override

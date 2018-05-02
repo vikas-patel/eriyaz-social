@@ -6,6 +6,8 @@ admin.initializeApp(functions.config().firebase);
 const promisePool = require('es6-promise-pool');
 const PromisePool = promisePool.PromisePool;
 
+const nodemailer = require('nodemailer');
+
 const actionTypeNewRating = "new_rating"
 const actionTypeNewComment = "new_comment"
 const actionTypeNewPost = "new_post"
@@ -14,6 +16,16 @@ const notificationTitle = "RateMySinging"
 const postsTopic = "postsTopic"
 // Maximum concurrent database connection.
 const MAX_CONCURRENT = 3;
+
+const gmailEmail = functions.config().gmail.email;
+const gmailPassword = functions.config().gmail.password;
+const mailTransport = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: gmailEmail,
+    pass: gmailPassword,
+  },
+});
 
 exports.pushNotificationRatings = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onCreate(event => {
 
@@ -194,6 +206,23 @@ exports.pushNotificationPostNew = functions.database.ref('/posts/{postId}').onCr
          });
 
 });
+
+// exports.emailFeedback = functions.database.ref('/feedbacks/{feedbackId}').onCreate(event => {
+//   const val = event.data.val()
+
+//   const mailOptions = {
+//     from: '"RateMySinging App" <eriyazonline@gmail.com>',
+//     to: gmailEmail,
+//   };
+
+//   // Building Email message.
+//   mailOptions.subject = 'RateMySinging Feedback';
+//   mailOptions.text = val.text;
+
+//   return mailTransport.sendMail(mailOptions)
+//     .then(() => console.log(`email sent`))
+//     .catch((error) => console.error('There was an error while sending the email:', error));
+// });
 
 // Keeps track of the length of the 'likes' child list in a separate property.
 exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onWrite(event => {
@@ -514,6 +543,88 @@ exports.appNotificationCommentConversation = functions.database.ref('/post-comme
                 const poolTask =  promisePool.start();
                 return poolTask.then(() => {
                     return console.log('sent notification task completed.');
+                });
+            });
+        });
+    });
+});
+
+exports.appNotificationFeedbackConversation = functions.database.ref('/feedbacks/{feedbackId}').onCreate(event => {
+    console.log('App notification for new feedback in conversation');
+
+    const feedbackListRef = event.data.ref.parent;
+    const feedbackId = event.params.feedbackId;
+    const feedback = event.data.val();
+    const feedbackAuthorId = feedback.authorId;
+    const parentFeedbackId = feedback.parentId;
+
+    if (parentFeedbackId == null) {
+        return console.log("stand alone feedback: don't send any notification, ", feedbackId);
+    }
+
+    // Get parent feedback.
+    const getParentFeedbackTask = admin.database().ref(`/feedbacks/${parentFeedbackId}`).once('value');
+
+    return getParentFeedbackTask.then(parentFeedback => {
+        const parentFeedbackVal = parentFeedback.val();
+        console.log("new reply on feedback ", parentFeedbackVal.id);
+        var parentFeedbackAuthorId = parentFeedbackVal.authorId;
+        var sentParentAuthorNotification = false;
+        if (parentFeedbackAuthorId != feedbackAuthorId) sentParentAuthorNotification = true;
+
+        // Get all feedback with same parent feedback
+        const getChildrenFeedbackTask = feedbackListRef.orderByChild('parentId').equalTo(parentFeedbackId).once('value');
+        return getChildrenFeedbackTask.then(snapshot => {
+            const authorToNotify = [];
+            snapshot.forEach(function(feedbackSnap) {
+                // exclude parent author & feedback author
+                const notifyAuthorId = feedbackSnap.val().authorId;
+                if (notifyAuthorId  != parentFeedbackAuthorId && notifyAuthorId != feedbackAuthorId ) {
+                    if (!authorToNotify.includes(notifyAuthorId)) {
+                        authorToNotify.push(notifyAuthorId);
+                    }
+                }
+            });
+            if (authorToNotify.length == 0 && sentParentAuthorNotification == false) return;
+            // Get feedback author.
+            const getFeedbackAuthorProfileTask = admin.database().ref(`/profiles/${feedbackAuthorId}`).once('value');
+            return getFeedbackAuthorProfileTask.then(profile => {
+                const promisePool = new PromisePool(() => {
+                    if (sentParentAuthorNotification) {
+                        sentParentAuthorNotification = false;
+                        // Get user notification ref
+                        const userNotificationsRef = admin.database().ref(`/user-notifications/${parentFeedbackAuthorId}`);
+                        var newNotificationRef = userNotificationsRef.push();
+                        var msg = profile.val().username + " replied on your feedback.";
+                        return newNotificationRef.set({
+                            'action': 'com.eriyaz.social.activities.FeedbackActivity',
+                            'fromUserId' : feedbackAuthorId,
+                            'message': msg,
+                            'createdDate': admin.database.ServerValue.TIMESTAMP
+                        }).then(() => {
+                            console.log('sent reply notification on your feedback ', parentFeedbackAuthorId);
+                        });
+                    }
+                  if (authorToNotify.length > 0) {
+                    const authorId = authorToNotify.pop();
+                    // Get user notification ref
+                    const userNotificationsRef = admin.database().ref(`/user-notifications/${authorId}`);
+                    var newNotificationRef = userNotificationsRef.push();
+                    var msg = profile.val().username + " replied on the feedback on which you also replied.";
+                    return newNotificationRef.set({
+                        'action': 'com.eriyaz.social.activities.FeedbackActivity',
+                        'fromUserId' : feedbackAuthorId,
+                        'message': msg,
+                        'createdDate': admin.database.ServerValue.TIMESTAMP
+                    }).then(() => {
+                        console.log('sent new feedback reply notification on feedback you replied to ', authorId);
+                    });
+                  }
+                  return null;
+                }, MAX_CONCURRENT);
+                const poolTask =  promisePool.start();
+                return poolTask.then(() => {
+                    return console.log('sent feedback notification task completed.');
                 });
             });
         });

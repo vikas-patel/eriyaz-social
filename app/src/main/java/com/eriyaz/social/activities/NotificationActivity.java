@@ -63,6 +63,12 @@ public class NotificationActivity extends BaseActivity {
         supportPostponeEnterTransition();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        profileManager.closeListeners(this);
+    }
+
     private void onRefreshAction() {
         profileManager.getNotificationsList(userId, createOnNotificationsChangedDataListener());
     }

@@ -40,24 +40,23 @@ public class ForceUpdateChecker {
     public void check() {
         final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
         if (remoteConfig.getBoolean(KEY_UPDATE_REQUIRED)) {
-            String currentVersion = remoteConfig.getString(KEY_CURRENT_VERSION);
-            String appVersion = getAppVersion(context);
-
-            if (!TextUtils.equals(currentVersion, appVersion)
+            int currentVersion = (int) remoteConfig.getLong(KEY_CURRENT_VERSION);
+            int appVersion = getAppVersion(context);
+            if (appVersion != 0 && currentVersion > appVersion
                     && onUpdateNeededListener != null) {
                 onUpdateNeededListener.onUpdateNeeded();
             }
         }
     }
 
-    private String getAppVersion(Context context) {
-        String result = "";
+    private int getAppVersion(Context context) {
+        int result = 0;
 
         try {
             result = context.getPackageManager()
                     .getPackageInfo(context.getPackageName(), 0)
-                    .versionName;
-            result = result.replaceAll("[a-zA-Z]|-", "");
+                    .versionCode;
+//            result = result.replaceAll("[a-zA-Z]|-", "");
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, e.getMessage());
         }
