@@ -23,6 +23,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.eriyaz.social.managers.listeners.OnPostCreatedListener;
+import com.eriyaz.social.model.BoughtFeedback;
 import com.eriyaz.social.model.Feedback;
 import com.eriyaz.social.model.Message;
 import com.eriyaz.social.model.Notification;
@@ -1225,5 +1226,61 @@ public class DatabaseHelper {
 
     public void subscribeToNewPosts() {
         FirebaseMessaging.getInstance().subscribeToTopic("postsTopic");
+    }
+
+    public void createBoughtFeedback(final String postId, final OnTaskCompleteListener onTaskCompleteListener) {
+        try {
+//            String authorId = firebaseAuth.getCurrentUser().getUid();
+            DatabaseReference mBoughtFeedbacksReference = database.getReference("bought-feedbacks");
+            String boughtFeedbackId = mBoughtFeedbacksReference.push().getKey();
+            BoughtFeedback boughtFeedback = new BoughtFeedback(postId, "ash");
+            boughtFeedback.setId(boughtFeedbackId);
+//            analytics.logComment();
+
+            mBoughtFeedbacksReference.child(boughtFeedbackId).setValue(boughtFeedback, new DatabaseReference.CompletionListener() {
+                @Override
+                public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                    if (databaseError == null) {
+                        LogUtil.logDebug(TAG, "Bought Feedback Success.");
+                    } else {
+                        LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
+                    }
+                }
+            });
+        } catch (Exception e) {
+            LogUtil.logError(TAG, "createBoughtFeedback()", e);
+        }
+    }
+
+    public ValueEventListener getBoughtFeedbacksList(final OnDataChangedListener<BoughtFeedback> onDataChangedListener) {
+        DatabaseReference databaseReference = database.getReference("bought-feedbacks");
+        ValueEventListener valueEventListener = databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                List<BoughtFeedback> list = new ArrayList<>();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    BoughtFeedback boughtFeedback = snapshot.getValue(BoughtFeedback.class);
+                    list.add(boughtFeedback);
+                }
+
+                Collections.sort(list, new Comparator<BoughtFeedback>() {
+                    @Override
+                    public int compare(BoughtFeedback lhs, BoughtFeedback rhs) {
+                        return ((Long) rhs.getCreatedDate()).compareTo((Long) lhs.getCreatedDate());
+                    }
+                });
+
+                onDataChangedListener.onListChanged(list);
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                LogUtil.logError(TAG, "getBoughtFeedbacksList(), onCancelled", new Exception(databaseError.getMessage()));
+            }
+        });
+
+        activeListeners.put(valueEventListener, databaseReference);
+        return valueEventListener;
     }
 }

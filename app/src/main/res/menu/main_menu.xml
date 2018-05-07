@@ -25,6 +25,11 @@
         android:title="@string/feedback_menu_item"
         app:showAsAction="never"
         android:orderInCategory="1" />
+    <item
+        android:id="@+id/admin_menu_item"
+        android:title="@string/admin_menu_item"
+        app:showAsAction="never"
+        android:orderInCategory="1" />
     <!--<item-->
         <!--android:id="@+id/point_rule"-->
         <!--android:title="@string/point_rule_menu_item"-->
