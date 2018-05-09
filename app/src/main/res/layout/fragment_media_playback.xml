@@ -39,54 +39,10 @@
                 app:rewind_increment="5000"
                 android:layout_height="80dp"/>
 
-            <!--<SeekBar-->
-                <!--android:id="@+id/seekbar"-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="wrap_content" />-->
-
             <RelativeLayout
                 android:layout_marginTop="@dimen/large_intrinsic_padding"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
-
-                <!--<TextView-->
-                    <!--android:id="@+id/current_progress_text_view"-->
-                    <!--android:layout_width="wrap_content"-->
-                    <!--android:layout_height="wrap_content"-->
-                    <!--android:layout_alignParentLeft="true"-->
-                    <!--android:layout_alignParentStart="true"-->
-                    <!--android:layout_alignParentTop="true"-->
-                    <!--android:layout_marginLeft="@dimen/intrinsic_padding" />-->
-                <!--<TextView-->
-                    <!--android:id="@+id/txtPercentage"-->
-                    <!--android:layout_width="wrap_content"-->
-                    <!--android:layout_height="wrap_content"-->
-                    <!--android:layout_centerHorizontal="true"-->
-                    <!--android:textColor="@color/primary"/>-->
-
-                <!--<com.melnykov.fab.FloatingActionButton-->
-                    <!--android:id="@+id/fab_play"-->
-                    <!--android:layout_width="wrap_content"-->
-                    <!--android:layout_height="wrap_content"-->
-                    <!--android:layout_centerHorizontal="true"-->
-                    <!--android:layout_marginBottom="@dimen/large_intrinsic_padding"-->
-                    <!--android:layout_marginTop="@dimen/small_intrinsic_padding"-->
-                    <!--android:layout_below="@+id/txtPercentage"-->
-                    <!--android:src="@drawable/ic_media_play"-->
-                    <!--app:fab_colorNormal="@color/primary"-->
-                    <!--app:fab_colorPressed="@color/primary"-->
-                    <!--app:fab_shadow="false" />-->
-
-
-                <!--<TextView-->
-                    <!--android:id="@+id/file_length_text_view"-->
-                    <!--android:layout_width="wrap_content"-->
-                    <!--android:layout_height="wrap_content"-->
-                    <!--android:layout_alignParentEnd="true"-->
-                    <!--android:layout_alignParentRight="true"-->
-                    <!--android:layout_alignParentTop="true"-->
-                    <!--android:layout_marginRight="@dimen/intrinsic_padding"-->
-                    <!--android:layout_marginEnd="@dimen/intrinsic_padding" />-->
                 <include
                     android:id="@+id/seekbarContainer"
                     layout="@layout/seekbar_container"
@@ -125,7 +81,92 @@
                     android:layout_height="wrap_content"
                     android:layout_width="wrap_content"
                     android:layout_alignParentEnd="true" />
+                <TextView
+                    android:id="@+id/moreTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:layout_alignBaseline="@id/closeButton"
+                    android:text="More"
+                    android:textSize="21sp"
+                    android:gravity="end"
+                    android:textAppearance="@style/TextAppearance.Highlight" />
 
+                <LinearLayout android:id="@+id/detailedFeedbackLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    android:layout_below="@+id/seekbarContainer"
+                    android:layout_toLeftOf="@id/closeButton"
+                    android:orientation="vertical">
+                    <TextView
+                        android:text="Melody %"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_column="0" />
+                    <com.xw.repo.BubbleSeekBar
+                        android:id="@+id/melodySeekBar"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:bsb_max="100"
+                        app:bsb_min="0"
+                        app:bsb_progress="0"
+                        app:bsb_thumb_radius="10dp"
+                        app:bsb_show_thumb_text="false"
+                        app:bsb_touch_to_seek="true"/>
+                    <TextView
+                        android:text="Voice Quality"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                    <RadioGroup
+                        android:id="@+id/voiceQualityRadioGroup"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" >
+                        <RadioButton
+                            android:id="@+id/averageBtnId"
+                            android:text="Average"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                        <RadioButton
+                            android:id="@+id/goodBtnId"
+                            android:text="Good"
+                            android:checked="true"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                        <RadioButton
+                            android:id="@+id/excellentBtnId"
+                            android:text="Excellent"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </RadioGroup>
+                    <android.support.design.widget.TextInputLayout
+                        android:id="@+id/commentLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+                        <EditText
+                            android:id="@+id/additionalCommentEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="start"
+                            android:lines="3"
+                            android:focusable="true"
+                            android:focusableInTouchMode="true"
+                            android:hint="@string/hint_detailed_comment"
+                            android:inputType="textMultiLine" />
+
+                    </android.support.design.widget.TextInputLayout>
+                </LinearLayout>
+                <Button android:id="@+id/submitButton"
+                    android:visibility="gone"
+                    android:text="submit"
+                    android:minHeight="0dp"
+                    android:minWidth="0dp"
+                    android:layout_below="@+id/closeButton"
+                    android:layout_alignParentRight="true"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:layout_alignParentEnd="true" />
             </RelativeLayout>
 
 

@@ -333,14 +333,11 @@ public class DatabaseHelper {
                 }});
     }
 
-    public void createComment(String commentText, final String postId, final OnTaskCompleteListener onTaskCompleteListener) {
+    public void createComment(Comment comment, final String postId, final OnTaskCompleteListener onTaskCompleteListener) {
         try {
-            String authorId = firebaseAuth.getCurrentUser().getUid();
             DatabaseReference mCommentsReference = database.getReference().child("post-comments/" + postId);
             String commentId = mCommentsReference.push().getKey();
-            Comment comment = new Comment(commentText);
             comment.setId(commentId);
-            comment.setAuthorId(authorId);
             analytics.logComment();
 
             mCommentsReference.child(commentId).setValue(comment, new DatabaseReference.CompletionListener() {
@@ -380,6 +377,13 @@ public class DatabaseHelper {
         } catch (Exception e) {
             LogUtil.logError(TAG, "createComment()", e);
         }
+    }
+
+    public void createComment(String commentText, String postId, final OnTaskCompleteListener onTaskCompleteListener) {
+        Comment comment = new Comment(commentText);
+        String authorId = firebaseAuth.getCurrentUser().getUid();
+        comment.setAuthorId(authorId);
+        createComment(comment, postId, onTaskCompleteListener);
     }
 
     public void updateComment(String commentId, String commentText, String postId, final OnTaskCompleteListener onTaskCompleteListener) {

@@ -13,6 +13,10 @@ import android.util.SparseArray;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import com.eriyaz.social.Constants;
@@ -23,6 +27,11 @@ import com.eriyaz.social.activities.PostDetailsActivity;
 import com.eriyaz.social.activities.ProfileActivity;
 import com.eriyaz.social.controllers.RatingController;
 import com.eriyaz.social.dialogs.CommentDialog;
+import com.eriyaz.social.enums.ProfileStatus;
+import com.eriyaz.social.managers.CommentManager;
+import com.eriyaz.social.managers.ProfileManager;
+import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
+import com.eriyaz.social.model.Comment;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.model.RecordingItem;
@@ -33,7 +42,6 @@ import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
@@ -43,6 +51,7 @@ import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.upstream.FileDataSource;
 import com.google.android.exoplayer2.util.Util;
+import com.google.firebase.auth.FirebaseAuth;
 import com.xw.repo.BubbleSeekBar;
 
 import java.util.Date;
@@ -69,6 +78,15 @@ public class PlaybackFragment extends DialogFragment {
     private long playbackPosition = 0;
     private boolean playWhenReady = false;
     private ComponentListener componentListener;
+    private TextView moreTextView;
+    private LinearLayout detailedFeedbackLayout;
+    private Button submitButton;
+    private EditText additionalCommentEditText;
+    private BubbleSeekBar melodySeekBar;
+    private RadioGroup voiceQualityRadioGroup;
+    private CommentManager commentManager;
+    private FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+
 
     public PlaybackFragment newInstance(RecordingItem item) {
         PlaybackFragment f = new PlaybackFragment();
@@ -146,6 +164,26 @@ public class PlaybackFragment extends DialogFragment {
                 dismiss();
             }
         });
+        detailedFeedbackLayout = view.findViewById(R.id.detailedFeedbackLayout);
+        moreTextView = view.findViewById(R.id.moreTextView);
+        moreTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                detailedFeedbackLayout.setVisibility(View.VISIBLE);
+                submitButton.setVisibility(View.VISIBLE);
+                moreTextView.setVisibility(View.GONE);
+            }
+        });
+        submitButton = view.findViewById(R.id.submitButton);
+        submitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                submitDetailedFeedback();
+            }
+        });
+        additionalCommentEditText = view.findViewById(R.id.additionalCommentEditText);
+        melodySeekBar = view.findViewById(R.id.melodySeekBar);
+        voiceQualityRadioGroup = view.findViewById(R.id.voiceQualityRadioGroup);
 
         mFileNameTextView.setText(item.getName());
         updateRatingDetails();
@@ -154,8 +192,43 @@ public class PlaybackFragment extends DialogFragment {
         dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         componentListener = new ComponentListener();
         playerView = view.findViewById(R.id.exoPlayerView);
+        commentManager = CommentManager.getInstance(this.getActivity());
 
         return builder.create();
+    }
+
+    private void submitDetailedFeedback() {
+        BaseActivity baseActivity = (BaseActivity) getActivity();
+        if (!baseActivity.hasInternetConnection()) {
+            baseActivity.showSnackBar(R.string.internet_connection_failed);
+            return;
+        }
+        ProfileStatus profileStatus = ProfileManager.getInstance(this.getActivity()).checkProfile();
+        if (!profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
+            baseActivity.doAuthorization(profileStatus);
+            return;
+        }
+        if (melodySeekBar.getProgress() == 0 || additionalCommentEditText.getText() == null || additionalCommentEditText.getText().length() == 0) {
+            return;
+        }
+        RadioButton selectedVoiceQuality = voiceQualityRadioGroup.findViewById(voiceQualityRadioGroup.getCheckedRadioButtonId());
+        String detailed_feedback_text = String.format(getString(R.string.detailed_feedback_combined),
+                melodySeekBar.getProgress(),
+                selectedVoiceQuality.getText(),
+                additionalCommentEditText.getText());
+        Comment detailed_comment = new Comment(detailed_feedback_text);
+        detailed_comment.setDetailedFeedback(true);
+        detailed_comment.setAuthorId(firebaseAuth.getCurrentUser().getUid());
+        commentManager.createOrUpdateComment(detailed_feedback_text, post.getId(), new OnTaskCompleteListener() {
+            @Override
+            public void onTaskComplete(boolean success) {
+                if (success) {
+                    dismiss();
+                } else {
+                    ((BaseActivity) getActivity()).showSnackBar(R.string.error_fail_create_detailed_feedback);
+                }
+            }
+        });
     }
 
     @Override

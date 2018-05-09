@@ -30,6 +30,7 @@ public class Comment {
     private String text;
     private String authorId;
     private long createdDate;
+    private boolean isDetailedFeedback;
 
 
     public Comment() {
@@ -72,6 +73,14 @@ public class Comment {
 
     public void setCreatedDate(long createdDate) {
         this.createdDate = createdDate;
+    }
+
+    public boolean isDetailedFeedback() {
+        return isDetailedFeedback;
+    }
+
+    public void setDetailedFeedback(boolean detailedFeedback) {
+        isDetailedFeedback = detailedFeedback;
     }
 
     public Map<String, Object> toMap() {

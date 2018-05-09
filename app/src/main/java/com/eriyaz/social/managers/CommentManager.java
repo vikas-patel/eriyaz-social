@@ -54,6 +54,10 @@ public class CommentManager extends FirebaseListenersManager {
         ApplicationHelper.getDatabaseHelper().createComment(commentText, postId, onTaskCompleteListener);
     }
 
+    public void createOrUpdateComment(Comment comment, String postId, OnTaskCompleteListener onTaskCompleteListener) {
+        ApplicationHelper.getDatabaseHelper().createComment(comment, postId, onTaskCompleteListener);
+    }
+
     public void decrementCommentsCount(String postId, OnTaskCompleteListener onTaskCompleteListener) {
         ApplicationHelper.getDatabaseHelper().decrementCommentsCount(postId, onTaskCompleteListener);
     }

@@ -107,13 +107,12 @@ public class FeedbackActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 if (hasInternetConnection()) {
-                    sendFeedback();
-//                    ProfileStatus profileStatus = ProfileManager.getInstance(FeedbackActivity.this).checkProfile();
-//                    if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
-//                        sendFeedback();
-//                    } else {
-//                        doAuthorization(profileStatus);
-//                    }
+                    ProfileStatus profileStatus = ProfileManager.getInstance(FeedbackActivity.this).checkProfile();
+                    if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
+                        sendFeedback();
+                    } else {
+                        doAuthorization(profileStatus);
+                    }
                 } else {
                     showSnackBar(R.string.internet_connection_failed);
                 }
@@ -143,10 +142,15 @@ public class FeedbackActivity extends BaseActivity {
 
                 @Override
                 public void sendReply(String messageText, String parentId) {
-                    Feedback feedback = new Feedback(messageText);
-                    feedback.setParentId(parentId);
-                    saveFeedback(feedback);
-                    hideKeyBoard();
+                    ProfileStatus profileStatus = ProfileManager.getInstance(FeedbackActivity.this).checkProfile();
+                    if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
+                        Feedback feedback = new Feedback(messageText);
+                        feedback.setParentId(parentId);
+                        saveFeedback(feedback);
+                        hideKeyBoard();
+                    } else {
+                        doAuthorization(profileStatus);
+                    }
                 }
 
                 @Override
