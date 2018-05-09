@@ -124,6 +124,7 @@
 
     <string name="profile_menu_item">Profile</string>
     <string name="feedback_menu_item">Contact Us</string>
+    <string name="admin_menu_item">Admin</string>
     <string name="notification_menu_item">Notification</string>
     <string name="share_app_menu_item">Share App</string>
     <string name="point_rule_menu_item">Points Rule</string>

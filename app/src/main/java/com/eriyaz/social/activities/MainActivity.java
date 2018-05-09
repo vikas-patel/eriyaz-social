@@ -477,6 +477,11 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         startActivityForResult(intent, FeedbackActivity.CREATE_FEEDBACK);
     }
 
+    private void openAdminActivity() {
+        Intent intent = new Intent(MainActivity.this, AdminActivity.class);
+        startActivityForResult(intent, 30);
+    }
+
     private void openProfileActivity(String userId, View view) {
         Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
         intent.putExtra(ProfileActivity.USER_ID_EXTRA_KEY, userId);
@@ -536,6 +541,9 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         inflater.inflate(R.menu.main_menu, menu);
 
         mOptionsMenu = menu;
+//        mOptionsMenu.getItem(4).setVisible(false);
+//        MenuItem adminItem = (MenuItem) findViewById(R.id.admin_menu_item);
+//        adminItem.setVisible(false);
         return true;
     }
 
@@ -554,6 +562,9 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
                 return true;
             case R.id.feedback:
                 openFeedbackActivity();
+                return true;
+            case R.id.admin_menu_item:
+                openAdminActivity();
                 return true;
             case R.id.notification:
                 if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {

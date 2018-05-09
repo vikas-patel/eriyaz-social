@@ -72,6 +72,7 @@ import com.eriyaz.social.enums.PostStatus;
 import com.eriyaz.social.enums.ProfileStatus;
 import com.eriyaz.social.fragments.PlaybackFragment;
 import com.eriyaz.social.listeners.CustomTransitionListener;
+import com.eriyaz.social.managers.BoughtFeedbackManager;
 import com.eriyaz.social.managers.CommentManager;
 import com.eriyaz.social.managers.PostManager;
 import com.eriyaz.social.managers.ProfileManager;
@@ -150,7 +151,9 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private PostManager postManager;
     private CommentManager commentManager;
     private ProfileManager profileManager;
-//    private LikeController likeController;
+    private BoughtFeedbackManager boughtFeedbackManager;
+
+    //    private LikeController likeController;
 //    private RatingController ratingController;
     private boolean postRemovingProcess = false;
     private boolean isPostExist;
@@ -174,6 +177,8 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         profileManager = ProfileManager.getInstance(this);
         postManager = PostManager.getInstance(this);
         commentManager = CommentManager.getInstance(this);
+        boughtFeedbackManager = BoughtFeedbackManager.getInstance(this);
+
 
         isAuthorAnimationRequired = getIntent().getBooleanExtra(AUTHOR_ANIMATION_NEEDED_EXTRA_KEY, false);
         postId = getIntent().getStringExtra(POST_ID_EXTRA_KEY);
@@ -332,6 +337,28 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             }
         }
         supportPostponeEnterTransition();
+
+
+        final Button buyFeedbackButton = (Button) findViewById(R.id.buy_feedback_button);
+        buyFeedbackButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (hasInternetConnection()) {
+                    boughtFeedbackManager.createBoughtFeedback(post.getId(), new OnTaskCompleteListener() {
+                        @Override
+                        public void onTaskComplete(boolean success) {
+                            if (success) {
+                                showSnackBar("Feedback order successfully placed.");
+                            }
+                        }
+                    });
+
+                } else {
+                    showSnackBar(R.string.internet_connection_failed);
+                }
+            }
+        });
+
     }
 
     @Override
