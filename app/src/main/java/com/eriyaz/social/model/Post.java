@@ -18,6 +18,7 @@ package com.eriyaz.social.model;
 
 import android.os.Parcelable;
 
+import com.eriyaz.social.enums.BoughtFeedbackStatus;
 import com.eriyaz.social.enums.ItemType;
 import com.eriyaz.social.utils.FormatterUtil;
 
@@ -49,6 +50,7 @@ public class Post implements Serializable, LazyLoading {
     private long audioDuration;
     private String version;
     private boolean longRecording;
+    private BoughtFeedbackStatus boughtFeedbackStatus;
 
     @Override
     public boolean equals(Object o) {
@@ -234,6 +236,14 @@ public class Post implements Serializable, LazyLoading {
     @Override
     public void setItemType(ItemType itemType) {
 
+    }
+
+    public BoughtFeedbackStatus getBoughtFeedbackStatus() {
+        return boughtFeedbackStatus;
+    }
+
+    public void setBoughtFeedbackStatus(BoughtFeedbackStatus boughtFeedbackStatus) {
+        this.boughtFeedbackStatus = boughtFeedbackStatus;
     }
 
     @Override

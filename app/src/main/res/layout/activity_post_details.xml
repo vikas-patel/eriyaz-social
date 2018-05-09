@@ -95,17 +95,18 @@
                             android:layout_height="wrap_content"
                             android:textSize="12sp"
                             android:textAppearance="@style/TextAppearance.Second.Dark" />
-
-                        <Button
-                            android:id="@+id/buy_feedback_button"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Get Official Feedback" />
                     </LinearLayout>
 
                 </LinearLayout>
-
+                <Button
+                    android:id="@+id/buy_feedback_button"
+                    android:layout_below="@+id/fileViewContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    android:text="@string/get_official_feedback"/>
             </RelativeLayout>
+
 
             <!--<TextView-->
                 <!--android:id="@+id/titleTextView"-->

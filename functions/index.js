@@ -6,7 +6,7 @@ admin.initializeApp(functions.config().firebase);
 const promisePool = require('es6-promise-pool');
 const PromisePool = promisePool.PromisePool;
 
-const nodemailer = require('nodemailer');
+// const nodemailer = require('nodemailer');
 
 const actionTypeNewRating = "new_rating"
 const actionTypeNewComment = "new_comment"
@@ -257,6 +257,29 @@ exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{aut
             console.log('Post counters updated.');
         });
    });
+});
+
+exports.updatePostBoughtFeedbackStatus = functions.database.ref('/bought-feedbacks/{postId}').onWrite(event => {
+    const postId = event.params.postId;
+    const feedback = event.data.val();
+    const isResolved = feedback.isResolved;
+    console.log('bought feedback status changed on post', postId, isResolved);
+
+    const postRef = admin.database().ref(`/posts/${postId}`);
+    return postRef.transaction(current => {
+        if (current == null) {
+            console.log("ignore: null object returned from cache, expect another event with fresh server value.");
+            return false;
+        }
+        if (isResolved) {
+            current.boughtFeedbackStatus = "GIVEN";
+        } else {
+            current.boughtFeedbackStatus = "ASKED";
+        }
+        return current;
+    }).then(() => {
+        console.log('Post bought feedback status updated.');
+    });
 });
 
 // exports.commentsPoints = functions.database.ref('/post-comments/{postId}/{commentId}').onWrite(event => {
@@ -826,7 +849,7 @@ exports.appNotificationMessages = functions.database.ref('/user-messages/{userId
 });
 
 
-const bigquery = require('@google-cloud/bigquery')();
+// const bigquery = require('@google-cloud/bigquery')();
 
 // exports.syncBigQueryPost = functions.database.ref('/posts/{postId}').onCreate((snapshot,context) => {
   

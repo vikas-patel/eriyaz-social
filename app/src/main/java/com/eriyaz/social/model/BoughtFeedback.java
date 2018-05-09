@@ -25,8 +25,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BoughtFeedback {
-
-    private String id;
     private String postId;
 
     private String authorId;
@@ -45,14 +43,6 @@ public class BoughtFeedback {
         this.authorId = authorId;
         this.createdDate = Calendar.getInstance().getTimeInMillis();
         this.isResolved = false;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public String getPostId() {

@@ -67,6 +67,7 @@ import com.eriyaz.social.adapters.RatingsAdapter;
 import com.eriyaz.social.controllers.RatingController;
 import com.eriyaz.social.dialogs.CommentDialog;
 import com.eriyaz.social.dialogs.EditCommentDialog;
+import com.eriyaz.social.enums.BoughtFeedbackStatus;
 import com.eriyaz.social.enums.PostOrigin;
 import com.eriyaz.social.enums.PostStatus;
 import com.eriyaz.social.enums.ProfileStatus;
@@ -165,6 +166,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private ActionMode mActionMode;
     private boolean isEnterTransitionFinished = false;
     private Rating rating;
+    private Button buyFeedbackButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -339,7 +341,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         supportPostponeEnterTransition();
 
 
-        final Button buyFeedbackButton = (Button) findViewById(R.id.buy_feedback_button);
+        buyFeedbackButton = findViewById(R.id.buy_feedback_button);
         buyFeedbackButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -349,10 +351,11 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
                         public void onTaskComplete(boolean success) {
                             if (success) {
                                 showSnackBar("Feedback order successfully placed.");
+                            } else {
+                                showSnackBar("Feedback order failed.");
                             }
                         }
                     });
-
                 } else {
                     showSnackBar(R.string.internet_connection_failed);
                 }
@@ -552,6 +555,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         initRatingRecyclerView();
         initLikes();
         fillPostFields();
+        setBoughtFeedbackStatus();
         updateCounters();
         initLikeButtonState();
         updateOptionMenuVisibility();
@@ -603,6 +607,23 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             }
 //            loadPostDetailsImage();
             loadAuthorImage();
+        }
+    }
+
+    private void setBoughtFeedbackStatus() {
+        if (post.getBoughtFeedbackStatus() == BoughtFeedbackStatus.ASKED) {
+            buyFeedbackButton.setText(getString(R.string.awaiting_official_feedback));
+            buyFeedbackButton.setEnabled(false);
+            buyFeedbackButton.setVisibility(View.VISIBLE);
+            return;
+        } else if (post.getBoughtFeedbackStatus() == BoughtFeedbackStatus.GIVEN) {
+            buyFeedbackButton.setText(getString(R.string.received_official_feedback));
+            buyFeedbackButton.setEnabled(false);
+            buyFeedbackButton.setVisibility(View.VISIBLE);
+            return;
+        }
+        if (hasAccessToModifyPost()) {
+            buyFeedbackButton.setVisibility(View.VISIBLE);
         }
     }
 

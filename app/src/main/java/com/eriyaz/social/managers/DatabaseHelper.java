@@ -1234,20 +1234,16 @@ public class DatabaseHelper {
 
     public void createBoughtFeedback(final String postId, final OnTaskCompleteListener onTaskCompleteListener) {
         try {
-//            String authorId = firebaseAuth.getCurrentUser().getUid();
-            DatabaseReference mBoughtFeedbacksReference = database.getReference("bought-feedbacks");
-            String boughtFeedbackId = mBoughtFeedbacksReference.push().getKey();
-            BoughtFeedback boughtFeedback = new BoughtFeedback(postId, "ash");
-            boughtFeedback.setId(boughtFeedbackId);
-//            analytics.logComment();
-
-            mBoughtFeedbacksReference.child(boughtFeedbackId).setValue(boughtFeedback, new DatabaseReference.CompletionListener() {
+            String authorId = firebaseAuth.getCurrentUser().getUid();
+            DatabaseReference mBoughtFeedbacksReference = database.getReference("bought-feedbacks/"+postId);
+            BoughtFeedback boughtFeedback = new BoughtFeedback(postId, authorId);
+            mBoughtFeedbacksReference.setValue(boughtFeedback, new DatabaseReference.CompletionListener() {
                 @Override
                 public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
                     if (databaseError == null) {
-                        LogUtil.logDebug(TAG, "Bought Feedback Success.");
+                        onTaskCompleteListener.onTaskComplete(true);
                     } else {
-                        LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
+                        onTaskCompleteListener.onTaskComplete(false);
                     }
                 }
             });

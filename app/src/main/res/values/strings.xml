@@ -211,6 +211,10 @@
 
     <string name="facebook_app_id">165281787534501</string>
     <string name="fb_login_protocol_scheme">fb165281787534501</string>
+    <string name="get_official_feedback">Get Official Feedback</string>
+    <string name="awaiting_official_feedback">Awaiting Official Feedback</string>
+    <string name="received_official_feedback">Received Official Feedback</string>
+
     <string-array name="attempt_arrays">
         <item>Attempt 1</item>
         <item>Attempt 2</item>
