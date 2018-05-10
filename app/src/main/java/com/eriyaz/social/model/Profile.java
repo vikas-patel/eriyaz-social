@@ -31,6 +31,7 @@ public class Profile implements Serializable {
     private int postCount;
     private int unseen;
     private String registrationToken;
+    private boolean admin;
 
     public Profile() {
         // Default constructor required for calls to DataSnapshot.getValue(Profile.class)
@@ -102,5 +103,28 @@ public class Profile implements Serializable {
 
     public void setPostCount(int postCount) {
         this.postCount = postCount;
+    }
+
+    public boolean isAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(boolean admin) {
+        this.admin = admin;
+    }
+
+    @Override
+    public String toString() {
+        return "Profile{" +
+                "id='" + id + '\'' +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", photoUrl='" + photoUrl + '\'' +
+                ", points=" + points +
+                ", postCount=" + postCount +
+                ", unseen=" + unseen +
+                ", registrationToken='" + registrationToken + '\'' +
+                ", admin=" + admin +
+                '}';
     }
 }

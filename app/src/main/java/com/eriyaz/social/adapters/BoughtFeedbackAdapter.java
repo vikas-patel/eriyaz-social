@@ -71,8 +71,8 @@ public class BoughtFeedbackAdapter extends RecyclerView.Adapter<BoughtFeedbackVi
     }
 
     public interface Callback {
-        void onLongItemClick(View view, int position);
+        void toggleResolveClick(String postId);
 
-        void onAuthorClick(String authorId, View view);
+        void onAuthorClick(String authorId);
     }
 }

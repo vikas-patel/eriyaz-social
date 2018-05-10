@@ -29,6 +29,7 @@
         android:id="@+id/admin_menu_item"
         android:title="@string/admin_menu_item"
         app:showAsAction="never"
+        android:visible="false"
         android:orderInCategory="1" />
     <!--<item-->
         <!--android:id="@+id/point_rule"-->

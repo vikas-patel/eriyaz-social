@@ -59,8 +59,6 @@ import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.AnimationUtils;
 import com.eriyaz.social.utils.DeepLinkUtil;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -147,6 +145,10 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
             public void onObjectChanged(Profile profile) {
                 userPoints = profile.getPoints();
                 updateUnseenNotificationCount(profile.getUnseen());
+                if (profile.isAdmin()) {
+                    MenuItem adminItem = mOptionsMenu.findItem(R.id.admin_menu_item);
+                    adminItem.setVisible(true);
+                }
 //                updateKarmaWarning();
             }
         };
@@ -542,8 +544,6 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
 
         mOptionsMenu = menu;
 //        mOptionsMenu.getItem(4).setVisible(false);
-//        MenuItem adminItem = (MenuItem) findViewById(R.id.admin_menu_item);
-//        adminItem.setVisible(false);
         return true;
     }
 

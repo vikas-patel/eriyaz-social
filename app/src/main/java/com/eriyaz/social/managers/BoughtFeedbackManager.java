@@ -54,6 +54,10 @@ public class BoughtFeedbackManager extends FirebaseListenersManager {
         ApplicationHelper.getDatabaseHelper().createBoughtFeedback(postId, onTaskCompleteListener);
     }
 
+    public void toggleBoughtFeedback(String postId) {
+        ApplicationHelper.getDatabaseHelper().toggleBoughtFeedback(postId);
+    }
+
     public void getBoughtFeedbacksList(Context activityContext, OnDataChangedListener<BoughtFeedback> onDataChangedListener) {
         ValueEventListener valueEventListener = ApplicationHelper.getDatabaseHelper().getBoughtFeedbacksList(onDataChangedListener);
         addListenerToMap(activityContext, valueEventListener);

@@ -262,7 +262,7 @@ exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{aut
 exports.updatePostBoughtFeedbackStatus = functions.database.ref('/bought-feedbacks/{postId}').onWrite(event => {
     const postId = event.params.postId;
     const feedback = event.data.val();
-    const isResolved = feedback.isResolved;
+    const isResolved = feedback.resolved;
     console.log('bought feedback status changed on post', postId, isResolved);
 
     const postRef = admin.database().ref(`/posts/${postId}`);

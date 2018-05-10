@@ -30,7 +30,7 @@ public class BoughtFeedback {
     private String authorId;
     private long createdDate;
 
-    private boolean isResolved;
+    private boolean resolved;
 
 
     public BoughtFeedback() {
@@ -42,7 +42,7 @@ public class BoughtFeedback {
         this.postId = postId;
         this.authorId = authorId;
         this.createdDate = Calendar.getInstance().getTimeInMillis();
-        this.isResolved = false;
+        this.resolved = false;
     }
 
     public String getPostId() {
@@ -71,11 +71,11 @@ public class BoughtFeedback {
     }
 
     public boolean isResolved() {
-        return isResolved;
+        return resolved;
     }
 
     public void setResolved(boolean resolved) {
-        isResolved = resolved;
+        this.resolved = resolved;
     }
 
     public Map<String, Object> toMap() {
@@ -83,7 +83,7 @@ public class BoughtFeedback {
 
         result.put("postId", postId);
         result.put("createdDate", createdDate);
-        result.put("isResolved",isResolved);
+        result.put("resolved",resolved);
 
         return result;
     }

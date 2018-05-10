@@ -1232,6 +1232,28 @@ public class DatabaseHelper {
         FirebaseMessaging.getInstance().subscribeToTopic("postsTopic");
     }
 
+    public void toggleBoughtFeedback(final String postId) {
+        DatabaseReference mBoughtFeedbacksRef = database.getReference("bought-feedbacks/"+postId+"/resolved");
+        mBoughtFeedbacksRef.runTransaction(new Transaction.Handler() {
+            @Override
+            public Transaction.Result doTransaction(MutableData mutableData) {
+                Boolean currentValue = mutableData.getValue(Boolean.class);
+                if (currentValue == null) {
+                    mutableData.setValue(true);
+                } else {
+                    mutableData.setValue(!currentValue);
+                }
+
+                return Transaction.success(mutableData);
+            }
+
+            @Override
+            public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+
+            }
+        });
+    }
+
     public void createBoughtFeedback(final String postId, final OnTaskCompleteListener onTaskCompleteListener) {
         try {
             String authorId = firebaseAuth.getCurrentUser().getUid();

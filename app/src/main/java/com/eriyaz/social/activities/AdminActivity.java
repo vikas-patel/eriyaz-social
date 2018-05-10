@@ -33,15 +33,15 @@ public class AdminActivity extends AppCompatActivity {
 
         commentsAdapter = new BoughtFeedbackAdapter();
         commentsAdapter.setCallback(new BoughtFeedbackAdapter.Callback() {
+
             @Override
-            public void onLongItemClick(View view, int position) {
-//                Comment selectedComment = commentsAdapter.getItemByPosition(position);
-//                startActionMode(selectedComment);
+            public void toggleResolveClick(String postId) {
+                toggleResolve(postId);
             }
 
             @Override
-            public void onAuthorClick(String authorId, View view) {
-                openProfileActivity(authorId, view);
+            public void onAuthorClick(String authorId) {
+                openProfileActivity(authorId);
             }
         });
         commentsRecyclerView = (RecyclerView) findViewById(R.id.boughtFeedbackRecyclerView);
@@ -61,19 +61,20 @@ public class AdminActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        commentManager.closeListeners(this);
+    }
 
-    private void openProfileActivity(String userId, View view) {
+    private void toggleResolve(String postId) {
+        commentManager.toggleBoughtFeedback(postId);
+    }
+
+
+    private void openProfileActivity(String userId) {
         Intent intent = new Intent(AdminActivity.this, ProfileActivity.class);
         intent.putExtra(ProfileActivity.USER_ID_EXTRA_KEY, userId);
-
-//        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && view != null) {
-//
-//            ActivityOptions options = ActivityOptions.
-//                    makeSceneTransitionAnimation(PostDetailsActivity.this,
-//                            new android.util.Pair<>(view, getString(R.string.post_author_image_transition_name)));
-//            startActivity(intent, options.toBundle());
-//        } else {
         startActivity(intent);
-//        }
     }
 }

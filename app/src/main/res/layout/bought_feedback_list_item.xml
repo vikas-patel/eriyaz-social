@@ -13,6 +13,7 @@
         android:layout_height="50dp"
         android:src="@drawable/ic_stub"
         app:shadow="false"
+        android:layout_weight="1"
         app:border="true"
         app:border_width="0dp" />
 
@@ -20,6 +21,8 @@
         android:id="@+id/dateTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textAlignment="center"
         android:text="TextView" />
 
     <Button
@@ -27,6 +30,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text="Unresolved" />
+        android:text="" />
 
 </LinearLayout>
