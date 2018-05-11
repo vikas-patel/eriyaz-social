@@ -20,16 +20,13 @@ import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.eriyaz.social.ApplicationHelper;
 import com.eriyaz.social.R;
-import com.eriyaz.social.adapters.FeedbackAdapter;
 import com.eriyaz.social.adapters.MessagesAdapter;
 import com.eriyaz.social.enums.ProfileStatus;
 import com.eriyaz.social.managers.FeedbackManager;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnDataChangedListener;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
-import com.eriyaz.social.model.Feedback;
 import com.eriyaz.social.model.ListItem;
 import com.eriyaz.social.model.Message;
 import com.eriyaz.social.model.ReplyTextItem;
@@ -37,12 +34,9 @@ import com.eriyaz.social.model.ReplyTextItem;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
 
 public class FeedbackActivity extends BaseActivity {
     public static final String TAG = FeedbackActivity.class.getSimpleName();
@@ -54,11 +48,10 @@ public class FeedbackActivity extends BaseActivity {
 
     private String userId;
     private ScrollView scrollView;
-    private FeedbackAdapter adapter;
+    private MessagesAdapter adapter;
     private TextView warningMessagesTextView;
     private boolean attemptToLoadMessages = false;
     private FeedbackManager feedbackManager;
-    private View newMessageContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,7 +65,6 @@ public class FeedbackActivity extends BaseActivity {
         scrollView = (ScrollView) findViewById(R.id.scrollView);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         warningMessagesTextView = (TextView) findViewById(R.id.warningMessagesTextView);
-        newMessageContainer = findViewById(R.id.newMessageContainer);
 
 //        swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
 //        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -132,11 +124,11 @@ public class FeedbackActivity extends BaseActivity {
     private void loadFeedbackList() {
         if (recyclerView == null) {
             recyclerView = findViewById(R.id.recycler_view);
-            adapter = new FeedbackAdapter();
-            adapter.setCallback(new FeedbackAdapter.Callback() {
+            adapter = new MessagesAdapter();
+            adapter.setCallback(new MessagesAdapter.Callback() {
                 @Override
                 public void onDeleteClick(int position) {
-                    Feedback selectedFeedback = (Feedback) adapter.getItemByPosition(position);
+                    Message selectedFeedback = (Message) adapter.getItemByPosition(position);
                     attemptToRemoveFeedback(selectedFeedback.getId());
                 }
 
@@ -144,7 +136,7 @@ public class FeedbackActivity extends BaseActivity {
                 public void sendReply(String messageText, String parentId) {
                     ProfileStatus profileStatus = ProfileManager.getInstance(FeedbackActivity.this).checkProfile();
                     if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
-                        Feedback feedback = new Feedback(messageText);
+                        Message feedback = new Message(messageText);
                         feedback.setParentId(parentId);
                         saveFeedback(feedback);
                         hideKeyBoard();
@@ -207,7 +199,7 @@ public class FeedbackActivity extends BaseActivity {
         });
     }
 
-    private OnDataChangedListener<Feedback> createOnFeedbackChangedDataListener() {
+    private OnDataChangedListener<Message> createOnFeedbackChangedDataListener() {
 
         attemptToLoadMessages = true;
 
@@ -222,9 +214,9 @@ public class FeedbackActivity extends BaseActivity {
             }
         }, PostDetailsActivity.TIME_OUT_LOADING_COMMENTS);
 
-        return new OnDataChangedListener<Feedback>() {
+        return new OnDataChangedListener<Message>() {
             @Override
-            public void onListChanged(List<Feedback> list) {
+            public void onListChanged(List<Message> list) {
                 attemptToLoadMessages = false;
 //                swipeContainer.setRefreshing(false);
                 progressBar.setVisibility(View.GONE);
@@ -235,39 +227,39 @@ public class FeedbackActivity extends BaseActivity {
         };
     }
 
-    private List<ListItem> buildList(List<Feedback> feedbacks) {
-        final HashMap<Feedback, ArrayList<Feedback>> parentFeedbacks = new HashMap();
+    private List<ListItem> buildList(List<Message> feedbacks) {
+        final HashMap<Message, ArrayList<Message>> parentFeedbacks = new HashMap();
         ArrayList resultList = new ArrayList();
-        Iterator<Feedback> iterator = feedbacks.iterator();
+        Iterator<Message> iterator = feedbacks.iterator();
         while (iterator.hasNext()) {
-            Feedback feedback = iterator.next();
+            Message feedback = iterator.next();
             if (feedback.getParentId() == null) {
-                parentFeedbacks.put(feedback, new ArrayList<Feedback>());
+                parentFeedbacks.put(feedback, new ArrayList<Message>());
                 iterator.remove();
             }
         }
-        Iterator<Feedback> iteratorChild = feedbacks.iterator();
+        Iterator<Message> iteratorChild = feedbacks.iterator();
         while (iteratorChild.hasNext()) {
-            Feedback child = iteratorChild.next();
-            Feedback parentFeedback = new Feedback();
+            Message child = iteratorChild.next();
+            Message parentFeedback = new Message();
             parentFeedback.setId(child.getParentId());
             parentFeedbacks.get(parentFeedback).add(child);
         }
 
-        ArrayList<Feedback> keyList = new ArrayList<>(parentFeedbacks.keySet());
-        Collections.sort(keyList, new Comparator<Feedback>() {
+        ArrayList<Message> keyList = new ArrayList<>(parentFeedbacks.keySet());
+        Collections.sort(keyList, new Comparator<Message>() {
             @Override
-            public int compare(Feedback lhs, Feedback rhs) {
-                List<Feedback> lChildren = parentFeedbacks.get(lhs);
-                List<Feedback> rChildren = parentFeedbacks.get(rhs);
+            public int compare(Message lhs, Message rhs) {
+                List<Message> lChildren = parentFeedbacks.get(lhs);
+                List<Message> rChildren = parentFeedbacks.get(rhs);
                 long latestL = lChildren.isEmpty()?lhs.getCreatedDate():lChildren.get(0).getCreatedDate();
                 long latestR = rChildren.isEmpty()?rhs.getCreatedDate():rChildren.get(0).getCreatedDate();
                 return ((Long) latestR).compareTo((Long) latestL);
             }
         });
 
-        for (Feedback key: keyList) {
-            List<Feedback> children = parentFeedbacks.get(key);
+        for (Message key: keyList) {
+            List<Message> children = parentFeedbacks.get(key);
             ReplyTextItem replyItem = new ReplyTextItem(key.getId());
             resultList.add(key);
             resultList.add(replyItem);
@@ -283,7 +275,7 @@ public class FeedbackActivity extends BaseActivity {
         String messageText = messageEditText.getText().toString();
 
         if (messageText.length() > 0) {
-            Feedback feedback = new Feedback(messageText);
+            Message feedback = new Message(messageText);
             saveFeedback(feedback);
             messageEditText.setText(null);
             messageEditText.clearFocus();
@@ -291,7 +283,7 @@ public class FeedbackActivity extends BaseActivity {
         }
     }
 
-    private void saveFeedback(Feedback feedback) {
+    private void saveFeedback(Message feedback) {
         feedbackManager.createFeedback(feedback, new OnTaskCompleteListener() {
             @Override
             public void onTaskComplete(boolean success) {

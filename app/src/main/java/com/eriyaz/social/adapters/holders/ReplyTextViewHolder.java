@@ -12,7 +12,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
-import com.eriyaz.social.adapters.FeedbackAdapter;
+import com.eriyaz.social.adapters.MessagesAdapter;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.model.ListItem;
@@ -29,12 +29,11 @@ public class ReplyTextViewHolder extends ViewHolder {
     private final ImageView avatarImageView;
     private final EditText messageEditText;
     private Button sendButton;
-    private FeedbackAdapter.Callback callback;
     private final ProfileManager profileManager;
     private String parentId;
     private Context context;
 
-    public ReplyTextViewHolder(View itemView, final FeedbackAdapter.Callback callback) {
+    public ReplyTextViewHolder(View itemView, final MessagesAdapter.Callback callback) {
         super(itemView);
         this.context = itemView.getContext();
         profileManager = ProfileManager.getInstance(itemView.getContext().getApplicationContext());

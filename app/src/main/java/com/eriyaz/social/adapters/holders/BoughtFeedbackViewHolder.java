@@ -88,6 +88,13 @@ public class BoughtFeedbackViewHolder extends RecyclerView.ViewHolder {
                 callback.toggleResolveClick(postId);
             }
         });
+
+        itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                callback.onPostClick(postId);
+            }
+        });
     }
 
     private OnObjectChangedListener<Profile> createOnProfileChangeListener(final ImageView avatarImageView) {

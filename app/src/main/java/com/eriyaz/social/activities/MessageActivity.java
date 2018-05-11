@@ -20,27 +20,27 @@ import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.MessagesAdapter;
 import com.eriyaz.social.enums.ProfileStatus;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnDataChangedListener;
-import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
+import com.eriyaz.social.model.ListItem;
 import com.eriyaz.social.model.Message;
-import com.eriyaz.social.model.Profile;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.eriyaz.social.model.ReplyTextItem;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
-/**
- * Created by vikas on 13/2/18.
- */
-
 public class MessageActivity extends BaseActivity {
+    public static final String TAG = MessageActivity.class.getSimpleName();
+    public static final int CREATE_FEEDBACK = 25;
+    protected EditText feedbackEditText;
     private RecyclerView recyclerView;
     private ProgressBar progressBar;
     private EditText messageEditText;
@@ -48,11 +48,9 @@ public class MessageActivity extends BaseActivity {
     private String userId;
     private ScrollView scrollView;
     private MessagesAdapter adapter;
-//    private SwipeRefreshLayout swipeContainer;
-    private ProfileManager profileManager;
     private TextView warningMessagesTextView;
     private boolean attemptToLoadMessages = false;
-    private View newMessageContainer;
+    private ProfileManager profileManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,23 +59,14 @@ public class MessageActivity extends BaseActivity {
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
-
+        profileManager = ProfileManager.getInstance(MessageActivity.this);
         userId = getIntent().getStringExtra(ProfileActivity.USER_ID_EXTRA_KEY);
-        profileManager = ProfileManager.getInstance(this);
         scrollView = (ScrollView) findViewById(R.id.scrollView);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         warningMessagesTextView = (TextView) findViewById(R.id.warningMessagesTextView);
-        newMessageContainer = findViewById(R.id.newMessageContainer);
-
-//        swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
-//        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-//            @Override
-//            public void onRefresh() {
-//                onRefreshAction();
-//            }
-//        });
 
         messageEditText = (EditText) findViewById(R.id.messageEditText);
+        messageEditText.setHint(R.string.message_text_hint);
         final Button sendButton = (Button) findViewById(R.id.sendButton);
 
         messageEditText.addTextChangedListener(new TextWatcher() {
@@ -102,9 +91,8 @@ public class MessageActivity extends BaseActivity {
             public void onClick(View v) {
                 if (hasInternetConnection()) {
                     ProfileStatus profileStatus = ProfileManager.getInstance(MessageActivity.this).checkProfile();
-
                     if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
-                        sendComment();
+                        sendMessage();
                     } else {
                         doAuthorization(profileStatus);
                     }
@@ -114,18 +102,7 @@ public class MessageActivity extends BaseActivity {
             }
         });
 
-
         loadMessageList();
-        profileManager.getProfileSingleValue(userId, createProfileChangeListener());
-        // don't show message box on self profile
-        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (firebaseUser != null) {
-            String currentUserId = firebaseUser.getUid();
-            if (currentUserId.equals(userId)) {
-                newMessageContainer.setVisibility(View.GONE);
-            }
-        }
-        supportPostponeEnterTransition();
     }
 
     @Override
@@ -134,37 +111,30 @@ public class MessageActivity extends BaseActivity {
         profileManager.closeListeners(this);
     }
 
-    private OnObjectChangedListener<Profile> createProfileChangeListener() {
-        return new OnObjectChangedListener<Profile>() {
-            @Override
-            public void onObjectChanged(Profile obj) {
-                if (isActivityDestroyed()) return;
-                if (obj != null && actionBar != null) {
-                    actionBar.setTitle(obj.getUsername() + " " + getString(R.string.title_activity_messages));
-                }
-            }
-        };
-    }
-
-    private void onRefreshAction() {
-        profileManager.getMessagesList(this, userId, createOnMessagesChangedDataListener());
-    }
 
     private void loadMessageList() {
         if (recyclerView == null) {
             recyclerView = findViewById(R.id.recycler_view);
-            adapter = new MessagesAdapter(userId);
+            adapter = new MessagesAdapter();
             adapter.setCallback(new MessagesAdapter.Callback() {
                 @Override
                 public void onDeleteClick(int position) {
-                    Message selectedMessage = adapter.getItemByPosition(position);
+                    Message selectedMessage = (Message) adapter.getItemByPosition(position);
                     attemptToRemoveMessage(selectedMessage.getId());
                 }
 
                 @Override
-                public void onReplyClick(int position) {
-                    Message selectedMessage = adapter.getItemByPosition(position);
-                    openSenderMessageActivity(selectedMessage.getSenderId());
+                public void sendReply(String messageText, String parentId) {
+                    ProfileStatus profileStatus = ProfileManager.getInstance(MessageActivity.this).checkProfile();
+                    if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
+                        Message message = new Message(messageText);
+                        message.setParentId(parentId);
+                        message.setReceiverId(userId);
+                        saveMessage(message);
+                        hideKeyBoard();
+                    } else {
+                        doAuthorization(profileStatus);
+                    }
                 }
 
                 @Override
@@ -177,52 +147,15 @@ public class MessageActivity extends BaseActivity {
             recyclerView.setAdapter(adapter);
             recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(),
                     ((LinearLayoutManager) recyclerView.getLayoutManager()).getOrientation()));
-            profileManager.getMessagesList(this, userId, createOnMessagesChangedDataListener());
+            profileManager.getMessagesList(this, userId, createOnMessageChangedDataListener());
         }
-    }
-
-    private OnDataChangedListener<Message> createOnMessagesChangedDataListener() {
-
-        attemptToLoadMessages = true;
-
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (attemptToLoadMessages) {
-                    progressBar.setVisibility(View.GONE);
-                    warningMessagesTextView.setVisibility(View.VISIBLE);
-                }
-            }
-        }, PostDetailsActivity.TIME_OUT_LOADING_COMMENTS);
-
-        return new OnDataChangedListener<Message>() {
-            @Override
-            public void onListChanged(List<Message> list) {
-                attemptToLoadMessages = false;
-//                swipeContainer.setRefreshing(false);
-                progressBar.setVisibility(View.GONE);
-                recyclerView.setVisibility(View.VISIBLE);
-                warningMessagesTextView.setVisibility(View.GONE);
-                adapter.setList(list);
-            }
-        };
     }
 
     private void openProfileActivity(String userId) {
+        if (userId == null || userId.isEmpty()) return;
         Intent intent = new Intent(MessageActivity.this, ProfileActivity.class);
         intent.putExtra(ProfileActivity.USER_ID_EXTRA_KEY, userId);
         startActivity(intent);
-    }
-
-    private void openSenderMessageActivity(String userId) {
-        if (hasInternetConnection()) {
-            Intent intent = new Intent(MessageActivity.this, MessageActivity.class);
-            intent.putExtra(ProfileActivity.USER_ID_EXTRA_KEY, userId);
-            startActivity(intent);
-        } else {
-            showSnackBar(R.string.internet_connection_failed);
-        }
     }
 
     private void attemptToRemoveMessage(String messageId) {
@@ -258,6 +191,103 @@ public class MessageActivity extends BaseActivity {
         });
     }
 
+    private OnDataChangedListener<Message> createOnMessageChangedDataListener() {
+
+        attemptToLoadMessages = true;
+
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (attemptToLoadMessages) {
+                    progressBar.setVisibility(View.GONE);
+                    warningMessagesTextView.setVisibility(View.VISIBLE);
+                }
+            }
+        }, PostDetailsActivity.TIME_OUT_LOADING_COMMENTS);
+
+        return new OnDataChangedListener<Message>() {
+            @Override
+            public void onListChanged(List<Message> list) {
+                attemptToLoadMessages = false;
+//                swipeContainer.setRefreshing(false);
+                progressBar.setVisibility(View.GONE);
+                recyclerView.setVisibility(View.VISIBLE);
+                warningMessagesTextView.setVisibility(View.GONE);
+                adapter.setList(buildList(list));
+            }
+        };
+    }
+
+    private List<ListItem> buildList(List<Message> messages) {
+        final HashMap<Message, ArrayList<Message>> parentMessages = new HashMap();
+        ArrayList resultList = new ArrayList();
+        Iterator<Message> iterator = messages.iterator();
+        while (iterator.hasNext()) {
+            Message message = iterator.next();
+            if (message.getParentId() == null) {
+                parentMessages.put(message, new ArrayList<Message>());
+                iterator.remove();
+            }
+        }
+        Iterator<Message> iteratorChild = messages.iterator();
+        while (iteratorChild.hasNext()) {
+            Message child = iteratorChild.next();
+            Message parentMessage = new Message();
+            parentMessage.setId(child.getParentId());
+            ArrayList<Message> parentHolder = parentMessages.get(parentMessage);
+            if (parentHolder != null) parentHolder.add(child);
+        }
+
+        ArrayList<Message> keyList = new ArrayList<>(parentMessages.keySet());
+        Collections.sort(keyList, new Comparator<Message>() {
+            @Override
+            public int compare(Message lhs, Message rhs) {
+                List<Message> lChildren = parentMessages.get(lhs);
+                List<Message> rChildren = parentMessages.get(rhs);
+                long latestL = lChildren.isEmpty()?lhs.getCreatedDate():lChildren.get(0).getCreatedDate();
+                long latestR = rChildren.isEmpty()?rhs.getCreatedDate():rChildren.get(0).getCreatedDate();
+                return ((Long) latestR).compareTo((Long) latestL);
+            }
+        });
+
+        for (Message key: keyList) {
+            List<Message> children = parentMessages.get(key);
+            ReplyTextItem replyItem = new ReplyTextItem(key.getId());
+            resultList.add(key);
+            resultList.add(replyItem);
+            resultList.addAll(children);
+        }
+        return resultList;
+    }
+
+    /**
+     * Report an issue, suggest a feature, or send message.
+     */
+    private void sendMessage() {
+        String messageText = messageEditText.getText().toString();
+
+        if (messageText.length() > 0) {
+            Message message = new Message(messageText);
+            message.setReceiverId(userId);
+            saveMessage(message);
+            messageEditText.setText(null);
+            messageEditText.clearFocus();
+            hideKeyBoard();
+        }
+    }
+
+    private void saveMessage(Message message) {
+        profileManager.createOrUpdateMessage(message, new OnTaskCompleteListener() {
+            @Override
+            public void onTaskComplete(boolean success) {
+                if (success) {
+                    scrollToFirstComment();
+                }
+            }
+        });
+    }
+
     private void hideKeyBoard() {
         // Check if no view has focus:
         View view = this.getCurrentFocus();
@@ -269,24 +299,5 @@ public class MessageActivity extends BaseActivity {
 
     private void scrollToFirstComment() {
         scrollView.smoothScrollTo(0, 0);
-    }
-
-    private void sendComment() {
-
-        String messageText = messageEditText.getText().toString();
-
-        if (messageText.length() > 0) {
-            profileManager.createOrUpdateMessage(messageText, userId, new OnTaskCompleteListener() {
-                @Override
-                public void onTaskComplete(boolean success) {
-                    if (success) {
-                        scrollToFirstComment();
-                    }
-                }
-            });
-            messageEditText.setText(null);
-            messageEditText.clearFocus();
-            hideKeyBoard();
-        }
     }
 }

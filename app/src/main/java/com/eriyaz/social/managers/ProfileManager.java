@@ -146,8 +146,8 @@ public class ProfileManager extends FirebaseListenersManager {
         addListenerToMap(activityContext, valueEventListener);
     }
 
-    public void createOrUpdateMessage(String messageText, String postId, OnTaskCompleteListener onTaskCompleteListener) {
-        ApplicationHelper.getDatabaseHelper().createMessage(messageText, postId, onTaskCompleteListener);
+    public void createOrUpdateMessage(Message message, OnTaskCompleteListener onTaskCompleteListener) {
+        ApplicationHelper.getDatabaseHelper().createMessage(message, onTaskCompleteListener);
     }
 
     public void resetUnseenNotificationCount() {

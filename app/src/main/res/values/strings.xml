@@ -70,6 +70,7 @@
     <string name="error_post_was_removed">Post was removed</string>
     <string name="confirm_deletion_post">Delete this post?</string>
     <string name="confirm_deletion_message">Delete this message?</string>
+    <string name="confirm_close_play_popup">Your inputs will be lost. You sure want to close?</string>
 
     <string name="comment_text_hint">Enter your comment…</string>
     <string name="message_text_hint">Enter your message…</string>

@@ -74,5 +74,7 @@ public class BoughtFeedbackAdapter extends RecyclerView.Adapter<BoughtFeedbackVi
         void toggleResolveClick(String postId);
 
         void onAuthorClick(String authorId);
+
+        void onPostClick(String postId);
     }
 }

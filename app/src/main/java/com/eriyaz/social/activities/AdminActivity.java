@@ -43,6 +43,11 @@ public class AdminActivity extends AppCompatActivity {
             public void onAuthorClick(String authorId) {
                 openProfileActivity(authorId);
             }
+
+            @Override
+            public void onPostClick(String postId) {
+                openPostDetailsActivity(postId);
+            }
         });
         commentsRecyclerView = (RecyclerView) findViewById(R.id.boughtFeedbackRecyclerView);
         commentsRecyclerView.setAdapter(commentsAdapter);
@@ -75,6 +80,12 @@ public class AdminActivity extends AppCompatActivity {
     private void openProfileActivity(String userId) {
         Intent intent = new Intent(AdminActivity.this, ProfileActivity.class);
         intent.putExtra(ProfileActivity.USER_ID_EXTRA_KEY, userId);
+        startActivity(intent);
+    }
+
+    private void openPostDetailsActivity(String postId) {
+        Intent intent = new Intent(AdminActivity.this, PostDetailsActivity.class);
+        intent.putExtra(PostDetailsActivity.POST_ID_EXTRA_KEY, postId);
         startActivity(intent);
     }
 }

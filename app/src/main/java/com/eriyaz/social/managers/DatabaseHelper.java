@@ -24,7 +24,6 @@ import android.util.Log;
 
 import com.eriyaz.social.managers.listeners.OnPostCreatedListener;
 import com.eriyaz.social.model.BoughtFeedback;
-import com.eriyaz.social.model.Feedback;
 import com.eriyaz.social.model.Message;
 import com.eriyaz.social.model.Notification;
 import com.eriyaz.social.utils.Analytics;
@@ -291,12 +290,11 @@ public class DatabaseHelper {
         return desertRef.delete();
     }
 
-    public void createMessage(String messageText, final String userId, final OnTaskCompleteListener onTaskCompleteListener) {
+    public void createMessage(Message message, final OnTaskCompleteListener onTaskCompleteListener) {
         try {
             String authorId = firebaseAuth.getCurrentUser().getUid();
-            DatabaseReference mMessagesReference = database.getReference().child("user-messages/" + userId);
+            DatabaseReference mMessagesReference = database.getReference().child("user-messages/" + message.getReceiverId());
             String messageId = mMessagesReference.push().getKey();
-            Message message = new Message(messageText);
             message.setId(messageId);
             message.setSenderId(authorId);
             analytics.logMessage();
@@ -316,13 +314,13 @@ public class DatabaseHelper {
         }
     }
 
-    public void createFeedback(Feedback feedback, final OnTaskCompleteListener onTaskCompleteListener) {
+    public void createFeedback(Message feedback, final OnTaskCompleteListener onTaskCompleteListener) {
             FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
             DatabaseReference mFeedbacksReference = database.getReference().child("feedbacks");
             String feedbackId = mFeedbacksReference.push().getKey();
             feedback.setId(feedbackId);
             if (firebaseUser != null) {
-                feedback.setAuthorId(firebaseUser.getUid());
+                feedback.setSenderId(firebaseUser.getUid());
             }
             analytics.logFeedback();
             mFeedbacksReference.child(feedbackId).setValue(feedback, new DatabaseReference.CompletionListener() {
@@ -437,8 +435,8 @@ public class DatabaseHelper {
 
     public void removeMessage(String messageId,  String userId, final OnTaskCompleteListener onTaskCompleteListener) {
         DatabaseReference databaseReference = database.getReference();
-        DatabaseReference postRef = databaseReference.child("user-messages").child(userId).child(messageId);
-        postRef.removeValue(new DatabaseReference.CompletionListener() {
+        DatabaseReference removeAttributetRef = databaseReference.child("user-messages").child(userId).child(messageId).child("removed");
+        removeAttributetRef.setValue(true, new DatabaseReference.CompletionListener() {
             @Override
             public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
                 if (databaseError == null) {
@@ -466,6 +464,8 @@ public class DatabaseHelper {
             }
         });
     }
+
+
 
     public void onNewLikeAddedListener(ChildEventListener childEventListener) {
         DatabaseReference mLikesReference = database.getReference().child("post-likes");
@@ -986,20 +986,20 @@ public class DatabaseHelper {
         return valueEventListener;
     }
 
-    public ValueEventListener getFeedbackList(final OnDataChangedListener<Feedback> onDataChangedListener) {
+    public ValueEventListener getFeedbackList(final OnDataChangedListener<Message> onDataChangedListener) {
         DatabaseReference databaseReference = database.getReference("feedbacks");
         ValueEventListener valueEventListener = databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                List<Feedback> list = new ArrayList<>();
+                List<Message> list = new ArrayList<>();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    Feedback feedback = snapshot.getValue(Feedback.class);
+                    Message feedback = snapshot.getValue(Message.class);
                     list.add(feedback);
                 }
 
-                Collections.sort(list, new Comparator<Feedback>() {
+                Collections.sort(list, new Comparator<Message>() {
                     @Override
-                    public int compare(Feedback lhs, Feedback rhs) {
+                    public int compare(Message lhs, Message rhs) {
                         return ((Long) rhs.getCreatedDate()).compareTo((Long) lhs.getCreatedDate());
                     }
                 });
@@ -1009,7 +1009,7 @@ public class DatabaseHelper {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                LogUtil.logError(TAG, "getCommentsList(), onCancelled", new Exception(databaseError.getMessage()));
+                LogUtil.logError(TAG, "getFeedbackList(), onCancelled", new Exception(databaseError.getMessage()));
             }
         });
 

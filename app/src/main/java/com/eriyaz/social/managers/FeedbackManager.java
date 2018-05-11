@@ -19,16 +19,11 @@
 package com.eriyaz.social.managers;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
 
 import com.eriyaz.social.ApplicationHelper;
 import com.eriyaz.social.managers.listeners.OnDataChangedListener;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
-import com.eriyaz.social.model.Comment;
-import com.eriyaz.social.model.Feedback;
-import com.eriyaz.social.utils.LogUtil;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
+import com.eriyaz.social.model.Message;
 import com.google.firebase.database.ValueEventListener;
 
 public class FeedbackManager extends FirebaseListenersManager {
@@ -50,11 +45,11 @@ public class FeedbackManager extends FirebaseListenersManager {
         this.context = context;
     }
 
-    public void createFeedback(Feedback feedback, OnTaskCompleteListener onTaskCompleteListener) {
+    public void createFeedback(Message feedback, OnTaskCompleteListener onTaskCompleteListener) {
         ApplicationHelper.getDatabaseHelper().createFeedback(feedback, onTaskCompleteListener);
     }
 
-    public void getFeedbackList(Context activityContext, OnDataChangedListener<Feedback> onDataChangedListener) {
+    public void getFeedbackList(Context activityContext, OnDataChangedListener<Message> onDataChangedListener) {
         ValueEventListener valueEventListener = ApplicationHelper.getDatabaseHelper().getFeedbackList(onDataChangedListener);
         addListenerToMap(activityContext, valueEventListener);
     }

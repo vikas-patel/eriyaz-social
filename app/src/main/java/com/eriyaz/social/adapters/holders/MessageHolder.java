@@ -32,11 +32,10 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
-import com.eriyaz.social.adapters.CommentsAdapter;
 import com.eriyaz.social.adapters.MessagesAdapter;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
-import com.eriyaz.social.model.Comment;
+import com.eriyaz.social.model.ListItem;
 import com.eriyaz.social.model.Message;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.FormatterUtil;
@@ -48,7 +47,7 @@ import com.google.firebase.auth.FirebaseUser;
  * Created by alexey on 10.05.17.
  */
 
-public class MessageHolder extends RecyclerView.ViewHolder {
+public class MessageHolder extends ViewHolder {
 
     private final ImageView avatarImageView;
     private final ImageView deleteImageView;
@@ -61,7 +60,6 @@ public class MessageHolder extends RecyclerView.ViewHolder {
 
     public MessageHolder(View itemView, final MessagesAdapter.Callback callback) {
         super(itemView);
-
         this.callback = callback;
         this.context = itemView.getContext();
         profileManager = ProfileManager.getInstance(itemView.getContext().getApplicationContext());
@@ -82,40 +80,37 @@ public class MessageHolder extends RecyclerView.ViewHolder {
                     }
                 }
             });
-
-            replyImageView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int position = getAdapterPosition();
-                    if (position != RecyclerView.NO_POSITION) {
-                        callback.onReplyClick(position);
-                    }
-                }
-            });
         }
     }
 
-    public void bindData(Message message, String profileId) {
-        final String senderId = message.getSenderId();
-        if (senderId != null)
-            profileManager.getProfileSingleValue(senderId, createOnProfileChangeListener(messageTextView,
-                    avatarImageView, message.getText()));
 
-        messageTextView.setText(message.getText());
+    @Override
+    public void bindData(ListItem item) {
+        Message message = (Message) item;
+        final String senderId = message.getSenderId();
+        String msgText;
+        if (message.isRemoved()) {
+            msgText = context.getString(R.string.placeholder_feedback_removed);
+        } else {
+            msgText = message.getText();
+        }
+        messageTextView.setText(msgText);
+        if (senderId != null) {
+            profileManager.getProfileSingleValue(senderId, createOnProfileChangeListener(messageTextView,
+                    avatarImageView, msgText));
+        } else {
+            avatarImageView.setImageResource(R.drawable.ic_person);
+        }
 
         CharSequence date = FormatterUtil.getRelativeTimeSpanString(context, message.getCreatedDate());
         dateTextView.setText(date);
         deleteImageView.setVisibility(View.GONE);
-        replyImageView.setVisibility(View.GONE);
+        if (replyImageView != null) replyImageView.setVisibility(View.GONE);
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         if (firebaseUser != null) {
             String currentUserId = firebaseUser.getUid();
-            if (currentUserId.equals(profileId) || currentUserId.equals(senderId)) {
+            if (currentUserId.equals(senderId) || currentUserId.equals(message.getReceiverId())) {
                 deleteImageView.setVisibility(View.VISIBLE);
-            }
-
-            if (currentUserId.equals(profileId) && !profileId.equals(senderId)) {
-                replyImageView.setVisibility(View.VISIBLE);
             }
         }
 
