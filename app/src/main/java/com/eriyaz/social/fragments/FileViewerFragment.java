@@ -11,6 +11,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -36,6 +37,7 @@ public class FileViewerFragment extends Fragment {
     private String filePath;
     private TextView vLength;
     private View cardView;
+    private Button retryButton;
 
     protected EditText titleEditText;
     protected EditText descriptionEditText;
@@ -108,6 +110,13 @@ public class FileViewerFragment extends Fragment {
         titleEditText = (EditText) v.findViewById(R.id.titleEditText);
         descriptionEditText = v.findViewById(R.id.descriptionEditText);
         versionSpinner = v.findViewById(R.id.versionSpinner);
+        retryButton = v.findViewById(R.id.retryButton);
+        retryButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onRetryClick();
+            }
+        });
         bindData();
         return v;
     }
@@ -171,6 +180,11 @@ public class FileViewerFragment extends Fragment {
 
     public RecordingItem getRecordingItem() {
         return item;
+    }
+
+    private void onRetryClick() {
+        CreatePostActivity activity = (CreatePostActivity) getActivity();
+        activity.startRecordFragment();
     }
 }
 

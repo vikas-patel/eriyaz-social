@@ -162,6 +162,14 @@ public class CreatePostActivity extends BaseActivity implements OnPostCreatedLis
         }
     }
 
+    public void startRecordFragment() {
+        getFragmentManager()
+                .beginTransaction()
+                .replace(R.id.record_fragment, recordFragment, "record_fragment")
+                .disallowAddToBackStack()
+                .commit();
+    }
+
 //    @Override
 //    public boolean onCreateOptionsMenu(Menu menu) {
 //        MenuInflater inflater = getMenuInflater();

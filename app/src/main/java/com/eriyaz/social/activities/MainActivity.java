@@ -44,6 +44,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.eriyaz.social.Constants;
 import com.eriyaz.social.ForceUpdateChecker;
 import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.PostsAdapter;
@@ -481,7 +482,12 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
 
     private void openAdminActivity() {
         Intent intent = new Intent(MainActivity.this, AdminActivity.class);
-        startActivityForResult(intent, 30);
+        startActivityForResult(intent, Constants.ACTIVITY.CREATE_ADMIN);
+    }
+
+    private void openTnCActivity() {
+        Intent intent = new Intent(MainActivity.this, TnCActivity.class);
+        startActivityForResult(intent, Constants.ACTIVITY.CREATE_ADMIN);
     }
 
     private void openProfileActivity(String userId, View view) {
@@ -565,6 +571,9 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
                 return true;
             case R.id.admin_menu_item:
                 openAdminActivity();
+                return true;
+            case R.id.tnc_menu_item:
+                openTnCActivity();
                 return true;
             case R.id.notification:
                 if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {

@@ -31,6 +31,11 @@
         app:showAsAction="never"
         android:visible="false"
         android:orderInCategory="1" />
+    <item
+        android:id="@+id/tnc_menu_item"
+        android:title="@string/tnc_menu_item"
+        app:showAsAction="never"
+        android:orderInCategory="1" />
     <!--<item-->
         <!--android:id="@+id/point_rule"-->
         <!--android:title="@string/point_rule_menu_item"-->

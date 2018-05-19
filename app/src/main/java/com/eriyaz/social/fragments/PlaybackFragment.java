@@ -12,6 +12,7 @@ import android.support.annotation.NonNull;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -296,6 +297,7 @@ public class PlaybackFragment extends DialogFragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         releasePlayer();
     }
 
@@ -468,6 +470,7 @@ public class PlaybackFragment extends DialogFragment {
             if (playWhenReady && playbackState == Player.STATE_READY) {
                 // fast fwd, don't do anything
                 if (isPlaying == true) return;
+                getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                 startPosition = System.currentTimeMillis();
                 endPosition = startPosition;
                 isPlaying = true;
@@ -475,6 +478,7 @@ public class PlaybackFragment extends DialogFragment {
             if (playbackState == Player.STATE_ENDED || (!playWhenReady && playbackState == Player.STATE_READY)) {
                 markPlayerPositions();
                 isPlaying = false;
+                getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             }
         }
     }

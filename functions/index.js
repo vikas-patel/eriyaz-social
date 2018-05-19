@@ -5,7 +5,8 @@ admin.initializeApp(functions.config().firebase);
 
 const promisePool = require('es6-promise-pool');
 const PromisePool = promisePool.PromisePool;
-
+// var paytm_config = require('./paytm/paytm_config').paytm_config;
+// var paytm_checksum = require('./paytm/checksum');
 // const nodemailer = require('nodemailer');
 
 const actionTypeNewRating = "new_rating"
@@ -572,13 +573,113 @@ exports.appNotificationCommentConversation = functions.database.ref('/post-comme
     });
 });
 
+exports.appNotificationMessages = functions.database.ref('/user-messages/{userId}/{messageId}').onCreate(event => {
+    console.log('App notification for new message');
+
+    const messageId = event.params.messageId;
+    const userId = event.params.userId;
+    const message = event.data.val();
+    const messageAuthorId = message.senderId;
+    const messageListRef = event.data.ref.parent;
+    const parentMessageId = message.parentId;
+
+    if (parentMessageId == null) {
+        if (messageAuthorId == userId) {
+            return console.log("messaged on own profile, no notification");
+        }
+         // Get message author.
+        const getMessageAuthorProfileTask = admin.database().ref(`/profiles/${messageAuthorId}`).once('value');
+
+        return getMessageAuthorProfileTask.then(profile => {
+            var msg = profile.val().username + " left a message on your profile page.";
+            return sendAppMessageNotification(userId, messageAuthorId, msg, userId);
+        });
+    }
+    // Get parent feedback.
+    const getParentMessageTask = admin.database().ref(`/user-messages/${userId}/${parentMessageId}`).once('value');
+
+    return getParentMessageTask.then(parentMessage => {
+        const parentMessageVal = parentMessage.val();
+        console.log("new reply on message ", parentMessageVal.id);
+        var parentMessageAuthorId = parentMessageVal.senderId;
+        var sentParentAuthorNotification = false;
+        if (parentMessageAuthorId != messageAuthorId) sentParentAuthorNotification = true;
+
+        // Get all message with same parent message
+        const getChildrenMessageTask = messageListRef.orderByChild('parentId').equalTo(parentMessageId).once('value');
+        return getChildrenMessageTask.then(snapshot => {
+            const authorToNotify = [];
+            snapshot.forEach(function(messageSnap) {
+                // exclude parent author & message author
+                const notifyAuthorId = messageSnap.val().senderId;
+                if (notifyAuthorId  != parentMessageAuthorId && notifyAuthorId != messageAuthorId ) {
+                    if (!authorToNotify.includes(notifyAuthorId)) {
+                        authorToNotify.push(notifyAuthorId);
+                    }
+                }
+            });
+            if (authorToNotify.length == 0 && sentParentAuthorNotification == false) return;
+            // Get message author.
+            const getMessageAuthorProfileTask = admin.database().ref(`/profiles/${messageAuthorId}`).once('value');
+            return getMessageAuthorProfileTask.then(profile => {
+                const promisePool = new PromisePool(() => {
+                    if (sentParentAuthorNotification) {
+                        sentParentAuthorNotification = false;
+                        var msg = profile.val().username + " replied on your message.";
+                        return sendAppMessageNotification(parentMessageAuthorId, messageAuthorId, msg, userId);
+                    }
+                  if (authorToNotify.length > 0) {
+                    const authorId = authorToNotify.pop();
+                    var msg = profile.val().username + " replied on the message on which you also replied.";
+                    return sendAppMessageNotification(authorId, messageAuthorId, msg, userId);
+                  }
+                  return null;
+                }, MAX_CONCURRENT);
+                const poolTask =  promisePool.start();
+                return poolTask.then(() => {
+                    return console.log('sent message notification task completed.');
+                });
+            });
+        });
+    });
+});
+
+function sendAppMessageNotification(authorId, fromUserId, msg, extraKeyValue) {
+    console.log("sending msg:", msg);
+    // Get user notification ref
+    const userNotificationsRef = admin.database().ref(`/user-notifications/${authorId}`);
+    var newNotificationRef = userNotificationsRef.push();
+    return newNotificationRef.set({
+        'action': 'com.eriyaz.social.activities.MessageActivity',
+        'fromUserId' : fromUserId,
+        'message': msg,
+        'extraKey' : 'ProfileActivity.USER_ID_EXTRA_KEY',
+        'extraKeyValue' : extraKeyValue,
+        'createdDate': admin.database.ServerValue.TIMESTAMP
+    });
+}
+
+function sendAppFeedbackNotification(authorId, fromUserId, msg) {
+    // Get user notification ref
+    const userNotificationsRef = admin.database().ref(`/user-notifications/${authorId}`);
+    var newNotificationRef = userNotificationsRef.push();
+    return newNotificationRef.set({
+            'action': 'com.eriyaz.social.activities.FeedbackActivity',
+            'fromUserId' : fromUserId,
+            'message': msg,
+            'createdDate': admin.database.ServerValue.TIMESTAMP
+        }).then(() => {
+            console.log('sent new feedback reply notification on feedback you replied to ', authorId);
+        });
+}
+
 exports.appNotificationFeedbackConversation = functions.database.ref('/feedbacks/{feedbackId}').onCreate(event => {
     console.log('App notification for new feedback in conversation');
 
     const feedbackListRef = event.data.ref.parent;
     const feedbackId = event.params.feedbackId;
     const feedback = event.data.val();
-    const feedbackAuthorId = feedback.authorId;
+    const feedbackAuthorId = feedback.senderId;
     const parentFeedbackId = feedback.parentId;
 
     if (parentFeedbackId == null) {
@@ -591,7 +692,7 @@ exports.appNotificationFeedbackConversation = functions.database.ref('/feedbacks
     return getParentFeedbackTask.then(parentFeedback => {
         const parentFeedbackVal = parentFeedback.val();
         console.log("new reply on feedback ", parentFeedbackVal.id);
-        var parentFeedbackAuthorId = parentFeedbackVal.authorId;
+        var parentFeedbackAuthorId = parentFeedbackVal.senderId;
         var sentParentAuthorNotification = false;
         if (parentFeedbackAuthorId != feedbackAuthorId) sentParentAuthorNotification = true;
 
@@ -601,7 +702,7 @@ exports.appNotificationFeedbackConversation = functions.database.ref('/feedbacks
             const authorToNotify = [];
             snapshot.forEach(function(feedbackSnap) {
                 // exclude parent author & feedback author
-                const notifyAuthorId = feedbackSnap.val().authorId;
+                const notifyAuthorId = feedbackSnap.val().senderId;
                 if (notifyAuthorId  != parentFeedbackAuthorId && notifyAuthorId != feedbackAuthorId ) {
                     if (!authorToNotify.includes(notifyAuthorId)) {
                         authorToNotify.push(notifyAuthorId);
@@ -615,33 +716,13 @@ exports.appNotificationFeedbackConversation = functions.database.ref('/feedbacks
                 const promisePool = new PromisePool(() => {
                     if (sentParentAuthorNotification) {
                         sentParentAuthorNotification = false;
-                        // Get user notification ref
-                        const userNotificationsRef = admin.database().ref(`/user-notifications/${parentFeedbackAuthorId}`);
-                        var newNotificationRef = userNotificationsRef.push();
                         var msg = profile.val().username + " replied on your feedback.";
-                        return newNotificationRef.set({
-                            'action': 'com.eriyaz.social.activities.FeedbackActivity',
-                            'fromUserId' : feedbackAuthorId,
-                            'message': msg,
-                            'createdDate': admin.database.ServerValue.TIMESTAMP
-                        }).then(() => {
-                            console.log('sent reply notification on your feedback ', parentFeedbackAuthorId);
-                        });
+                        return sendAppFeedbackNotification(parentFeedbackAuthorId, feedbackAuthorId, msg);
                     }
                   if (authorToNotify.length > 0) {
                     const authorId = authorToNotify.pop();
-                    // Get user notification ref
-                    const userNotificationsRef = admin.database().ref(`/user-notifications/${authorId}`);
-                    var newNotificationRef = userNotificationsRef.push();
                     var msg = profile.val().username + " replied on the feedback on which you also replied.";
-                    return newNotificationRef.set({
-                        'action': 'com.eriyaz.social.activities.FeedbackActivity',
-                        'fromUserId' : feedbackAuthorId,
-                        'message': msg,
-                        'createdDate': admin.database.ServerValue.TIMESTAMP
-                    }).then(() => {
-                        console.log('sent new feedback reply notification on feedback you replied to ', authorId);
-                    });
+                    return sendAppFeedbackNotification(authorId, feedbackAuthorId, msg);
                   }
                   return null;
                 }, MAX_CONCURRENT);
@@ -725,6 +806,27 @@ function processAuthorRatingNode(postSnap) {
         });
     });
 }
+
+// exports.generateChecksum = functions.https.onRequest((req, res) => {
+//     var paramarray = {};
+//     paramarray['MID'] = "SeeonE99000076026859"; //Provided by Paytm
+//     paramarray['ORDER_ID'] = "ORDER3"; //unique OrderId for every request
+//     paramarray['CUST_ID'] = "CUST3";  // unique customer identifier 
+//     paramarray['INDUSTRY_TYPE_ID'] = "Retail"; //Provided by Paytm
+//     paramarray['CHANNEL_ID'] = "WAP"; //Provided by Paytm
+//     paramarray['TXN_AMOUNT'] = "5.0"; // transaction amount
+//     paramarray['WEBSITE'] = "APPSTAGING"; //Provided by Paytm
+//     paramarray['CALLBACK_URL'] = 'https://securegw.paytm.in/theia/paytmCallback?ORDER_ID=ORDER3';//Provided by Paytm
+//     paytm_checksum.genchecksum(paramarray, paytm_config.MERCHANT_KEY, function (err, output) {
+//         console.log(output);
+//         if(paytm_checksum.verifychecksum(output, paytm_config.MERCHANT_KEY)) {
+//             console.log("true");
+//         }else{
+//             console.log("false");
+//         }
+//         return res.status(200).send(JSON.stringify(output));
+//     });
+// });
 
 exports.appUpdateNotification = functions.https.onRequest((req, res) => {
     // check if security key is same
@@ -818,35 +920,6 @@ exports.appUpdateNotification = functions.https.onRequest((req, res) => {
 //     });
 // });
 
-exports.appNotificationMessages = functions.database.ref('/user-messages/{userId}/{messageId}').onCreate(event => {
-    console.log('App notification for new message');
-
-    const messageId = event.params.messageId;
-    const userId = event.params.userId;
-    const message = event.data.val();
-    const messageAuthorId = message.senderId;
-
-    if (messageAuthorId == userId) {
-        return console.log('User messaged on own wall');
-    }
-    // Get message author.
-    const getMessageAuthorProfileTask = admin.database().ref(`/profiles/${messageAuthorId}`).once('value');
-
-    return getMessageAuthorProfileTask.then(profile => {
-        // Get user notification ref
-        const userNotificationsRef = admin.database().ref(`/user-notifications/${userId}`);
-        var newNotificationRef = userNotificationsRef.push();
-        var msg = profile.val().username + " left a message on your profile page.";
-        newNotificationRef.set({
-            'action': 'com.eriyaz.social.activities.MessageActivity',
-            'fromUserId' : messageAuthorId,
-            'message': msg,
-            'extraKey' : 'ProfileActivity.USER_ID_EXTRA_KEY',
-            'extraKeyValue' : userId,
-            'createdDate': admin.database.ServerValue.TIMESTAMP
-        });
-    });
-});
 
 
 // const bigquery = require('@google-cloud/bigquery')();

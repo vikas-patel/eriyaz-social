@@ -117,5 +117,16 @@
 
     </android.support.design.widget.TextInputLayout>
 
+    <Button android:id="@+id/retryButton"
+        android:text="Retry"
+        android:minHeight="0dp"
+        android:minWidth="0dp"
+        android:layout_marginBottom="@dimen/intrinsic_padding"
+        android:layout_marginRight="@dimen/small_intrinsic_padding"
+        android:layout_alignParentRight="true"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_alignParentBottom="true" />
+
 
 </RelativeLayout>

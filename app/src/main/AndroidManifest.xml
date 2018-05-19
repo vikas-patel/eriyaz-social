@@ -79,6 +79,10 @@
             android:configChanges="orientation|screenSize"
             android:label="@string/title_activity_feedback" />
         <activity
+            android:name=".activities.TnCActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/title_activity_tnc" />
+        <activity
             android:name=".activities.CreatePostActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/label_create_post_activity" />

@@ -555,7 +555,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         initRatingRecyclerView();
         initLikes();
         fillPostFields();
-        setBoughtFeedbackStatus();
+//        setBoughtFeedbackStatus();
         updateCounters();
         initLikeButtonState();
         updateOptionMenuVisibility();
