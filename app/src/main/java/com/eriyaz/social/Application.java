@@ -25,10 +25,14 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Application extends android.app.Application {
 
     public static final String TAG = Application.class.getSimpleName();
     private FirebaseRemoteConfig mFirebaseRemoteConfig;
+    private List<String> playPostList = new ArrayList<>();
 
     @Override
     public void onCreate() {
@@ -39,6 +43,14 @@ public class Application extends android.app.Application {
         mFirebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
         mFirebaseRemoteConfig.setDefaults(R.xml.remote_config_defaults);
         fetchRemoteConfig();
+    }
+
+    public void addPlayedPost(String postId) {
+        playPostList.add(postId);
+    }
+
+    public boolean isPostPlayed(String postId) {
+        return playPostList.contains(postId);
     }
 
     private void fetchRemoteConfig() {

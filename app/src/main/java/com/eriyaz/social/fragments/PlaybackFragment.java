@@ -20,6 +20,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import com.eriyaz.social.Application;
 import com.eriyaz.social.Constants;
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
@@ -88,6 +89,7 @@ public class PlaybackFragment extends DialogFragment {
     private CommentManager commentManager;
     private TextView melodyPercentageLabel;
     private FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+    private Application application;
 
 
     public PlaybackFragment newInstance(RecordingItem item) {
@@ -117,6 +119,7 @@ public class PlaybackFragment extends DialogFragment {
         if (rating == null) rating = new Rating();
         // own recording yet to be submitted
         BaseActivity activity = (BaseActivity) getActivity();
+        application = (Application) getActivity().getApplication();
         if (post == null) {
             activity.getAnalytics().logOpenRecordedAudio();
         } else {
@@ -131,6 +134,10 @@ public class PlaybackFragment extends DialogFragment {
             BaseActivity activity = (BaseActivity) getActivity();
             if (player.getPlayWhenReady() && player.getPlaybackState() == Player.STATE_READY) {
                 markPlayerPositions();
+            }
+            if (!isListenNotEnough()) {
+
+                application.addPlayedPost(post.getId());
             }
             activity.getAnalytics().logPlayedTime(post.getAuthorId(), post.getTitle(), (int) totalPlayed/1000);
         }
@@ -409,8 +416,7 @@ public class PlaybackFragment extends DialogFragment {
                     if (player.getPlayWhenReady() && player.getPlaybackState() == Player.STATE_READY) {
                         markPlayerPositions();
                     }
-                    if (totalPlayed < Constants.RECORDING.MIN_PLAY_RECORDING*1000
-                            && player.getDuration() > Constants.RECORDING.MIN_PLAY_RECORDING*1000) {
+                    if (!application.isPostPlayed(post.getId()) && isListenNotEnough()) {
                         // show warning
                         showDialog(R.string.min_play_record);
                         ratingBar.setProgress(rating.getRating());
@@ -427,6 +433,15 @@ public class PlaybackFragment extends DialogFragment {
             }
         });
         ratingBar.setProgress(rating.getRating());
+    }
+
+    public boolean isListenNotEnough() {
+        if (totalPlayed < Constants.RECORDING.MIN_PLAY_RECORDING*1000
+                && player.getDuration() > Constants.RECORDING.MIN_PLAY_RECORDING*1000) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
