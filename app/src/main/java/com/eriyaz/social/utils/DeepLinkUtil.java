@@ -10,19 +10,14 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
-import android.util.Log;
-import android.widget.TextView;
+import android.text.Html;
 import android.widget.Toast;
 
 import com.eriyaz.social.R;
-import com.eriyaz.social.activities.MainActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.analytics.FirebaseAnalytics;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.dynamiclinks.DynamicLink;
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
 import com.google.firebase.dynamiclinks.ShortDynamicLink;
@@ -165,7 +160,7 @@ public class DeepLinkUtil {
                     intentList.add(new LabeledIntent(intent, packageName, ri.loadLabel(pm), ri.icon));
                 }
             }
-            Intent chooserIntent = Intent.createChooser(intentList.get(0), context.getString(R.string.app_share_popup_title));
+            Intent chooserIntent = Intent.createChooser(intentList.get(0), Html.fromHtml(context.getString(R.string.app_share_popup_title)));
             intentList.remove(0);
             Parcelable[] targetedIntentsParcelable = intentList.toArray(new Parcelable[intentList.size()]);
             chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, targetedIntentsParcelable);

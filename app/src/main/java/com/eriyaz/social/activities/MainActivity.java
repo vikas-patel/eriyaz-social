@@ -27,6 +27,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatDelegate;
@@ -88,6 +89,7 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
     private TextView newPostsCounterTextView;
     private Menu mOptionsMenu;
     private PostManager.PostCounterWatcher postCounterWatcher;
+    private long WARNING_MIN_POINTS = 5;
     private boolean counterAnimationInProgress = false;
     private long userPoints = 0;
     final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
@@ -151,6 +153,7 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
             @Override
             public void onObjectChanged(Profile profile) {
                 userPoints = profile.getPoints();
+                if (userPoints < WARNING_MIN_POINTS) showShareAppBanner();
                 updateUnseenNotificationCount(profile.getUnseen());
                 if (profile.isAdmin()) {
                     MenuItem adminItem = mOptionsMenu.findItem(R.id.admin_menu_item);
@@ -236,6 +239,19 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
 
             }
         });
+    }
+
+    private void showShareAppBanner() {
+        Snackbar snackbar = Snackbar.make(floatingActionButton, getString(R.string.app_share_banner), Snackbar.LENGTH_INDEFINITE)
+                .setActionTextColor(getResources().getColor(R.color.accent))
+                .setAction("SHARE", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onShareClick();
+            }
+        });
+        snackbar.getView().setBackgroundColor(getResources().getColor(R.color.red));
+        snackbar.show();
     }
 
     /*
