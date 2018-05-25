@@ -17,11 +17,9 @@
 
 package com.eriyaz.social.adapters.holders;
 
-import android.app.Activity;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -29,12 +27,10 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.eriyaz.social.activities.BaseActivity;
-import com.eriyaz.social.utils.Analytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.eriyaz.social.Constants;
 import com.eriyaz.social.R;
-import com.eriyaz.social.fragments.PlaybackFragment;
 import com.eriyaz.social.managers.PostManager;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
@@ -74,7 +70,6 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     protected ProfileManager profileManager;
     protected PostManager postManager;
     protected Rating ratingByCurrentUser;
-    private Analytics analytics;
 
     public PostViewHolder(View view, final OnClickListener onClickListener) {
         this(view, onClickListener, true);
@@ -83,7 +78,6 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     public PostViewHolder(View view, boolean isAuthorNeeded) {
         super(view);
         this.context = view.getContext();
-        analytics = new Analytics(this.context);
 
         fileName = view.findViewById(R.id.file_name_text);
 //        audioLength = view.findViewById(R.id.file_length_text);

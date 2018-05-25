@@ -89,7 +89,12 @@ public class ProfileManager extends FirebaseListenersManager {
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                onObjectExistListener.onDataChanged(dataSnapshot.exists());
+                boolean isExist = dataSnapshot.exists();
+                if (isExist) {
+                    Profile profile = dataSnapshot.getValue(Profile.class);
+                    if (profile.getId() == null || profile.getId().isEmpty()) isExist = false;
+                }
+                onObjectExistListener.onDataChanged(isExist);
             }
 
             @Override
@@ -97,10 +102,6 @@ public class ProfileManager extends FirebaseListenersManager {
 
             }
         });
-    }
-
-    public void createOrUpdateProfile(Profile profile, OnProfileCreatedListener onProfileCreatedListener) {
-        createOrUpdateProfile(profile, null, onProfileCreatedListener);
     }
 
     public void createOrUpdateProfile(final Profile profile, Uri imageUri, final OnProfileCreatedListener onProfileCreatedListener) {

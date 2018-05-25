@@ -309,7 +309,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
                 startEditProfileActivity();
                 return true;
             case R.id.signOut:
-                LogoutHelper.signOut(mGoogleApiClient, this);
+                LogoutHelper.signOut(mGoogleApiClient, this, true);
                 startMainActivity();
                 return true;
             case R.id.createPost:

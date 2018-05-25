@@ -89,18 +89,16 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
         mAuth = FirebaseAuth.getInstance();
 
         if (mAuth.getCurrentUser() != null) {
-            LogoutHelper.signOut(mGoogleApiClient, this);
+            LogoutHelper.signOut(mGoogleApiClient, this, false);
         }
 
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 final FirebaseUser user = firebaseAuth.getCurrentUser();
-                if (user != null) {
+                if (user != null && !user.isAnonymous()) {
                     // Profile is signed in
                     LogUtil.logDebug(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
-                    analytics.getFirebase().setUserId(user.getUid());
-                    analytics.signIn();
                     checkIsProfileExist(user.getUid());
                 } else {
                     // Profile is signed out
@@ -190,6 +188,8 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
         ProfileManager.getInstance(this).isProfileExist(userId, new OnObjectExistListener<Profile>() {
             @Override
             public void onDataChanged(boolean exist) {
+                analytics.getFirebase().setUserId(userId);
+                analytics.signIn();
                 if (!exist) {
                     startCreateProfileActivity();
                 } else {
@@ -212,22 +212,29 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
     private void handleFacebookAccessToken(AccessToken token) {
         LogUtil.logDebug(TAG, "handleFacebookAccessToken:" + token);
         showProgress();
-
         AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        LogUtil.logDebug(TAG, "signInWithCredential:onComplete:" + task.isSuccessful());
+        if (mAuth.getCurrentUser() !=null && mAuth.getCurrentUser().isAnonymous()) {
+            migrateAnonymousToPermanent(credential);
+        } else {
+            sendCredentialsToFirebase(credential);
+        }
+    }
 
-                        // If sign in fails, display a message to the user. If sign in succeeds
-                        // the auth state listener will be notified and logic to handle the
-                        // signed in user can be handled in the listener.
-                        if (!task.isSuccessful()) {
-                            handleAuthError(task);
-                        }
+    private void sendCredentialsToFirebase(AuthCredential credential) {
+        mAuth.signInWithCredential(credential)
+            .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                @Override
+                public void onComplete(@NonNull Task<AuthResult> task) {
+                    LogUtil.logDebug(TAG, "signInWithCredential:onComplete:" + task.isSuccessful());
+
+                    // If sign in fails, display a message to the user. If sign in succeeds
+                    // the auth state listener will be notified and logic to handle the
+                    // signed in user can be handled in the listener.
+                    if (!task.isSuccessful()) {
+                        handleAuthError(task);
                     }
-                });
+                }
+            });
     }
 
     private void handleAuthError(Task<AuthResult> task) {
@@ -247,21 +254,29 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
         LogUtil.logDebug(TAG, "firebaseAuthWithGoogle:" + acct.getId());
         showProgress();
 
-        AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        LogUtil.logDebug(TAG, "signInWithCredential:onComplete:" + task.isSuccessful());
+        final AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
+        if (mAuth.getCurrentUser() !=null && mAuth.getCurrentUser().isAnonymous()) {
+            migrateAnonymousToPermanent(credential);
+        } else {
+            sendCredentialsToFirebase(credential);
+        }
+    }
 
-                        // If sign in fails, display a message to the user. If sign in succeeds
-                        // the auth state listener will be notified and logic to handle the
-                        // signed in user can be handled in the listener.
-                        if (!task.isSuccessful()) {
-                            handleAuthError(task);
-                        }
-                    }
-                });
+    private void migrateAnonymousToPermanent(final AuthCredential credential) {
+        LogUtil.logInfo(TAG, "link credential");
+        mAuth.getCurrentUser().linkWithCredential(credential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                if (task.isSuccessful()) {
+                    checkIsProfileExist(mAuth.getCurrentUser().getUid());
+                } else {
+                    // Failed, may be account already exists
+                    mAuth.signOut();
+
+                    sendCredentialsToFirebase(credential);
+                }
+            }
+        });
     }
 
     @Override

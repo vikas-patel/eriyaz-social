@@ -17,6 +17,7 @@ const notificationTitle = "RateMySinging"
 const postsTopic = "postsTopic"
 // Maximum concurrent database connection.
 const MAX_CONCURRENT = 3;
+const REWARD_POINTS = 20;
 
 // const gmailEmail = functions.config().gmail.email;
 // const gmailPassword = functions.config().gmail.password;
@@ -363,6 +364,15 @@ exports.postAddedPoints = functions.database.ref('/posts/{postId}').onCreate(eve
     });
 });
 
+function addPoints(profileId, points) {
+    const authorProfilePointsRef = admin.database().ref(`/profiles/${profileId}/points`);
+    return authorProfilePointsRef.transaction(current => {
+          return (current || 0) + points;
+    }).then(() => {
+        console.log(points, 'points added to user ', profileId);
+    });
+}
+
 // exports.postDeletePoints = functions.database.ref('/posts/{postId}').onDelete(event => {
 //     const postId = event.params.postId;
 //     const post = event.data.previous.val();
@@ -659,6 +669,21 @@ function sendAppMessageNotification(authorId, fromUserId, msg, extraKeyValue) {
     });
 }
 
+function sendAppRewardsNotification(authorId, fromUserId, msg) {
+    console.log("sending msg:", msg);
+    // Get user notification ref
+    const userNotificationsRef = admin.database().ref(`/user-notifications/${authorId}`);
+    var newNotificationRef = userNotificationsRef.push();
+    return newNotificationRef.set({
+        'action': 'com.eriyaz.social.activities.ProfileActivity',
+        'fromUserId' : fromUserId,
+        'message': msg,
+        'extraKey' : 'ProfileActivity.USER_ID_EXTRA_KEY',
+        'extraKeyValue' : authorId,
+        'createdDate': admin.database.ServerValue.TIMESTAMP
+    });
+}
+
 function sendAppFeedbackNotification(authorId, fromUserId, msg) {
     // Get user notification ref
     const userNotificationsRef = admin.database().ref(`/user-notifications/${authorId}`);
@@ -827,6 +852,25 @@ function processAuthorRatingNode(postSnap) {
 //         return res.status(200).send(JSON.stringify(output));
 //     });
 // });
+
+exports.grantSignupReward = functions.database.ref('/profiles/{uid}/id').onCreate(event => {
+    console.log("new user signed in");
+      var uid = event.params.uid;
+      admin.database().ref(`profiles/${uid}`)
+        .once('value').then(function(profileSnap) {
+          var profile = profileSnap.val();
+          console.log("referred_by", profile.referred_by);
+          if (profile.referred_by) {
+            // add reward points
+            const addPointsTask =  addPoints(profile.referred_by, REWARD_POINTS);
+            const msg = "Congrats your friend " +  profile.username + " joined. " +  REWARD_POINTS +" points added to your profile.";
+            const notificationTask = sendAppRewardsNotification(profile.referred_by, uid, msg);
+            return Promise.all([addPointsTask, notificationTask]).then(results => {
+                console.log("all reward tasks completed.");
+            });
+          }
+        });
+    });
 
 exports.appUpdateNotification = functions.https.onRequest((req, res) => {
     // check if security key is same

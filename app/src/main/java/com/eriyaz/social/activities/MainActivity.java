@@ -60,11 +60,17 @@ import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.AnimationUtils;
 import com.eriyaz.social.utils.DeepLinkUtil;
+import com.eriyaz.social.utils.LogUtil;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
+import com.google.firebase.dynamiclinks.PendingDynamicLinkData;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 
 import static com.eriyaz.social.utils.ImageUtil.setBadgeCount;
@@ -628,5 +634,37 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         postsAdapter.updateSelectedPost();
     }
 
+    public void getDynamicLink() {
+        //Toast.makeText(getApplicationContext(),"getDynamicLink", Toast.LENGTH_SHORT).show();
+        FirebaseDynamicLinks.getInstance().getDynamicLink(getIntent())
+                .addOnSuccessListener(this, new OnSuccessListener<PendingDynamicLinkData>() {
+                    @Override
+                    public void onSuccess(PendingDynamicLinkData pendingDynamicLinkData) {
+                        Uri deepLink = null;
+                        if (pendingDynamicLinkData != null) {
+                            deepLink = pendingDynamicLinkData.getLink();
+                            LogUtil.logInfo(TAG,"getDynamicLink.onSuccess :" +deepLink);
+                            //Toast.makeText(getApplicationContext(),deepLink.toString(), Toast.LENGTH_SHORT).show();
+                        }
 
+                        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                        if (user == null && deepLink != null && deepLink.getBooleanQueryParameter("invitedby", false)) {
+                            String referrerUid = deepLink.getQueryParameter("invitedby");
+                            getAnalytics().logInvite(referrerUid);
+//                            Toast.makeText(getApplicationContext(),referrerUid, Toast.LENGTH_LONG).show();
+                            createAnonymousAccountWithReferrerInfo(referrerUid);
+                        }
+                    }
+                })
+                .addOnFailureListener(this, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        LogUtil.logError(TAG, "getDynamicLink:onFailure", e);
+                    }
+                });
+    }
+
+    private void createAnonymousAccountWithReferrerInfo(String referrerUid) {
+        DatabaseHelper.getInstance(MainActivity.this).setReferrerInfo(referrerUid);
+    }
 }

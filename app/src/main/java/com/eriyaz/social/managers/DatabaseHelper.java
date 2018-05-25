@@ -31,6 +31,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -138,9 +139,27 @@ public class DatabaseHelper {
         activeListeners.clear();
     }
 
+    public void setReferrerInfo(final String referrerUid) {
+        FirebaseAuth.getInstance()
+            .signInAnonymously()
+            .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+                @Override
+                public void onSuccess(AuthResult authResult) {
+                    // Keep track of the referrer in the RTDB. Database calls
+                    // will depend on the structure of your app's RTDB.
+                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                    DatabaseReference databaseReference = ApplicationHelper.getDatabaseHelper().getDatabaseReference();
+                    DatabaseReference userRecord =
+                            databaseReference.child("profiles")
+                                    .child(user.getUid());
+                    userRecord.child("referred_by").setValue(referrerUid);
+                }
+            });
+    }
+
     public void createOrUpdateProfile(final Profile profile, final OnProfileCreatedListener onProfileCreatedListener) {
         DatabaseReference databaseReference = ApplicationHelper.getDatabaseHelper().getDatabaseReference();
-        Task<Void> task = databaseReference.child("profiles").child(profile.getId()).setValue(profile);
+        Task<Void> task = databaseReference.child("profiles").child(profile.getId()).updateChildren(profile.toMap());
         task.addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {

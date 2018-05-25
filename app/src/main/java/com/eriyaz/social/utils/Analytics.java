@@ -34,6 +34,7 @@ public class Analytics {
     public static final String PLAYED_TIME = "AudioPlayedTime";
     public static final String SHARE_APP = "ShareApp";
     public static final String SIGNIN = "SignIn";
+    public static final String InviteAppInstall = "InviteAppInstall";
 
     public Analytics(Context context) {
         firebase = FirebaseAnalytics.getInstance(context);
@@ -164,9 +165,8 @@ public class Analytics {
 
     public void logInvite(String byUserId) {
         Bundle bundle = new Bundle();
-        bundle.putString(FirebaseAnalytics.Param.ITEM_ID, "InviteAppInstall");
         bundle.putString("InvitedBy", byUserId);
-        firebase.logEvent(POST, bundle);
+        firebase.logEvent(InviteAppInstall, bundle);
     }
 
     public void signIn() {

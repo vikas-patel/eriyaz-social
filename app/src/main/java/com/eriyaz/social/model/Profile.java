@@ -19,6 +19,8 @@ package com.eriyaz.social.model;
 import com.google.firebase.database.IgnoreExtraProperties;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 @IgnoreExtraProperties
 public class Profile implements Serializable {
@@ -111,6 +113,15 @@ public class Profile implements Serializable {
 
     public void setAdmin(boolean admin) {
         this.admin = admin;
+    }
+
+    public Map<String, Object> toMap() {
+        HashMap<String, Object> result = new HashMap<>();
+        result.put("id", id);
+        result.put("username", username);
+        result.put("email", email);
+        result.put("photoUrl", photoUrl);
+        return result;
     }
 
     @Override

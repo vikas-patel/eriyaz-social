@@ -43,7 +43,7 @@ public class LogoutHelper {
     private static final String TAG = LogoutHelper.class.getSimpleName();
     private static ClearImageCacheAsyncTask clearImageCacheAsyncTask;
 
-    public static void signOut(GoogleApiClient mGoogleApiClient, FragmentActivity fragmentActivity) {
+    public static void signOut(GoogleApiClient mGoogleApiClient, FragmentActivity fragmentActivity, boolean kickoutAnonymous) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             DatabaseHelper.getInstance(fragmentActivity.getApplicationContext())
@@ -53,6 +53,7 @@ public class LogoutHelper {
                 String providerId = profile.getProviderId();
                 logoutByProvider(providerId, mGoogleApiClient, fragmentActivity);
             }
+            if (!user.isAnonymous() || kickoutAnonymous)
             logoutFirebase(fragmentActivity.getApplicationContext());
         }
 
