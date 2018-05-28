@@ -21,6 +21,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.dynamiclinks.DynamicLink;
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
 import com.google.firebase.dynamiclinks.ShortDynamicLink;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +34,7 @@ public class DeepLinkUtil {
     private static final String TAG = DeepLinkUtil.class.getSimpleName();
     public Context context;
     public DynamicLinkCallback dynamicLinkCallback;
+    final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
 
     public interface DynamicLinkCallback {
         void getLinkSuccess(Uri uri);
@@ -160,7 +162,8 @@ public class DeepLinkUtil {
                     intentList.add(new LabeledIntent(intent, packageName, ri.loadLabel(pm), ri.icon));
                 }
             }
-            Intent chooserIntent = Intent.createChooser(intentList.get(0), Html.fromHtml(context.getString(R.string.app_share_popup_title)));
+            int reward_points = (int) remoteConfig.getLong("reward_points");
+            Intent chooserIntent = Intent.createChooser(intentList.get(0), Html.fromHtml(String.format(context.getString(R.string.app_share_popup_title), reward_points)));
             intentList.remove(0);
             Parcelable[] targetedIntentsParcelable = intentList.toArray(new Parcelable[intentList.size()]);
             chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, targetedIntentsParcelable);

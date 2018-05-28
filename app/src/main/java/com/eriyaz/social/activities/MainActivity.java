@@ -242,7 +242,8 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
     }
 
     private void showShareAppBanner() {
-        Snackbar snackbar = Snackbar.make(floatingActionButton, getString(R.string.app_share_banner), Snackbar.LENGTH_INDEFINITE)
+        int reward_points = (int) remoteConfig.getLong("reward_points");
+        Snackbar snackbar = Snackbar.make(floatingActionButton, String.format(getString(R.string.app_share_banner), reward_points), Snackbar.LENGTH_INDEFINITE)
                 .setActionTextColor(getResources().getColor(R.color.accent))
                 .setAction("SHARE", new View.OnClickListener() {
             @Override

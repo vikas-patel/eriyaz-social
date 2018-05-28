@@ -921,28 +921,56 @@ exports.appUpdateNotification = functions.https.onRequest((req, res) => {
     });
 });
 
-// exports.appUninstall = functions.analytics.event('app_remove').onLog(event => {
-//     const user = event.data.user;
-//     const uid = user.userId;
-//     console.log("app uninstall detected for uid ",uid);
-//     // Get profile of user and set user details
-//     if (uid) {
-//         const profileUninstallRef = admin.database().ref(`/uninstall/track/${uid}`);
-//         const newProfileUninstallRef = profileUninstallRef.push();
-//         user.uninstallTime = event.data.logTime;
-//         return newProfileUninstallRef.set(user).then(() => {
-//             console.log('uninstall user profile updated with event details.');
-//         });
-//     } else {
-//         const appInstanceId = user.appInfo.appInstanceId;
-//         const uninstallUntrackRef = admin.database().ref(`/uninstall/untrack/${appInstanceId}`);
-//         const newUninstallUntrackRef = uninstallUntrackRef.push();
-//         user.uninstallTime = event.data.logTime;
-//         return newUninstallUntrackRef.set(user).then(() => {
-//             console.log('updated uninstall details of untracked user.');
-//         });
-//     }
-// });
+exports.appUninstall = functions.analytics.event('app_remove').onLog(event => {
+    const user = event.data.user;
+    const uid = user.userId;
+    console.log("app uninstall detected for uid ",uid);
+    // Get profile of user and set user details
+    if (uid) {
+        const profileUninstallRef = admin.database().ref(`profiles/${uid}/unInstalled`);
+        return profileUninstallRef.transaction(current => {
+              return true;
+        }).then(() => {
+            console.log('mark uninstall for profile ', uid);
+            return markPostRemoved(uid, true);
+        });
+    }
+});
+
+exports.userReInstall = functions.analytics.event('SignIn').onLog(event => {
+    const user = event.data.user;
+    const uid = user.userId;
+    console.log("signin detected for user ", uid);
+    admin.database().ref(`profiles/${uid}/unInstalled`).once('value').then(function(data) {
+      var isUnInstalled = data.val();
+      if (isUnInstalled) {
+        const profileUninstallRef = admin.database().ref(`profiles/${uid}/unInstalled`);
+        return profileUninstallRef.transaction(current => {
+              return false;
+        }).then(() => {
+            console.log('mark install for profile ', uid);
+            return markPostRemoved(uid, false);
+        });
+      }
+    });
+});
+
+function markPostRemoved(uid, isRemoved) {
+    console.log("mark posts removed", isRemoved, "for user", uid);
+    const postRef = admin.database().ref(`/posts`);
+    const postQuery = postRef.orderByChild('authorId').equalTo(uid).once('value');
+    return postQuery.then(userPostsSnap => {
+        var updatePosts = {};
+        userPostsSnap.forEach(function(postSnap) {
+            // exclude parent author & message author
+            const postId = postSnap.key;
+            updatePosts['/' + postId + '/removed'] = isRemoved;
+        });
+        return postRef.update(updatePosts).then(() => {
+            console.log("update posts", updatePosts);
+        });
+    });
+}
 
 // exports.incrementUserMessageCount = functions.database.ref('/user-messages/{authorId}/{messageId}').onCreate(event => {
 //     const authorId = event.params.authorId;

@@ -856,13 +856,14 @@ public class DatabaseHelper {
                     }
 
                     boolean hasComplain = mapObj.containsKey("hasComplain") && (boolean) mapObj.get("hasComplain");
+                    boolean isRemoved = mapObj.containsKey("removed") && (boolean) mapObj.get("removed");
                     long createdDate = (long) mapObj.get("createdDate");
 
                     if (lastItemCreatedDate == 0 || lastItemCreatedDate > createdDate) {
                         lastItemCreatedDate = createdDate;
                     }
 
-                    if (!hasComplain) {
+                    if (!hasComplain && !isRemoved) {
                         Post post = new Post();
                         post.setId(key);
                         post.setTitle((String) mapObj.get("title"));

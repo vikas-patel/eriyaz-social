@@ -18,9 +18,9 @@
 <resources>
     <string name="app_name">RateMySinging</string>
     <string name="app_share_description">Connect with other singers and get their feedback on your singing. </string>
-    <string name="app_share_banner"><![CDATA[Earn 20 points by sharing app.]]></string>
+    <string name="app_share_banner">Earn %1$d points by sharing app.</string>
     <string name="app_share_title">RateMySinging - Android Play Store App</string>
-    <string name="app_share_popup_title"><![CDATA[You will earn <font color=\'#F44336\'><b>20 points</b></font> for every new user who joins from referral. Share on :]]></string>
+    <string name="app_share_popup_title"><![CDATA[You will earn <font color=\'#F44336\'><b>%1$d points</b></font> for every new user who joins from referral. Share on :]]></string>
     <string name="app_url">https://play.google.com/store/apps/details?id=com.eriyaz.social</string>
     <string name="dynamic_link_domain2">eriyaz.app.goo.gl</string>
     <string name="dynamic_link_domain">t6kaz.app.goo.gl</string>

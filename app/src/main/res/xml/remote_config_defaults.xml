@@ -6,8 +6,12 @@
         <value>3</value>
     </entry>
     <entry>
+        <key>reward_points</key>
+        <value>20</value>
+    </entry>
+    <entry>
         <key>current_version</key>
-        <value>31</value>
+        <value>32</value>
     </entry>
     <entry>
         <key>update_required</key>
