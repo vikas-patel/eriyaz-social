@@ -26,6 +26,8 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.UploadTask;
 import com.eriyaz.social.ApplicationHelper;
@@ -77,7 +79,12 @@ public class PostManager extends FirebaseListenersManager {
     }
 
     public void getPostsList(OnPostListChangedListener<Post> onDataChangedListener, long date) {
-        ApplicationHelper.getDatabaseHelper().getPostList(onDataChangedListener, date);
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            ApplicationHelper.getDatabaseHelper().getPostList(onDataChangedListener, date);
+        } else {
+            ApplicationHelper.getDatabaseHelper().getFilteredPostList(user.getUid(), onDataChangedListener, date);
+        }
     }
 
     public void getPostsListByUser(OnDataChangedListener<Post> onDataChangedListener, String userId) {

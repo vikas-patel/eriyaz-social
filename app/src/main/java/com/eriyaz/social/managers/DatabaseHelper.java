@@ -703,6 +703,59 @@ public class DatabaseHelper {
         return riversRef.putFile(uri, metadata);
     }
 
+    public void getFilteredPostList(String userId, final OnPostListChangedListener<Post> onDataChangedListener, final long date) {
+        // invoke when user is signed in
+        // 1. Get rated posts
+        // 2. Get limited posts by date
+        // 3. invoke in loop till count is reached.
+        // 4. make sure handle end condition, avoid infinite loop
+        DatabaseReference databaseReference = database.getReference("user-ratings").child(userId);
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                List<String> ratedPosts = new ArrayList<>();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Rating rating = snapshot.getValue(Rating.class);
+                    ratedPosts.add(rating.getPostId());
+                }
+                getPosts(onDataChangedListener, date, ratedPosts,null);
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                LogUtil.logError(TAG, "getRatingListByUser(), onCancelled", new Exception(databaseError.getMessage()));
+            }
+        });
+    }
+
+    private void getPosts(final OnPostListChangedListener<Post> onDataChangedListener, long date, final List<String> filterPosts, final PostListResult postResult) {
+        DatabaseReference databaseReference = database.getReference("posts");
+        Query postsQuery;
+        if (date == 0) {
+            postsQuery = databaseReference.limitToLast(Constants.Post.POST_AMOUNT_ON_PAGE).orderByChild("createdDate");
+        } else {
+            postsQuery = databaseReference.limitToLast(Constants.Post.POST_AMOUNT_ON_PAGE).endAt(date).orderByChild("createdDate");
+        }
+
+        postsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Map<String, Object> objectMap = (Map<String, Object>) dataSnapshot.getValue();
+                PostListResult result = parseAppendPostList(objectMap, filterPosts, postResult);
+                if (result.getPosts().size() < Constants.Post.POST_AMOUNT_ON_PAGE && result.isMoreDataAvailable()) {
+                    getPosts(onDataChangedListener, result.getLastItemCreatedDate() - 1, filterPosts, result);
+                } else {
+                    onDataChangedListener.onListChanged(result);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                LogUtil.logError(TAG, "getPostList(), onCancelled", new Exception(databaseError.getMessage()));
+                onDataChangedListener.onCanceled(context.getString(R.string.permission_denied_error));
+            }
+        });
+    }
+
     public void getPostList(final OnPostListChangedListener<Post> onDataChangedListener, long date) {
         DatabaseReference databaseReference = database.getReference("posts");
         Query postsQuery;
@@ -717,12 +770,11 @@ public class DatabaseHelper {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Map<String, Object> objectMap = (Map<String, Object>) dataSnapshot.getValue();
-                PostListResult result = parsePostList(objectMap);
-
+                PostListResult result = parsePostList(objectMap, new ArrayList<String>());
                 if (result.getPosts().isEmpty() && result.isMoreDataAvailable()) {
                     getPostList(onDataChangedListener, result.getLastItemCreatedDate() - 1);
                 } else {
-                    onDataChangedListener.onListChanged(parsePostList(objectMap));
+                    onDataChangedListener.onListChanged(parsePostList(objectMap, new ArrayList<String>()));
                 }
             }
 
@@ -743,7 +795,7 @@ public class DatabaseHelper {
         postsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                PostListResult result = parsePostList((Map<String, Object>) dataSnapshot.getValue());
+                PostListResult result = parsePostList((Map<String, Object>) dataSnapshot.getValue(), new ArrayList<String>());
                 onDataChangedListener.onListChanged(result.getPosts());
             }
 
@@ -836,7 +888,16 @@ public class DatabaseHelper {
         });
     }
 
-    private PostListResult parsePostList(Map<String, Object> objectMap) {
+    private PostListResult parseAppendPostList(Map<String, Object> objectMap, List<String> filterPosts,  PostListResult resultAll) {
+        PostListResult result = parsePostList(objectMap, filterPosts);
+        if (resultAll == null) return result;
+        resultAll.getPosts().addAll(result.getPosts());
+        resultAll.setLastItemCreatedDate(result.getLastItemCreatedDate());
+        resultAll.setMoreDataAvailable(result.isMoreDataAvailable());
+        return resultAll;
+    }
+
+    private PostListResult parsePostList(Map<String, Object> objectMap, List<String> filterPosts) {
         PostListResult result = new PostListResult();
         List<Post> list = new ArrayList<Post>();
         boolean isMoreDataAvailable = true;
@@ -863,7 +924,7 @@ public class DatabaseHelper {
                         lastItemCreatedDate = createdDate;
                     }
 
-                    if (!hasComplain && !isRemoved) {
+                    if (!hasComplain && !isRemoved && !filterPosts.contains(key)) {
                         Post post = new Post();
                         post.setId(key);
                         post.setTitle((String) mapObj.get("title"));
