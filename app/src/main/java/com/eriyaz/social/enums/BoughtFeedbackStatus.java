@@ -5,5 +5,5 @@ package com.eriyaz.social.enums;
  */
 
 public enum BoughtFeedbackStatus {
-    NONE, ASKED, GIVEN
+    NONE, PAYMENT_STATUS_PENDING, ASKED, GIVEN
 }

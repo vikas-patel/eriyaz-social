@@ -73,6 +73,7 @@
     <string name="confirm_deletion_post">Delete this post?</string>
     <string name="confirm_deletion_message">Delete this message?</string>
     <string name="confirm_close_play_popup">Your inputs will be lost. You sure want to close?</string>
+    <string name="confirm_continue_payment">Get official feedback from Paarth Singh.\nWill be given in 24 hours".\nPrice: Rs %1$d.</string>
 
     <string name="comment_text_hint">Enter your comment…</string>
     <string name="message_text_hint">Enter your message…</string>
@@ -215,9 +216,10 @@
 
     <string name="facebook_app_id">165281787534501</string>
     <string name="fb_login_protocol_scheme">fb165281787534501</string>
-    <string name="get_official_feedback">Get Official Feedback</string>
+    <string name="get_official_feedback">Buy Official Feedback</string>
     <string name="awaiting_official_feedback">Awaiting Official Feedback</string>
     <string name="received_official_feedback">Received Official Feedback</string>
+    <string name="payment_status_pending">Payment Status Pending</string>
 
     <string-array name="attempt_arrays">
         <item>Attempt 1</item>

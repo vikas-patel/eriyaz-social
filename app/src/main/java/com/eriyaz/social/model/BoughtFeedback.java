@@ -29,7 +29,7 @@ public class BoughtFeedback {
 
     private String authorId;
     private long createdDate;
-
+    private String paymentStatus;
     private boolean resolved;
 
 
@@ -70,6 +70,14 @@ public class BoughtFeedback {
         this.createdDate = createdDate;
     }
 
+    public String getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
+
     public boolean isResolved() {
         return resolved;
     }
@@ -78,13 +86,4 @@ public class BoughtFeedback {
         this.resolved = resolved;
     }
 
-    public Map<String, Object> toMap() {
-        HashMap<String, Object> result = new HashMap<>();
-
-        result.put("postId", postId);
-        result.put("createdDate", createdDate);
-        result.put("resolved",resolved);
-
-        return result;
-    }
 }

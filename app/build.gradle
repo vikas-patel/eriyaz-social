@@ -40,8 +40,8 @@ android {
         minSdkVersion 16
         targetSdkVersion 26
         //Update remote config as well
-        versionCode 32
-        versionName "1.7"
+        versionCode 34
+        versionName "2.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -79,8 +79,9 @@ dependencies {
     compile 'com.facebook.android:facebook-android-sdk:4.17.0'
     compile 'com.melnykov:floatingactionbutton:1.1.0'
     compile 'com.xw.repo:bubbleseekbar:3.10-lite'
-
     compile 'com.google.firebase:firebase-invites:12.0.1'
+    compile 'com.paytm:pgplussdk:1.1.2'
+    compile 'com.android.volley:volley:1.0.0'
 }
 
 apply plugin: 'com.google.gms.google-services'

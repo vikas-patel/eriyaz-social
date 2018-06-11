@@ -9,6 +9,7 @@
         android:id="@+id/avatarImageView"
         android:layout_width="50dp"
         android:layout_height="50dp"
+        android:paddingRight="@dimen/small_intrinsic_padding"
         android:src="@drawable/ic_stub"
         app:shadow="false"
         app:border="true"
@@ -18,10 +19,19 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAlignment="center"
-        android:paddingLeft="@dimen/large_intrinsic_padding"
-        android:paddingRight="@dimen/large_intrinsic_padding"
+        android:paddingLeft="@dimen/small_intrinsic_padding"
+        android:paddingRight="@dimen/small_intrinsic_padding"
         android:textAppearance="@style/TextAppearance.Highlight"
         android:text="POST" />
+
+    <TextView
+        android:id="@+id/paymentStatusTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:paddingLeft="@dimen/small_intrinsic_padding"
+        android:paddingRight="@dimen/small_intrinsic_padding"
+        android:text="" />
 
     <TextView
         android:id="@+id/dateTextView"
@@ -29,7 +39,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:textAlignment="center"
-        android:text="TextView" />
+        android:text="" />
 
     <Button
         android:id="@+id/toggle_resolved"

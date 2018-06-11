@@ -43,6 +43,7 @@ public class BoughtFeedbackViewHolder extends RecyclerView.ViewHolder {
 
     private final ImageView avatarImageView;
     private final TextView dateTextView;
+    private final TextView paymentStatusTextView;
     private Button resolveButton;
     private final ProfileManager profileManager;
     private BoughtFeedbackAdapter.Callback callback;
@@ -57,6 +58,7 @@ public class BoughtFeedbackViewHolder extends RecyclerView.ViewHolder {
 
         avatarImageView = (ImageView) itemView.findViewById(R.id.avatarImageView);
         dateTextView = (TextView) itemView.findViewById(R.id.dateTextView);
+        paymentStatusTextView = (TextView) itemView.findViewById(R.id.paymentStatusTextView);
         resolveButton = itemView.findViewById(R.id.toggle_resolved);
     }
 
@@ -68,6 +70,7 @@ public class BoughtFeedbackViewHolder extends RecyclerView.ViewHolder {
 
         CharSequence date = FormatterUtil.getRelativeTimeSpanString(context, boughtFeedback.getCreatedDate());
         dateTextView.setText(date);
+        paymentStatusTextView.setText(boughtFeedback.getPaymentStatus());
 
         avatarImageView.setOnClickListener(new View.OnClickListener() {
             @Override

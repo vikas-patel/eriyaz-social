@@ -19,18 +19,14 @@ package com.eriyaz.social.activities;
 
 import android.animation.Animator;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.DividerItemDecoration;
@@ -41,7 +37,6 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.transition.Transition;
 import android.util.Log;
-import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -64,10 +59,9 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.CommentsAdapter;
 import com.eriyaz.social.adapters.RatingsAdapter;
-import com.eriyaz.social.controllers.RatingController;
-import com.eriyaz.social.dialogs.CommentDialog;
 import com.eriyaz.social.dialogs.EditCommentDialog;
 import com.eriyaz.social.enums.BoughtFeedbackStatus;
+import com.eriyaz.social.enums.PaymentStatus;
 import com.eriyaz.social.enums.PostOrigin;
 import com.eriyaz.social.enums.PostStatus;
 import com.eriyaz.social.enums.ProfileStatus;
@@ -79,6 +73,7 @@ import com.eriyaz.social.managers.PostManager;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnDataChangedListener;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
+import com.eriyaz.social.managers.listeners.OnPaymentCompleteListener;
 import com.eriyaz.social.managers.listeners.OnPostChangedListener;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
 import com.eriyaz.social.model.Comment;
@@ -87,10 +82,10 @@ import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.utils.FormatterUtil;
-import com.eriyaz.social.utils.RatingUtil;
+import com.eriyaz.social.utils.OfficialFeedbackRequest;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.xw.repo.BubbleSeekBar;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 
 import java.io.Serializable;
 import java.util.List;
@@ -167,6 +162,8 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private boolean isEnterTransitionFinished = false;
     private Rating rating;
     private Button buyFeedbackButton;
+    final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
+    private int paymentAmount = (int) remoteConfig.getLong("payment_amount");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -346,22 +343,28 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             @Override
             public void onClick(View v) {
                 if (hasInternetConnection()) {
-                    boughtFeedbackManager.createBoughtFeedback(post.getId(), new OnTaskCompleteListener() {
-                        @Override
-                        public void onTaskComplete(boolean success) {
-                            if (success) {
-                                showSnackBar("Feedback order successfully placed.");
-                            } else {
-                                showSnackBar("Feedback order failed.");
-                            }
-                        }
-                    });
+                    openConfirmPaymentDialog();
                 } else {
                     showSnackBar(R.string.internet_connection_failed);
                 }
             }
         });
+    }
 
+    private void createOfficialFeedbackRequest() {
+        OfficialFeedbackRequest request = new OfficialFeedbackRequest(post.getAuthorId(), post.getId(), paymentAmount, PostDetailsActivity.this);
+        request.create(new OnPaymentCompleteListener() {
+            @Override
+            public void onTaskComplete(PaymentStatus status) {
+                if (status.equals(PaymentStatus.SUCCESS)) {
+                    showSnackBar("Payment Successful.");
+                } else if (status.equals(PaymentStatus.PENDING)) {
+                    showPaymentDialog("Payment Status Pending");
+                } else {
+                    showPaymentDialog("Payment Failed");
+                }
+            }
+        });
     }
 
     @Override
@@ -494,6 +497,13 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         toast.show();
     }
 
+    private void showPaymentDialog(String msg) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(msg);
+        builder.setPositiveButton(R.string.button_ok, null);
+        builder.show();
+    }
+
     private void showPointsNeededDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(String.format(getResources().getString(R.string.insufficient_points_view_rating), profile.getUsername()));
@@ -555,7 +565,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         initRatingRecyclerView();
         initLikes();
         fillPostFields();
-//        setBoughtFeedbackStatus();
+        setBoughtFeedbackStatus();
         updateCounters();
         initLikeButtonState();
         updateOptionMenuVisibility();
@@ -618,6 +628,11 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             return;
         } else if (post.getBoughtFeedbackStatus() == BoughtFeedbackStatus.GIVEN) {
             buyFeedbackButton.setText(getString(R.string.received_official_feedback));
+            buyFeedbackButton.setEnabled(false);
+            buyFeedbackButton.setVisibility(View.VISIBLE);
+            return;
+        } else if (post.getBoughtFeedbackStatus() == BoughtFeedbackStatus.PAYMENT_STATUS_PENDING) {
+            buyFeedbackButton.setText(getString(R.string.payment_status_pending));
             buyFeedbackButton.setEnabled(false);
             buyFeedbackButton.setVisibility(View.VISIBLE);
             return;
@@ -1098,6 +1113,20 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         removePost();
+                    }
+                });
+
+        builder.create().show();
+    }
+
+    private void openConfirmPaymentDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(String.format(getString(R.string.confirm_continue_payment), paymentAmount))
+                .setNegativeButton(R.string.button_title_cancel, null)
+                .setPositiveButton(R.string.button_title_continue, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        createOfficialFeedbackRequest();
                     }
                 });
 

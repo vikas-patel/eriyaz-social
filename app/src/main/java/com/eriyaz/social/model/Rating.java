@@ -13,6 +13,7 @@ public class Rating implements Serializable {
     private String authorId;
     private long createdDate;
     private float rating;
+    // only for rated post
     private String postId;
     private boolean viewedByPostAuthor;
 

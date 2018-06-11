@@ -2,11 +2,12 @@ var functions = require('firebase-functions');
 
 const admin = require('firebase-admin');
 admin.initializeApp(functions.config().firebase);
+var https = require('https');
 
 const promisePool = require('es6-promise-pool');
 const PromisePool = promisePool.PromisePool;
-// var paytm_config = require('./paytm/paytm_config').paytm_config;
-// var paytm_checksum = require('./paytm/checksum');
+var paytm_config = require('./paytm/paytm_config').paytm_config;
+var paytm_checksum = require('./paytm/checksum');
 // const nodemailer = require('nodemailer');
 
 const actionTypeNewRating = "new_rating"
@@ -18,6 +19,13 @@ const postsTopic = "postsTopic"
 // Maximum concurrent database connection.
 const MAX_CONCURRENT = 3;
 const REWARD_POINTS = 20;
+const MAX_SUPPORTING_RATINGS = 4;
+const MIN_SUPPORTING_RATINGS = 2;
+const MIN_RATING_MINUTE = 2;
+const MAX_RATING_MINUTE = 120;
+const db = admin.database();
+var supportingAuthorIds;
+var masterAuthorIds;
 
 // const gmailEmail = functions.config().gmail.email;
 // const gmailPassword = functions.config().gmail.password;
@@ -100,6 +108,61 @@ exports.pushNotificationRatings = functions.database.ref('/post-ratings/{postId}
         });
     })
 });
+
+function sendPushNotification(senderId, receiverId, postId, body) {
+    // Get the list of device notification tokens.
+    const getDeviceTokensTask = admin.database().ref(`/profiles/${receiverId}/notificationTokens`).once('value');
+    console.log('getDeviceTokensTask path: ', `/profiles/${receiverId}/notificationTokens`)
+
+    // Get rating author.
+    const getRatingAuthorProfileTask = admin.database().ref(`/profiles/${senderId}`).once('value');
+
+    Promise.all([getDeviceTokensTask, getRatingAuthorProfileTask]).then(results => {
+        const tokensSnapshot = results[0];
+        const ratingAuthorProfile = results[1].val();
+
+        // Check if there are any device tokens.
+        if (!tokensSnapshot.hasChildren()) {
+            return console.log('There are no notification tokens to send to.');
+        }
+
+        console.log('There are', tokensSnapshot.numChildren(), 'tokens to send notifications to.');
+        console.log('Fetched rating Author profile', ratingAuthorProfile);
+
+        // Create a notification
+        const payload = {
+            data : {
+                actionType: actionTypeNewRating,
+                title: notificationTitle,
+                body: `${ratingAuthorProfile.username} ${body}`,
+                icon: ratingAuthorProfile.photoUrl,
+                postId: postId,
+            },
+        };
+
+        // Listing all tokens.
+        const tokens = Object.keys(tokensSnapshot.val());
+        console.log('tokens:', tokens[0]);
+
+        // Send notifications to all tokens.
+        return admin.messaging().sendToDevice(tokens, payload).then(response => {
+                    // For each message check if there was an error.
+                    const tokensToRemove = [];
+            response.results.forEach((result, index) => {
+                const error = result.error;
+                if (error) {
+                    console.error('Failure sending notification to', tokens[index], error);
+                    // Cleanup the tokens who are not registered anymore.
+                    if (error.code === 'messaging/invalid-registration-token' ||
+                        error.code === 'messaging/registration-token-not-registered') {
+                        tokensToRemove.push(tokensSnapshot.ref.child(tokens[index]).remove());
+                    }
+                }
+            });
+            return Promise.all(tokensToRemove);
+        });
+    });
+}
 
 exports.pushNotificationComments = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
 
@@ -264,6 +327,7 @@ exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{aut
 exports.updatePostBoughtFeedbackStatus = functions.database.ref('/bought-feedbacks/{postId}').onWrite(event => {
     const postId = event.params.postId;
     const feedback = event.data.val();
+    if (feedback.paymentStatus != "TXN_SUCCESS" && feedback.paymentStatus != "PENDING") return console.log("paymentStatus is ", feedback, ". So just exit.");
     const isResolved = feedback.resolved;
     console.log('bought feedback status changed on post', postId, isResolved);
 
@@ -273,7 +337,9 @@ exports.updatePostBoughtFeedbackStatus = functions.database.ref('/bought-feedbac
             console.log("ignore: null object returned from cache, expect another event with fresh server value.");
             return false;
         }
-        if (isResolved) {
+        if (feedback.paymentStatus == "PENDING") {
+            current.boughtFeedbackStatus = "PAYMENT_STATUS_PENDING";
+        } else if (isResolved) {
             current.boughtFeedbackStatus = "GIVEN";
         } else {
             current.boughtFeedbackStatus = "ASKED";
@@ -284,6 +350,25 @@ exports.updatePostBoughtFeedbackStatus = functions.database.ref('/bought-feedbac
     });
 });
 
+exports.pushNotificationNewBoughtFeedback = functions.database.ref('/bought-feedbacks/{postId}').onCreate(event => {
+    const postId = event.params.postId;
+    const feedback = event.data.val();
+    // Get Admin users
+    const profileRef = admin.database().ref(`/profiles`);
+    const profileQuery = profileRef.orderByChild('admin').equalTo(true).once('value');
+    var promises = [];
+    return profileQuery.then(adminsSnap => {
+        adminsSnap.forEach(function(adminSnap) {
+            // exclude parent author & message author
+            const adminId = adminSnap.key;
+            promises.push(sendPushNotification(feedback.authorId, adminId, postId, "asked for Official Feedback"));
+        });
+    });
+    return Promise.all(promises).then(results => {
+        console.log("sent push notifications to admins");
+    });
+
+});    
 // exports.commentsPoints = functions.database.ref('/post-comments/{postId}/{commentId}').onWrite(event => {
 
 //     if (event.data.exists() && event.data.previous.exists()) {
@@ -471,8 +556,7 @@ exports.appNotificationRatings = functions.database.ref('/post-ratings/{postId}/
                 'createdDate': admin.database.ServerValue.TIMESTAMP
             });
         });
-
-    })
+    });
 });
 
 exports.duplicateUserRating = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onWrite(event => {
@@ -485,6 +569,56 @@ exports.duplicateUserRating = functions.database.ref('/post-ratings/{postId}/{au
     const userRatingRef = admin.database().ref(`/user-ratings/${ratingAuthorId}/${ratingId}`);
     return userRatingRef.set(rating);
 });
+
+exports.enqueueSupportingRatingTask = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onCreate(event => {
+    console.log('enqueue supporting rating tasks');
+    const ratingAuthorId = event.params.authorId;
+    const rating = event.data.val();
+    const postId = event.params.postId;
+
+    if (supportingAuthorIds) {
+        return enqueueSupportRating(ratingAuthorId, rating, postId);
+    } else {
+        return fetchSupportingAuthors().then(result => {
+            return enqueueSupportRating(ratingAuthorId, rating, postId);
+        })
+    }
+});
+
+function enqueueSupportRating(ratingAuthorId, rating, postId) {
+    // Get author, check if master rater
+    if(masterAuthorIds.indexOf(ratingAuthorId) < 0 || rating.rating < 8) return console.log("exit: user is not a master rater");
+
+    const ratingCount = random(MAX_SUPPORTING_RATINGS, MIN_SUPPORTING_RATINGS);
+    var indexRatingAuthors = randomGroup(ratingCount, supportingAuthorIds.length);
+    var promises = [];
+    for (var i = 0; i < indexRatingAuthors.length; i++) {
+        const authorId = supportingAuthorIds[indexRatingAuthors[i]];
+        let randomRating = random(rating.rating + 2, rating.rating - 2);
+        if (randomRating > 20) randomRating = 20;
+        if (randomRating < 1) randomRating = 1;
+        var randomMinutes = random(MAX_RATING_MINUTE, MIN_RATING_MINUTE);
+        const fromNow = minutes(randomMinutes);
+        promises.push(scheduleTask(randomRating, authorId, postId, fromNow));
+    }
+    return Promise.all(promises).then(results => {
+        console.log("enqueued tasks");
+    });
+}
+
+function random(max, min) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function randomGroup(size, range) {
+    var arr = []
+    while(arr.length < size){
+        var randomnumber = Math.floor(Math.random()*range);
+        if(arr.indexOf(randomnumber) > -1) continue;
+        arr[arr.length] = randomnumber;
+    }
+    return arr;
+}
 
 exports.appNotificationComments = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
     console.log('App notification for new comment');
@@ -832,26 +966,82 @@ function processAuthorRatingNode(postSnap) {
     });
 }
 
-// exports.generateChecksum = functions.https.onRequest((req, res) => {
-//     var paramarray = {};
-//     paramarray['MID'] = "SeeonE99000076026859"; //Provided by Paytm
-//     paramarray['ORDER_ID'] = "ORDER3"; //unique OrderId for every request
-//     paramarray['CUST_ID'] = "CUST3";  // unique customer identifier 
-//     paramarray['INDUSTRY_TYPE_ID'] = "Retail"; //Provided by Paytm
-//     paramarray['CHANNEL_ID'] = "WAP"; //Provided by Paytm
-//     paramarray['TXN_AMOUNT'] = "5.0"; // transaction amount
-//     paramarray['WEBSITE'] = "APPSTAGING"; //Provided by Paytm
-//     paramarray['CALLBACK_URL'] = 'https://securegw.paytm.in/theia/paytmCallback?ORDER_ID=ORDER3';//Provided by Paytm
-//     paytm_checksum.genchecksum(paramarray, paytm_config.MERCHANT_KEY, function (err, output) {
-//         console.log(output);
-//         if(paytm_checksum.verifychecksum(output, paytm_config.MERCHANT_KEY)) {
-//             console.log("true");
-//         }else{
-//             console.log("false");
-//         }
-//         return res.status(200).send(JSON.stringify(output));
-//     });
-// });
+exports.generateChecksum = functions.https.onRequest((req, res) => {
+    var paramarray = {};
+    paramarray['MID'] = paytm_config.MID; //Provided by Paytm
+    paramarray['ORDER_ID'] = req.query.orderId; //unique OrderId for every request
+    paramarray['CUST_ID'] = req.query.customerId;  // unique customer identifier 
+    paramarray['INDUSTRY_TYPE_ID'] = paytm_config.INDUSTRY_TYPE_ID; //Provided by Paytm
+    paramarray['CHANNEL_ID'] = paytm_config.CHANNEL_ID; //Provided by Paytm
+    paramarray['TXN_AMOUNT'] = req.query.txnAmount; // transaction amount
+    paramarray['WEBSITE'] = paytm_config.WEBSITE; //Provided by Paytm
+    paramarray['CALLBACK_URL'] = paytm_config.CALLBACK_URL+req.query.orderId;//Provided by Paytm
+    paytm_checksum.genchecksum(paramarray, paytm_config.MERCHANT_KEY, function (err, output) {
+        return res.status(200).send(JSON.stringify(output));
+    });
+});
+
+exports.verfiyTransactionStatus = functions.https.onRequest((req, res) => {
+    var orderId = req.query.orderId;
+    var customerId = req.query.customerId;
+    var paramarray = {};
+    paramarray['MID'] = paytm_config.MID; //Provided by Paytm
+    paramarray['ORDER_ID'] = orderId; //unique OrderId for every request
+
+    paytm_checksum.genchecksum(paramarray, paytm_config.MERCHANT_KEY, function (err, output) {
+        console.log("checksum output", JSON.stringify(output));
+
+        var options = {
+          host: 'securegw.paytm.in',// https://securegw-stage.paytm.in
+          port: 443,
+          path: '/merchant-status/getTxnStatus?JsonData='+JSON.stringify(output),
+          method: 'GET',
+        };
+
+        var paytmReq = https.request(options, function(paytmRes) {
+          paytmRes.setEncoding('utf8');
+          paytmRes.on('data', function (chunk) {
+            var resJson = JSON.parse(chunk);
+            res.status(200).send(chunk);
+            return createOrUpdateBoughtFeedback(orderId, customerId, resJson.STATUS);
+          });
+        });
+
+        paytmReq.on('error', function(e) {
+          console.log("Got error: " + e);
+            return res.status(200).send("Got error "+e);
+        });
+        paytmReq.end();
+    });
+
+});
+
+function createOrUpdateBoughtFeedback(postId, authorId, paymentStatus) {
+    console.log("createOrUpdateBoughtFeedback", postId, authorId, paymentStatus);
+    // Get user notification ref
+    const boughtFeedbackRef = admin.database().ref(`/bought-feedbacks/${postId}`);
+    boughtFeedbackRef.once('value').then(feedbackSnap => {
+        var feedback = feedbackSnap.val();
+        if (feedback) {
+            // just update status
+            const paymentStatuskRef = admin.database().ref(`/bought-feedbacks/${postId}/paymentStatus`);
+            return paymentStatuskRef.transaction(current => {
+                  return paymentStatus;
+            }).then(() => {
+                console.log('payment status updated to', paymentStatus);
+            });
+        } else {
+            console.log("created new bought feedback");
+            return boughtFeedbackRef.set({
+                'postId': postId,
+                'authorId' : authorId,
+                'paymentStatus': paymentStatus,
+                'createdDate': admin.database.ServerValue.TIMESTAMP
+            });
+        }
+
+    });
+}
 
 exports.grantSignupReward = functions.database.ref('/profiles/{uid}/id').onCreate(event => {
     console.log("new user signed in");
@@ -970,6 +1160,132 @@ function markPostRemoved(uid, isRemoved) {
             console.log("update posts", updatePosts);
         });
     });
+}
+
+function fetchSupportingAuthors() {
+    const profileRef = admin.database().ref(`/profiles`);
+    const profileQuery = profileRef.orderByChild('support').equalTo(true).once('value');
+    supportingAuthorIds = [];
+    return profileQuery.then(authorsSnap => {
+        authorsSnap.forEach(function(authorSnap) {
+            supportingAuthorIds.push(authorSnap.key);
+        });
+        console.log("fetchSupportingAuthors", supportingAuthorIds);
+        masterAuthorIds = [];
+        return profileRef.orderByChild('master').equalTo(true).once('value').then(authorsSnap => {
+            authorsSnap.forEach(function(authorSnap) {
+                masterAuthorIds.push(authorSnap.key);
+            });
+            return console.log("fetched master authors", masterAuthorIds);
+        });
+    });
+}
+
+/// WORKERS ///
+
+const workers = {
+    taskSupportingRatings
+}
+
+function taskSupportingRatings(task) {
+    console.log('worker task executed')
+    return createRating(task.rating, task.authorId, task.postId);
+}
+
+function scheduleTask(ratingVal, authorId, postId, fromNow) {
+    console.log("schedule task", ratingVal, authorId);
+    const queueRef = db.ref('tasks');
+    var newTaskRef = queueRef.push();
+    return newTaskRef.set({
+        'authorId': authorId,
+        'rating': ratingVal,
+        'postId': postId,
+        'worker': 'taskSupportingRatings',
+        'time': Date.now() + fromNow
+    });
+}
+
+function createRating(ratingVal, authorId, postId) {
+    var ratingAuthorRef = db.ref(`/post-ratings/${postId}/${authorId}`);
+    var ratingRef = ratingAuthorRef.push();
+    return ratingRef.set({
+        'id': ratingRef.key,
+        'authorId': authorId,
+        'rating': ratingVal,
+        'createdDate': admin.database.ServerValue.TIMESTAMP
+    })
+}
+
+/// TASK RUNNER CLOUD FUNCTION ///
+
+exports.taskRunner = functions.https.onRequest((req, res) => {
+    console.log("task runner");
+    const queueRef = db.ref('tasks');
+
+    // Get all tasks that with expired times
+    return queueRef.orderByChild('time').endAt(Date.now()).once('value').then(tasks => {
+        if (tasks.exists()) {
+            const promises = []
+            
+            // Execute tasks concurrently
+            tasks.forEach( taskSnapshot => {
+                promises.push( execute(taskSnapshot) )
+            })
+
+            return Promise.all(promises).then(results => {
+                // Optional: count success/failure ratio
+                const successCount = results.length;
+                    
+                res.status(200).send(`Work complete. ${successCount} succeeded`);
+            });
+            
+        } else {
+
+            res.status(200).send(`Task queue empty`);
+        }
+
+    });
+});
+
+/// HELPERS
+
+// Helper to run the task, then clear it from the queue
+function execute(taskSnapshot) {
+
+    const task = taskSnapshot.val();
+    const key = taskSnapshot.key;
+    const ref = db.ref(`tasks/${key}`);
+
+    try {
+        // execute worker for task
+        console.log("task", task);
+        return workers[task.worker](task).then(result => {
+            // If the task has an interval then reschedule it, else remove it
+            if (task.interval) {
+                return ref.update({ 
+                    time: task.time + task.interval,
+                    runs: (task.runs || 0) + 1
+                })
+            } else {
+                return ref.remove();
+            }
+        });
+    } catch(err) {
+        // If error, update fail count and error message
+        return ref.update({ 
+            err: err.message,
+            failures: (task.failures || 0) + 1
+        });
+    }
+}
+
+// Used to count the number o fail
+function sum(acc, num) {
+    return acc + num;
+}
+
+function minutes(value) {
+   return value * 60 * 1000;
 }
 
 // exports.incrementUserMessageCount = functions.database.ref('/user-messages/{authorId}/{messageId}').onCreate(event => {
