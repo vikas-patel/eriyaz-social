@@ -109,9 +109,7 @@ public class RecordFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        BaseActivity activity = (BaseActivity) getActivity();
         userPoints = getArguments().getInt(ProfileActivity.USER_POINTS_EXTRA_KEY);
-        activity.getAnalytics().logRecording();
         //position = getArguments().getInt(ARG_POSITION);
     }
 
@@ -164,6 +162,13 @@ public class RecordFragment extends Fragment {
 //        });
 
         return recordView;
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        BaseActivity activity = (BaseActivity) getActivity();
+        activity.getAnalytics().logRecording();
     }
 
 

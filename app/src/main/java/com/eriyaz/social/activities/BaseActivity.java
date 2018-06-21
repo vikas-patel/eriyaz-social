@@ -34,8 +34,12 @@ import android.view.inputmethod.InputMethodManager;
 
 import com.eriyaz.social.R;
 import com.eriyaz.social.enums.ProfileStatus;
+import com.eriyaz.social.managers.ProfileManager;
+import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
+import com.eriyaz.social.model.Point;
 import com.eriyaz.social.utils.Analytics;
 import com.eriyaz.social.utils.DeepLinkUtil;
+import com.google.firebase.auth.FirebaseAuth;
 
 /**
  * Created by alexey on 05.12.16.
@@ -48,6 +52,7 @@ public class BaseActivity extends AppCompatActivity {
     public ActionBar actionBar;
     protected Analytics analytics;
     protected DeepLinkUtil deepLinkUtil;
+    protected ProfileManager profileManager;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -55,18 +60,62 @@ public class BaseActivity extends AppCompatActivity {
         actionBar = getSupportActionBar();
         analytics = new Analytics(this);
         deepLinkUtil = new DeepLinkUtil(this);
+        profileManager = ProfileManager.getInstance(this);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        if (profileManager.checkProfile().equals(ProfileStatus.PROFILE_CREATED)) {
+            profileManager.onNewPointAddedListener(BaseActivity.this,
+                    FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                    newPointAddedListener());
+        }
         analytics.logActivity(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        profileManager.closeChildListeners(this);
     }
 
     public void doAuthorization(ProfileStatus status) {
         if (status.equals(ProfileStatus.NOT_AUTHORIZED) || status.equals(ProfileStatus.NO_PROFILE)) {
             startLoginActivity();
         }
+    }
+
+    private OnObjectChangedListener<Point> newPointAddedListener() {
+        return new OnObjectChangedListener<Point>() {
+            @Override
+            public void onObjectChanged(Point point) {
+                showPointSnackbar(point);
+            }
+        };
+    }
+
+    public void showPointSnackbar(Point point) {
+        int absValue = Math.abs(point.getValue());
+        String pointsLabel = getResources().getQuantityString(R.plurals.points_counter_format, absValue, absValue);
+        final Snackbar snackbar;
+        if (point.getValue() > 0) {
+            String earned = " earned";
+            if (point.getType().equalsIgnoreCase("post")) earned = " restored";
+            String msg = absValue + " " + pointsLabel + earned + " for " + point.getType() + " " + point.getAction();
+            snackbar = Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_LONG);
+            snackbar.getView().setBackgroundColor(getResources().getColor(R.color.light_green));
+            snackbar.show();
+        } else {
+            String lost = " lost";
+            if (point.getType().equalsIgnoreCase("post")) lost = " used";
+            String msg = absValue + " " + pointsLabel + lost + " for " + point.getType() + " " + point.getAction();
+            snackbar = Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_LONG);
+            snackbar.getView().setBackgroundColor(getResources().getColor(R.color.red));
+            snackbar.show();
+        }
+//        TextView snackbarTextView = snackbarView.findViewById(android.support.design.R.id.snackbar_text);
+//        snackbarTextView.setTextColor(getResources().getColor(R.color.icons));
     }
 
     private void startLoginActivity() {

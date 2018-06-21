@@ -9,11 +9,13 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.text.Html;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -84,13 +86,17 @@ public class PlaybackFragment extends DialogFragment {
     private LinearLayout detailedFeedbackLayout;
     private Button submitButton;
     private EditText additionalCommentEditText;
-    private BubbleSeekBar melodySeekBar;
+//    private BubbleSeekBar melodySeekBar;
+    private RadioGroup melodyRadioGroup;
     private RadioGroup voiceQualityRadioGroup;
     private CommentManager commentManager;
     private TextView melodyPercentageLabel;
+    private TextView voiceQualityLabel;
     private FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
     private Application application;
-
+    private CheckBox pronounciationView;
+    private CheckBox highPitchView;
+    private CheckBox feelView;
 
     public PlaybackFragment newInstance(RecordingItem item) {
         PlaybackFragment f = new PlaybackFragment();
@@ -117,14 +123,6 @@ public class PlaybackFragment extends DialogFragment {
         post = (Post) getArguments().getSerializable(PostDetailsActivity.POST_ID_EXTRA_KEY);
         rating = (Rating) getArguments().getSerializable(Rating.RATING_ID_EXTRA_KEY);
         if (rating == null) rating = new Rating();
-        // own recording yet to be submitted
-        BaseActivity activity = (BaseActivity) getActivity();
-        application = (Application) getActivity().getApplication();
-        if (post == null) {
-            activity.getAnalytics().logOpenRecordedAudio();
-        } else {
-            activity.getAnalytics().logOpenAudio(post.getAuthorId());
-        }
     }
 
     @Override
@@ -132,11 +130,10 @@ public class PlaybackFragment extends DialogFragment {
         super.onDismiss(dialog);
         if (post != null) {
             BaseActivity activity = (BaseActivity) getActivity();
-            if (player.getPlayWhenReady() && player.getPlaybackState() == Player.STATE_READY) {
+            if (player != null && player.getPlayWhenReady() && player.getPlaybackState() == Player.STATE_READY) {
                 markPlayerPositions();
             }
-            if (!isListenNotEnough()) {
-
+            if (player != null && !isListenNotEnough()) {
                 application.addPlayedPost(post.getId());
             }
             activity.getAnalytics().logPlayedTime(post.getAuthorId(), post.getTitle(), (int) totalPlayed/1000);
@@ -152,6 +149,9 @@ public class PlaybackFragment extends DialogFragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        BaseActivity activity = (BaseActivity) getActivity();
+        application = (Application) getActivity().getApplication();
+        activity.getAnalytics().logOpenAudio(post.getAuthorId());
     }
 
     @NonNull
@@ -178,22 +178,34 @@ public class PlaybackFragment extends DialogFragment {
         moreTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                detailedFeedbackLayout.setVisibility(View.VISIBLE);
-                submitButton.setVisibility(View.VISIBLE);
-                moreTextView.setVisibility(View.GONE);
+                openDetailedFeedback();
             }
         });
         submitButton = view.findViewById(R.id.submitButton);
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 submitDetailedFeedback();
+                v.setClickable(false);
+
+                v.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        v.setClickable(true);
+
+                    }
+                }, 1000);
             }
         });
         additionalCommentEditText = view.findViewById(R.id.additionalCommentEditText);
-        melodySeekBar = view.findViewById(R.id.melodySeekBar);
+//        melodySeekBar = view.findViewById(R.id.melodySeekBar);
+        melodyRadioGroup = view.findViewById(R.id.melodyPercRadioGroup);
         voiceQualityRadioGroup = view.findViewById(R.id.voiceQualityRadioGroup);
         melodyPercentageLabel = view.findViewById(R.id.melodyPercentageLabel);
+        voiceQualityLabel = view.findViewById(R.id.voiceQualityLabel);
+        pronounciationView = view.findViewById(R.id.pronounciationCheckboxId);
+        highPitchView = view.findViewById(R.id.highPitchCheckboxId);
+        feelView = view.findViewById(R.id.noFeelCheckboxId);
 
         mFileNameTextView.setText(item.getName());
         updateRatingDetails();
@@ -208,7 +220,22 @@ public class PlaybackFragment extends DialogFragment {
     }
 
     private void onCloseButton() {
-        if (melodySeekBar.getProgress() > 0 || additionalCommentEditText.getText().length() > 0) {
+        if (ratingBar.getProgress() > 0 && ratingBar.getProgress() < 12 && melodyRadioGroup.getCheckedRadioButtonId() == -1) {
+            android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(getActivity());
+            builder.setMessage(Html.fromHtml(getString(R.string.mandatory_detailed_feedback_popup)))
+                    .setNegativeButton(R.string.button_title_cancel, null)
+                    .setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            dismiss();
+                        }
+                    });
+            builder.create().show();
+            return;
+        }
+        if (melodyRadioGroup.getCheckedRadioButtonId() != -1 ||
+                voiceQualityRadioGroup.getCheckedRadioButtonId() != -1 ||
+                additionalCommentEditText.getText().length() > 0) {
             android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(getActivity());
             builder.setMessage(R.string.confirm_close_play_popup)
                     .setNegativeButton(R.string.button_title_cancel, null)
@@ -224,32 +251,46 @@ public class PlaybackFragment extends DialogFragment {
         }
     }
 
-    private void submitDetailedFeedback() {
+    private void openDetailedFeedback() {
+        detailedFeedbackLayout.setVisibility(View.VISIBLE);
+        submitButton.setVisibility(View.VISIBLE);
+        moreTextView.setVisibility(View.GONE);
+    }
+
+    private boolean isAuthorized() {
         BaseActivity baseActivity = (BaseActivity) getActivity();
         if (!baseActivity.hasInternetConnection()) {
             baseActivity.showSnackBar(R.string.internet_connection_failed);
-            return;
+            return false;
         }
-        ProfileStatus profileStatus = ProfileManager.getInstance(this.getActivity()).checkProfile();
-        if (!profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
-            baseActivity.doAuthorization(profileStatus);
-            return;
+        ProfileStatus status = ProfileManager.getInstance(this.getActivity()).checkProfile();
+        if (status.equals(ProfileStatus.NOT_AUTHORIZED) || status.equals(ProfileStatus.NO_PROFILE)) {
+            baseActivity.doAuthorization(status);
+            return false;
         }
-        if (melodySeekBar.getProgress() == 0 ) {
-            melodyPercentageLabel.setError("'Melody %' is not set.");
+        return true;
+    }
+
+    private void submitDetailedFeedback() {
+        if (!isAuthorized()) return;
+        if (melodyRadioGroup.getCheckedRadioButtonId() == -1) {
+            melodyPercentageLabel.setError("'Tone Match %' is not set.");
             return;
         }
 
-        if (additionalCommentEditText.getText() == null || additionalCommentEditText.getText().length() == 0) {
-            additionalCommentEditText.setError("Additional Comment' can't be empty.");
+        if (voiceQualityRadioGroup.getCheckedRadioButtonId() == -1) {
+            voiceQualityLabel.setError("'Voice Quality is not set.");
             return;
         }
-
+        if (ratingBar.getProgress() > 0 && ratingBar.getProgress() < 12) {
+            ratingController.handleRatingClickAction((BaseActivity) getActivity(), post, ratingBar.getProgress());
+        }
 
         RadioButton selectedVoiceQuality = voiceQualityRadioGroup.findViewById(voiceQualityRadioGroup.getCheckedRadioButtonId());
         String detailed_feedback_text = String.format(getString(R.string.detailed_feedback_combined),
-                melodySeekBar.getProgress(),
+                getMelodyText(),
                 selectedVoiceQuality.getText(),
+                getProblems(),
                 additionalCommentEditText.getText());
         Comment detailed_comment = new Comment(detailed_feedback_text);
         detailed_comment.setDetailedFeedback(true);
@@ -264,6 +305,41 @@ public class PlaybackFragment extends DialogFragment {
                 }
             }
         });
+    }
+
+    private CharSequence getProblems() {
+        StringBuffer problems = new StringBuffer();
+        if (pronounciationView.isChecked()) {
+            problems.append("Pronounciation Distracting");
+        }
+        if (highPitchView.isChecked()) {
+            if (problems.length() > 0) {
+                problems.append(", ");
+            }
+            problems.append("Bad at High Pitch");
+        }
+        if (feelView.isChecked()) {
+            if (problems.length() > 0) {
+                problems.append(", ");
+            }
+            problems.append("Feel Missing");
+        }
+        if (problems.length() > 0) {
+            return "\nProblems: " + problems.toString();
+        }
+        return "";
+    }
+
+    private CharSequence getMelodyText() {
+        int selectedMelodyRadioId = melodyRadioGroup.getCheckedRadioButtonId();
+        if (selectedMelodyRadioId == R.id.fourthBtnId) {
+            return "Excellent";
+        } else if (selectedMelodyRadioId == R.id.thirdBtnId) {
+            return "80% (Harkate Missing/Problem)";
+        } else {
+            RadioButton selectedButton = melodyRadioGroup.findViewById(selectedMelodyRadioId);
+            return selectedButton.getText();
+        }
     }
 
     @Override
@@ -330,30 +406,8 @@ public class PlaybackFragment extends DialogFragment {
         Uri uri = Uri.parse(item.getFilePath());
         // play from fileSystem
         MediaSource mediaSource;
-        if (post == null) {
-            mediaSource = buildMediaSourceFromFileUrl(uri);
-        } else {
-            mediaSource = buildMediaSource(uri);
-        }
+        mediaSource = buildMediaSource(uri);
         player.prepare(mediaSource, true, false);
-    }
-
-    private MediaSource buildMediaSourceFromFileUrl(Uri uri){
-        DataSpec dataSpec = new DataSpec(uri);
-        final FileDataSource fileDataSource = new FileDataSource();
-        try {
-            fileDataSource.open(dataSpec);
-        } catch (FileDataSource.FileDataSourceException e) {
-            e.printStackTrace();
-        }
-
-        DataSource.Factory factory = new DataSource.Factory() {
-            @Override
-            public DataSource createDataSource() {
-                return fileDataSource;
-            }
-        };
-        return new ExtractorMediaSource.Factory(factory).createMediaSource(uri);
     }
 
     private MediaSource buildMediaSource(Uri uri) {
@@ -375,14 +429,7 @@ public class PlaybackFragment extends DialogFragment {
 
 
     private void updateRatingDetails() {
-        if (post == null) {
-            ratingLayout.setVisibility(View.GONE);
-            ratingBar.setVisibility(View.GONE);
-            return;
-        }
         ratingController = new RatingController(ratingBar, post.getId(), rating);
-
-
         ratingBar.setCustomSectionTextArray(new BubbleSeekBar.CustomSectionTextArray() {
             @NonNull
             @Override
@@ -397,7 +444,7 @@ public class PlaybackFragment extends DialogFragment {
         });
         ratingBar.setOnProgressChangedListener(new BubbleSeekBar.OnProgressChangedListenerAdapter() {
             @Override
-            public void onProgressChanged(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
+            public void onProgressChanged(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat, boolean fromUser) {
                 int color = RatingUtil.getRatingColor(getActivity(), progress);
                 bubbleSeekBar.setSecondTrackColor(color);
                 bubbleSeekBar.setThumbColor(color);
@@ -406,6 +453,11 @@ public class PlaybackFragment extends DialogFragment {
 
             @Override
             public void getProgressOnActionUp(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
+                if (!isAuthorized()) {
+                    ratingBar.setProgress(rating.getRating());
+                    return;
+                }
+
                 if (RatingUtil.viewedByAuthor(post)) {
                     showDialog(R.string.rating_self_recording);
                     ratingBar.setProgress(rating.getRating());
@@ -425,8 +477,8 @@ public class PlaybackFragment extends DialogFragment {
                 }
                 ratingController.setUpdatingRatingCounter(false);
                 isRatingChanged = true;
-                if (progress > 0 && progress <= 5) {
-                    openCommentDialog();
+                if (progress > 0 && progress < 12) {
+                    openDetailedFeedback();
                     return;
                 }
                 ratingController.handleRatingClickAction((BaseActivity) getActivity(), post, progress);
@@ -506,4 +558,3 @@ public class PlaybackFragment extends DialogFragment {
         startPosition = endPosition;
     }
 }
-

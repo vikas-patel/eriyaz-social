@@ -164,6 +164,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
                 case PostDetailsActivity.UPDATE_POST_REQUEST:
                     if (data != null) {
                         PostStatus postStatus = (PostStatus) data.getSerializableExtra(PostDetailsActivity.POST_STATUS_EXTRA_KEY);
+                        if (selectedFragment == null || selectedFragment.getPostsAdapter() == null) return;
                         if (postStatus.equals(PostStatus.REMOVED)) {
                             selectedFragment.getPostsAdapter().removeSelectedPost();
 
@@ -201,6 +202,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
         return new OnObjectChangedListener<Profile>() {
             @Override
             public void onObjectChanged(Profile obj) {
+                if (isActivityDestroyed()) return;
                 fillUIFields(obj);
             }
         };

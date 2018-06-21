@@ -309,7 +309,7 @@ exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{aut
         return postRef.transaction(current => {
             if (current == null) {
                 console.log("ignore: null object returned from cache, expect another event with fresh server value.");
-                return false;
+                return null;
             }
             current.ratingsCount = ratingNum;
             if (ratingNum > 0) {
@@ -335,7 +335,7 @@ exports.updatePostBoughtFeedbackStatus = functions.database.ref('/bought-feedbac
     return postRef.transaction(current => {
         if (current == null) {
             console.log("ignore: null object returned from cache, expect another event with fresh server value.");
-            return false;
+            return null;
         }
         if (feedback.paymentStatus == "PENDING") {
             current.boughtFeedbackStatus = "PAYMENT_STATUS_PENDING";

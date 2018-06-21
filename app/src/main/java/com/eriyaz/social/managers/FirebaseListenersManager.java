@@ -18,8 +18,9 @@ package com.eriyaz.social.managers;
 
 import android.content.Context;
 
-import com.google.firebase.database.ValueEventListener;
 import com.eriyaz.social.ApplicationHelper;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +33,7 @@ import java.util.Map;
 
 public class FirebaseListenersManager {
     Map<Context, List<ValueEventListener>> activeListeners = new HashMap<>();
+    Map<Context, List<ChildEventListener>> activeChildListeners = new HashMap<>();
 
     void addListenerToMap(Context context, ValueEventListener valueEventListener) {
         if (activeListeners.containsKey(context)) {
@@ -43,11 +45,14 @@ public class FirebaseListenersManager {
         }
     }
 
-    public boolean hasActiveListeners(Context context) {
-        if (activeListeners.containsKey(context)) {
-            return true;
+    void addListenerToChildMap(Context context, ChildEventListener childEventListener) {
+        if (activeChildListeners.containsKey(context)) {
+            activeChildListeners.get(context).add(childEventListener);
+        } else {
+            List<ChildEventListener> childEventListeners = new ArrayList<>();
+            childEventListeners.add(childEventListener);
+            activeChildListeners.put(context, childEventListeners);
         }
-        return false;
     }
 
     public void closeListeners(Context context) {
@@ -57,6 +62,16 @@ public class FirebaseListenersManager {
                 databaseHelper.closeListener(listener);
             }
             activeListeners.remove(context);
+        }
+    }
+
+    public void closeChildListeners(Context context) {
+        DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
+        if (activeChildListeners.containsKey(context)) {
+            for (ChildEventListener listener : activeChildListeners.get(context)) {
+                databaseHelper.closeChildListener(listener);
+            }
+            activeChildListeners.remove(context);
         }
     }
 }

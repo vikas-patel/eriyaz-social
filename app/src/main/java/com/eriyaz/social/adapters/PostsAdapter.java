@@ -217,6 +217,7 @@ public class PostsAdapter extends BasePostsAdapter {
 
     @Override
     public long getItemId(int position) {
+        if (getItemByPosition(position) == null) return -1;
         return getItemByPosition(position).getId().hashCode();
     }
 

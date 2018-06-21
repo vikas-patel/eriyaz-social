@@ -26,6 +26,7 @@ import com.eriyaz.social.managers.listeners.OnPostCreatedListener;
 import com.eriyaz.social.model.BoughtFeedback;
 import com.eriyaz.social.model.Message;
 import com.eriyaz.social.model.Notification;
+import com.eriyaz.social.model.Point;
 import com.eriyaz.social.utils.Analytics;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -91,6 +92,7 @@ public class DatabaseHelper {
     FirebaseAuth firebaseAuth;
     private Analytics analytics;
     private Map<ValueEventListener, DatabaseReference> activeListeners = new HashMap<>();
+    private Map<ChildEventListener, DatabaseReference> activeChildListeners = new HashMap<>();
 
     public static DatabaseHelper getInstance(Context context) {
         if (instance == null) {
@@ -124,9 +126,18 @@ public class DatabaseHelper {
             DatabaseReference reference = activeListeners.get(listener);
             reference.removeEventListener(listener);
             activeListeners.remove(listener);
-            LogUtil.logDebug(TAG, "closeListener(), listener was removed: " + listener);
         } else {
-            LogUtil.logDebug(TAG, "closeListener(), listener not found :" + listener);
+            LogUtil.logInfo(TAG, "closeListener(), listener not found :" + listener);
+        }
+    }
+
+    public void closeChildListener(ChildEventListener listener) {
+        if (activeChildListeners.containsKey(listener)) {
+            DatabaseReference reference = activeChildListeners.get(listener);
+            reference.removeEventListener(listener);
+            activeChildListeners.remove(listener);
+        } else {
+            LogUtil.logInfo(TAG, "closeChildListener(), child listener not found :" + listener);
         }
     }
 
@@ -135,8 +146,12 @@ public class DatabaseHelper {
             DatabaseReference reference = activeListeners.get(listener);
             reference.removeEventListener(listener);
         }
-
         activeListeners.clear();
+        for (ChildEventListener listener : activeChildListeners.keySet()) {
+            DatabaseReference reference = activeChildListeners.get(listener);
+            reference.removeEventListener(listener);
+        }
+        activeChildListeners.clear();
     }
 
     public void setReferrerInfo(final String referrerUid) {
@@ -491,11 +506,30 @@ public class DatabaseHelper {
         mLikesReference.addChildEventListener(childEventListener);
     }
 
-    public void onNewPointAddedListener(ChildEventListener childEventListener) {
-        String authorId = firebaseAuth.getCurrentUser().getUid();
+    public ChildEventListener onNewPointAddedListener(String authorId, final OnObjectChangedListener<Point> listener) {
         DatabaseReference mPointsReference = database.getReference().child("user-points").child(authorId);
         Query query = mPointsReference.orderByChild("creationDate").startAt(new Date().getTime());
-        query.addChildEventListener(childEventListener);
+        ChildEventListener childEventListener = query.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Point point = dataSnapshot.getValue(Point.class);
+                listener.onObjectChanged(point);
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {}
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        });
+        activeChildListeners.put(childEventListener, mPointsReference);
+        return childEventListener;
     }
 
     public void createOrUpdateRating(final String postId, final Rating rating) {

@@ -73,6 +73,7 @@
     <string name="confirm_deletion_post">Delete this post?</string>
     <string name="confirm_deletion_message">Delete this message?</string>
     <string name="confirm_close_play_popup">Your inputs will be lost. You sure want to close?</string>
+    <string name="mandatory_detailed_feedback_popup"><![CDATA[\'Detailed feedback\' is mandatory for rating below 12.\n<font color=\'#17a1d7\'>Your rating will be lost</font>. You sure want to close?]]></string>
     <string name="confirm_continue_payment">Get official feedback from Paarth Singh.\nWill be given in 24 hours".\nPrice: Rs %1$d.</string>
 
     <string name="comment_text_hint">Enter your comment…</string>
@@ -209,7 +210,7 @@
     <string name="notification_recording">Recording...</string>
     <string name="toast_recording_start">Recording started</string>
     <string name="toast_recording_finish">Recording saved to</string>
-    <string name="detailed_feedback_combined">Melody Percentage: %1$d \nVoice Quality: %2$s \n%3$s</string>
+    <string name="detailed_feedback_combined">Tune Match: %1$s \nVoice Quality: %2$s %3$s\n%4$s</string>
 
     <!--Firebase errors-->
     <string name="permission_denied_error">Please check your rules to access the Firebase Realtime Database</string>

@@ -20,7 +20,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/intrinsic_padding"
+            android:layout_margin="@dimen/small_intrinsic_padding"
             android:orientation="vertical">
             <TextView
                 android:id="@+id/file_name_text_view"
@@ -40,55 +40,50 @@
                 android:layout_height="80dp"/>
 
             <RelativeLayout
-                android:layout_marginTop="@dimen/large_intrinsic_padding"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
+                <TextView
+                    android:text="Rating:"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
                 <include
                     android:id="@+id/seekbarContainer"
                     layout="@layout/seekbar_container"
-                    android:layout_marginTop="@dimen/large_intrinsic_padding"
+                    android:layout_marginTop="24dp"
                     android:layout_marginBottom="@dimen/large_intrinsic_padding"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_alignParentTop="true" />
 
-                <TextView
-                    android:id="@+id/rateMeLabel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/seekbarContainer"
-                    android:layout_toLeftOf="@id/upArrowImageView"
-                    android:text="Rate"
-                    android:textSize="21sp"
-                    android:gravity="end"
-                    android:textAppearance="@style/TextAppearance.Highlight"
-                    android:layout_toStartOf="@id/upArrowImageView" />
-                <ImageView
-                    android:id="@+id/upArrowImageView"
-                    app:srcCompat="@drawable/ic_arrow_upward_24dp"
-                    android:layout_alignParentRight="true"
-                    android:layout_above="@id/closeButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true" />
+                <!--<TextView-->
+                    <!--android:id="@+id/rateMeLabel"-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:layout_below="@+id/seekbarContainer"-->
+                    <!--android:layout_toLeftOf="@id/upArrowImageView"-->
+                    <!--android:text="Rate"-->
+                    <!--android:textSize="21sp"-->
+                    <!--android:gravity="end"-->
+                    <!--android:textAppearance="@style/TextAppearance.Highlight"-->
+                    <!--android:layout_toStartOf="@id/upArrowImageView" />-->
+                <!--<ImageView-->
+                    <!--android:id="@+id/upArrowImageView"-->
+                    <!--app:srcCompat="@drawable/ic_arrow_upward_24dp"-->
+                    <!--android:layout_alignParentRight="true"-->
+                    <!--android:layout_above="@id/closeButton"-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:layout_alignParentEnd="true" />-->
 
-                <Button android:id="@+id/closeButton"
-                    android:text="close"
-                    android:minHeight="0dp"
-                    android:minWidth="0dp"
-                    android:layout_below="@+id/rateMeLabel"
-                    android:layout_alignParentRight="true"
-                    android:layout_height="wrap_content"
-                    android:layout_width="wrap_content"
-                    android:layout_alignParentEnd="true" />
                 <TextView
                     android:id="@+id/moreTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerHorizontal="true"
                     android:layout_alignBaseline="@id/closeButton"
-                    android:text="More"
-                    android:textSize="21sp"
+                    android:visibility="visible"
+                    android:text="Detailed Feedback"
+                    android:textSize="18sp"
                     android:gravity="end"
                     android:textAppearance="@style/TextAppearance.Highlight" />
 
@@ -97,26 +92,53 @@
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     android:layout_below="@+id/seekbarContainer"
-                    android:layout_toLeftOf="@id/closeButton"
                     android:orientation="vertical">
                     <TextView
-                        android:text="Melody %"
+                        android:text="Tune Match %"
                         android:id="@+id/melodyPercentageLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_column="0" />
-                    <com.xw.repo.BubbleSeekBar
-                        android:id="@+id/melodySeekBar"
-                        android:layout_width="match_parent"
+                    <RadioGroup
+                        android:id="@+id/melodyPercRadioGroup"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:bsb_max="100"
-                        app:bsb_min="0"
-                        app:bsb_progress="0"
-                        app:bsb_thumb_radius="10dp"
-                        app:bsb_show_thumb_text="false"
-                        app:bsb_touch_to_seek="true"/>
+                        android:orientation="horizontal" >
+                        <RadioButton
+                            android:id="@+id/firstBtnMelodyId"
+                            android:text="50%"
+                            android:textSize="@dimen/detailed_feedback_text_size"
+                            android:layout_weight="20"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content" />
+                        <RadioButton
+                            android:id="@+id/secondBtnMelodyId"
+                            android:text="70%"
+                            android:textSize="@dimen/detailed_feedback_text_size"
+                            android:layout_weight="20"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content" />
+                        <RadioButton
+                            android:id="@+id/thirdBtnId"
+                            android:lines="2"
+                            android:textSize="@dimen/detailed_feedback_text_size"
+                            android:text="Harkate Missing"
+                            android:layout_gravity="center"
+                            android:layout_weight="30"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content" />
+                        <RadioButton
+                            android:id="@+id/fourthBtnId"
+                            android:layout_gravity="center"
+                            android:textSize="@dimen/detailed_feedback_text_size"
+                            android:text="Almost There"
+                            android:layout_weight="30"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content" />
+                    </RadioGroup>
                     <TextView
                         android:text="Voice Quality"
+                        android:id="@+id/voiceQualityLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
                     <RadioGroup
@@ -127,20 +149,55 @@
                         <RadioButton
                             android:id="@+id/averageBtnId"
                             android:text="Average"
+                            android:textSize="@dimen/detailed_feedback_text_size"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
                         <RadioButton
                             android:id="@+id/goodBtnId"
+                            android:textSize="@dimen/detailed_feedback_text_size"
                             android:text="Good"
-                            android:checked="true"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
                         <RadioButton
                             android:id="@+id/excellentBtnId"
+                            android:textSize="@dimen/detailed_feedback_text_size"
                             android:text="Excellent"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
                     </RadioGroup>
+                    <TextView
+                        android:text="Problems if any:"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                        <LinearLayout
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal" >
+                        <CheckBox
+                            android:id="@+id/pronounciationCheckboxId"
+                            android:textSize="@dimen/detailed_feedback_text_size"
+                            android:layout_weight="35"
+                            android:layout_width="0dp"
+                            android:layout_gravity="center"
+                            android:layout_height="wrap_content"
+                            android:text="Pronounciation Distracting" />
+                        <CheckBox
+                            android:id="@+id/highPitchCheckboxId"
+                            android:textSize="@dimen/detailed_feedback_text_size"
+                            android:layout_weight="35"
+                            android:layout_width="0dp"
+                            android:layout_gravity="center"
+                            android:layout_height="wrap_content"
+                            android:text="Bad at High Pitch" />
+                        <CheckBox
+                            android:id="@+id/noFeelCheckboxId"
+                            android:textSize="@dimen/detailed_feedback_text_size"
+                            android:layout_weight="30"
+                            android:layout_width="0dp"
+                            android:layout_gravity="center"
+                            android:layout_height="wrap_content"
+                            android:text="Feel Missing" />
+                        </LinearLayout>
                     <android.support.design.widget.TextInputLayout
                         android:id="@+id/commentLayout"
                         android:layout_width="match_parent"
@@ -150,7 +207,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="start"
-                            android:lines="3"
+                            android:lines="1"
                             android:focusable="true"
                             android:focusableInTouchMode="true"
                             android:hint="@string/hint_detailed_comment"
@@ -158,18 +215,24 @@
 
                     </android.support.design.widget.TextInputLayout>
                 </LinearLayout>
+                <Button android:id="@+id/closeButton"
+                    android:layout_below="@id/detailedFeedbackLayout"
+                    android:text="close"
+                    android:minHeight="0dp"
+                    android:minWidth="0dp"
+                    android:layout_alignParentRight="true"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content" />
                 <Button android:id="@+id/submitButton"
-                    android:visibility="gone"
+                    android:layout_below="@id/detailedFeedbackLayout"
                     android:text="submit"
                     android:minHeight="0dp"
                     android:minWidth="0dp"
-                    android:layout_below="@+id/closeButton"
-                    android:layout_alignParentRight="true"
+                    android:visibility="gone"
+                    android:layout_toLeftOf="@id/closeButton"
                     android:layout_height="wrap_content"
-                    android:layout_width="wrap_content"
-                    android:layout_alignParentEnd="true" />
+                    android:layout_width="wrap_content" />
             </RelativeLayout>
-
 
         </LinearLayout>
 

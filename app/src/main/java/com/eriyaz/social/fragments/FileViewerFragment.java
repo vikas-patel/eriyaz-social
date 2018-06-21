@@ -74,12 +74,11 @@ public class FileViewerFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 try {
-                    PlaybackFragment playbackFragment =
-                            new PlaybackFragment().newInstance(item);
+                    RecordPlayFragment playbackFragment =
+                            new RecordPlayFragment().newInstance(item);
                     android.app.FragmentTransaction transaction = getActivity().getFragmentManager()
                             .beginTransaction();
                     playbackFragment.show(transaction, "dialog_playback");
-                    BaseActivity activity = (BaseActivity) getActivity();
                 } catch (Exception e) {
                     Log.e(LOG_TAG, "exception", e);
                 }

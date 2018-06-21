@@ -38,17 +38,16 @@ public class ImageUtil {
     }
 
     public static void setBadgeCount(Context context, LayerDrawable icon, String count) {
-        BadgeDrawable badge;
+        BadgeDrawable badge = new BadgeDrawable(context);
         // Reuse drawable if possible
-        Drawable reuse = icon.findDrawableByLayerId(R.id.ic_badge);
-        if (reuse != null && reuse instanceof BadgeDrawable) {
-            badge = (BadgeDrawable) reuse;
-        } else {
-            badge = new BadgeDrawable(context);
-        }
-
+//        Drawable reuse = icon.findDrawableByLayerId(R.id.ic_badge);
+//        if (reuse != null && reuse instanceof BadgeDrawable) {
+//            badge = (BadgeDrawable) reuse;
+//        } else {
+//            badge = new BadgeDrawable(context);
+//        }
         badge.setCount(count);
-//        icon.mutate();
+        icon.mutate();
         icon.setDrawableByLayerId(R.id.ic_badge, badge);
     }
 }

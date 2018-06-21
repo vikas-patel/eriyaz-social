@@ -24,11 +24,13 @@ import com.eriyaz.social.managers.listeners.OnDataChangedListener;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
 import com.eriyaz.social.model.Message;
 import com.eriyaz.social.model.Notification;
+import com.eriyaz.social.model.Point;
 import com.eriyaz.social.model.Rating;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -142,9 +144,9 @@ public class ProfileManager extends FirebaseListenersManager {
         addListenerToMap(activityContext, valueEventListener);
     }
 
-    public void getUserPoints(Context activityContext, final OnObjectChangedListener<Integer> listener) {
-        ValueEventListener valueEventListener = databaseHelper.getUserPointsValue(listener);
-        addListenerToMap(activityContext, valueEventListener);
+    public void onNewPointAddedListener(Context activityContext, String id, final OnObjectChangedListener<Point> listener) {
+        ChildEventListener childEventListener = databaseHelper.onNewPointAddedListener(id, listener);
+        addListenerToChildMap(activityContext, childEventListener);
     }
 
     public void createOrUpdateMessage(Message message, OnTaskCompleteListener onTaskCompleteListener) {

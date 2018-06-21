@@ -53,10 +53,8 @@ import com.eriyaz.social.enums.PostStatus;
 import com.eriyaz.social.enums.ProfileStatus;
 import com.eriyaz.social.managers.DatabaseHelper;
 import com.eriyaz.social.managers.PostManager;
-import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.managers.listeners.OnObjectExistListener;
-import com.eriyaz.social.model.Point;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.AnimationUtils;
@@ -64,12 +62,8 @@ import com.eriyaz.social.utils.DeepLinkUtil;
 import com.eriyaz.social.utils.LogUtil;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
 import com.google.firebase.dynamiclinks.PendingDynamicLinkData;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
@@ -83,16 +77,14 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
     private RecyclerView recyclerView;
     private FloatingActionButton floatingActionButton;
 
-    private ProfileManager profileManager;
     private PostManager postManager;
-    private int counter;
     private TextView newPostsCounterTextView;
-    private Menu mOptionsMenu;
     private PostManager.PostCounterWatcher postCounterWatcher;
     private long WARNING_MIN_POINTS = 5;
     private boolean counterAnimationInProgress = false;
     private long userPoints = 0;
     final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
+    private Profile profile;
 
     // private Snackbar karmaSnackbar;
     static {
@@ -107,7 +99,6 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        profileManager = ProfileManager.getInstance(this);
         postManager = PostManager.getInstance(this);
         initContentView();
 
@@ -151,94 +142,30 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
     private OnObjectChangedListener<Profile> createOnProfileChangedListener() {
         return new OnObjectChangedListener<Profile>() {
             @Override
-            public void onObjectChanged(Profile profile) {
+            public void onObjectChanged(Profile aProfile) {
+                profile = aProfile;
                 userPoints = profile.getPoints();
                 if (userPoints < WARNING_MIN_POINTS) showShareAppBanner();
-                updateUnseenNotificationCount(profile.getUnseen());
-                if (profile.isAdmin()) {
-                    MenuItem adminItem = mOptionsMenu.findItem(R.id.admin_menu_item);
-                    adminItem.setVisible(true);
-                }
-//                updateKarmaWarning();
+                invalidateOptionsMenu();
             }
         };
-    }
-
-    private void updateUnseenNotificationCount(int count) {
-        if (mOptionsMenu == null) return;
-        MenuItem itemNotification = mOptionsMenu.findItem(R.id.notification);
-        LayerDrawable icon = (LayerDrawable) itemNotification.getIcon();
-        setBadgeCount(this, icon, Integer.toString(count));
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         updateNewPostCounter();
-//        updateKarmaWarning();
-        if (!profileManager.hasActiveListeners(MainActivity.this)
-                && profileManager.checkProfile().equals(ProfileStatus.PROFILE_CREATED)) {
+        if (profileManager.checkProfile().equals(ProfileStatus.PROFILE_CREATED)) {
             profileManager.getProfileValue(MainActivity.this,
                     FirebaseAuth.getInstance().getCurrentUser().getUid(),
                     createOnProfileChangedListener());
-//            profileManager.getUserPoints(MainActivity.this, createOnUserPointsChangedListener());
-            setOnPointAddedListener();
         }
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        profileManager.closeListeners(this);
-    }
-
-    //TODO: Close this listener on destroy
-    private void setOnPointAddedListener() {
-        DatabaseHelper.getInstance(this).onNewPointAddedListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Point point = dataSnapshot.getValue(Point.class);
-                Toast toast;
-                int absValue = Math.abs(point.getValue());
-                String pointsLabel = getResources().getQuantityString(R.plurals.points_counter_format, absValue, absValue);
-                if (point.getValue() > 0) {
-                    String earned = " earned";
-                    if (point.getType().equalsIgnoreCase("post")) earned = " restored";
-                    String msg = absValue + " " + pointsLabel + earned + " for " + point.getType() + " " + point.getAction();
-                    toast = Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG);
-                    toast.getView().setBackgroundColor(getResources().getColor(R.color.light_green));
-                } else {
-                    String lost = " lost";
-                    if (point.getType().equalsIgnoreCase("post")) lost = " used";
-                    String msg = absValue + " " + pointsLabel + lost + " for " + point.getType() + " " + point.getAction();
-                    toast = Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG);
-                    toast.getView().setBackgroundColor(getResources().getColor(R.color.red));
-                }
-                TextView text = (TextView) toast.getView().findViewById(android.R.id.message);
-                text.setTextColor(getResources().getColor(R.color.icons));
-                toast.show();
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+    public void onPause() {
+        super.onPause();
+        profileManager.closeListeners(MainActivity.this);
     }
 
     private void showShareAppBanner() {
@@ -255,37 +182,6 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         snackbar.show();
     }
 
-    /*
-        private void setOnLikeAddedListener() {
-            DatabaseHelper.getInstance(this).onNewLikeAddedListener(new ChildEventListener() {
-                @Override
-                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                    counter++;
-                    showSnackBar("You have " + counter + " new likes");
-                }
-
-                @Override
-                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-                }
-
-                @Override
-                public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-                }
-
-                @Override
-                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-
-                }
-            });
-        }
-    */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -567,12 +463,23 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        if (profile == null) return true;
+        MenuItem itemNotification = menu.findItem(R.id.notification);
+        LayerDrawable icon = (LayerDrawable) itemNotification.getIcon();
+        setBadgeCount(this, icon, Integer.toString(profile.getUnseen()));
+        if (profile.isAdmin()) {
+            MenuItem adminItem = menu.findItem(R.id.admin_menu_item);
+            adminItem.setVisible(true);
+        }
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu, menu);
-
-        mOptionsMenu = menu;
-//        mOptionsMenu.getItem(4).setVisible(false);
         return true;
     }
 
@@ -610,10 +517,6 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
                 onShareClick();
                 return true;
             }
-//            case R.id.point_rule:{
-//
-//            }
-//            return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
