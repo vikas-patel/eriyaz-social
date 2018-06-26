@@ -72,8 +72,9 @@
     <string name="error_post_was_removed">Post was removed</string>
     <string name="confirm_deletion_post">Delete this post?</string>
     <string name="confirm_deletion_message">Delete this message?</string>
-    <string name="confirm_close_play_popup">Your inputs will be lost. You sure want to close?</string>
-    <string name="mandatory_detailed_feedback_popup"><![CDATA[\'Detailed feedback\' is mandatory for rating below 12.\n<font color=\'#17a1d7\'>Your rating will be lost</font>. You sure want to close?]]></string>
+    <string name="confirm_close_play_popup">Your inputs will be lost. Are you sure want to close?</string>
+    <string name="rating_lost_popup">Your rating will also be removed on close and no points will be earned.\nAre you sure you want to close?</string>
+    <string name="mandatory_detailed_feedback_popup">\'Detailed feedback\' below is mandatory for \'Not Ok\' rating.</string>
     <string name="confirm_continue_payment">Get official feedback from Paarth Singh.\nWill be given in 24 hours".\nPrice: Rs %1$d.</string>
 
     <string name="comment_text_hint">Enter your comment…</string>
@@ -169,6 +170,16 @@
     <plurals name="points_counter_format">
         <item quantity="one">contribution point</item>
         <item quantity="other">contribution points</item>
+    </plurals>
+
+    <plurals name="push_notification_rated_body">
+        <item quantity="one">%1$s and %2$d other rated.</item>
+        <item quantity="other">%1$s and %2$d others rated.</item>
+    </plurals>
+
+    <plurals name="push_notification_commented_body">
+        <item quantity="one">%1$s and %2$d other commented.</item>
+        <item quantity="other">%1$s and %2$d others commented.</item>
     </plurals>
 
     <string name="message_button">MESSAGE</string>

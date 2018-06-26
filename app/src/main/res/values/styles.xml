@@ -25,6 +25,12 @@
         <item name="android:textColor">@color/primary_dark_text</item>
     </style>
 
+    <style name="TextAppearance.Subhead" parent="@android:style/TextAppearance">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/primary_dark</item>
+        <item name="fontFamily">sans-serif</item>
+    </style>
+
     <style name="TextAppearance.Title.White" parent="@android:style/TextAppearance">
         <item name="android:textSize">18sp</item>
         <item name="android:textColor">@android:color/white</item>

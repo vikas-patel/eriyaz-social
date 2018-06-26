@@ -70,8 +70,10 @@ public class RatedPostViewHolder extends PostViewHolder {
     }
 
     public void bindData(final Rating ratingByProfileUser) {
-        ratedValueTextView.setText(Integer.toString((int) ratingByProfileUser.getRating()));
-        postManager.getSinglePostValue(ratingByProfileUser.getPostId(), createOnPostChangeListener(ratingByProfileUser.getPostId()));
+        if (ratingByProfileUser != null) {
+            ratedValueTextView.setText(Integer.toString((int) ratingByProfileUser.getRating()));
+            postManager.getSinglePostValue(ratingByProfileUser.getPostId(), createOnPostChangeListener(ratingByProfileUser.getPostId()));
+        }
     }
 
     private OnPostChangedListener createOnPostChangeListener(final String postId) {

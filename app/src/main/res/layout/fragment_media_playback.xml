@@ -1,32 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/cardview_light_background"
     android:orientation="vertical"
     android:layout_gravity="center_vertical"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content">
-
-    <android.support.v7.widget.CardView
-        xmlns:card_view="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/mediaplayer_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        card_view:cardElevation="3dp"
-        android:transitionName="open_mediaplayer"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true">
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/small_intrinsic_padding"
+            android:layout_margin="@dimen/intrinsic_padding"
             android:orientation="vertical">
             <TextView
                 android:id="@+id/file_name_text_view"
+                android:layout_marginBottom="@dimen/small_intrinsic_padding"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/intrinsic_padding"
                 android:fontFamily="sans-serif-condensed"
                 android:textSize="18sp" />
             <com.google.android.exoplayer2.ui.SimpleExoPlayerView
@@ -38,23 +27,35 @@
                 app:fastforward_increment="5000"
                 app:rewind_increment="5000"
                 android:layout_height="80dp"/>
+            <TextView
+                android:text="Rating:"
+                android:textAppearance="@style/TextAppearance.Subhead"
+                android:id="@+id/ratingTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <include
+                android:id="@+id/seekbarContainer"
+                layout="@layout/seekbar_container"
+                android:layout_marginTop="@dimen/intrinsic_padding"
+                android:layout_marginBottom="@dimen/large_intrinsic_padding"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true" />
+            <TextView
+                android:id="@+id/earnExtraTextView"
+                android:paddingTop="@dimen/intrinsic_padding"
+                android:paddingBottom="@dimen/intrinsic_padding"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:textAlignment="center"
+                android:text="You can earn 1 extra point by giving 'detailed feedback'."
+                android:textAppearance="@style/TextAppearance.Subhead"
+                android:textColor="@color/google_button_color"/>
 
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
-                <TextView
-                    android:text="Rating:"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-                <include
-                    android:id="@+id/seekbarContainer"
-                    layout="@layout/seekbar_container"
-                    android:layout_marginTop="24dp"
-                    android:layout_marginBottom="@dimen/large_intrinsic_padding"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentTop="true" />
-
                 <!--<TextView-->
                     <!--android:id="@+id/rateMeLabel"-->
                     <!--android:layout_width="wrap_content"-->
@@ -75,26 +76,15 @@
                     <!--android:layout_height="wrap_content"-->
                     <!--android:layout_alignParentEnd="true" />-->
 
-                <TextView
-                    android:id="@+id/moreTextView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerHorizontal="true"
-                    android:layout_alignBaseline="@id/closeButton"
-                    android:visibility="visible"
-                    android:text="Detailed Feedback"
-                    android:textSize="18sp"
-                    android:gravity="end"
-                    android:textAppearance="@style/TextAppearance.Highlight" />
-
                 <LinearLayout android:id="@+id/detailedFeedbackLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:visibility="gone"
-                    android:layout_below="@+id/seekbarContainer"
+                    android:paddingTop="@dimen/intrinsic_padding"
                     android:orientation="vertical">
                     <TextView
                         android:text="Tune Match %"
+                        android:textAppearance="@style/TextAppearance.Subhead"
                         android:id="@+id/melodyPercentageLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -107,37 +97,42 @@
                         <RadioButton
                             android:id="@+id/firstBtnMelodyId"
                             android:text="50%"
-                            android:textSize="@dimen/detailed_feedback_text_size"
-                            android:layout_weight="20"
-                            android:layout_width="0dp"
+                            android:layout_width="60dp"
+                            android:scaleX="0.6"
+                            android:scaleY="0.6"
                             android:layout_height="wrap_content" />
                         <RadioButton
                             android:id="@+id/secondBtnMelodyId"
+                            android:layout_marginLeft="-8dp"
                             android:text="70%"
-                            android:textSize="@dimen/detailed_feedback_text_size"
-                            android:layout_weight="20"
-                            android:layout_width="0dp"
+                            android:scaleX="0.6"
+                            android:scaleY="0.6"
+                            android:layout_width="60dp"
                             android:layout_height="wrap_content" />
                         <RadioButton
                             android:id="@+id/thirdBtnId"
                             android:lines="2"
-                            android:textSize="@dimen/detailed_feedback_text_size"
+                            android:layout_marginLeft="-8dp"
+                            android:scaleX="0.6"
+                            android:scaleY="0.6"
                             android:text="Harkate Missing"
                             android:layout_gravity="center"
-                            android:layout_weight="30"
-                            android:layout_width="0dp"
+                            android:layout_width="90dp"
                             android:layout_height="wrap_content" />
                         <RadioButton
                             android:id="@+id/fourthBtnId"
+                            android:layout_marginLeft="-8dp"
                             android:layout_gravity="center"
-                            android:textSize="@dimen/detailed_feedback_text_size"
+                            android:scaleX="0.6"
+                            android:scaleY="0.6"
                             android:text="Almost There"
-                            android:layout_weight="30"
-                            android:layout_width="0dp"
+                            android:layout_width="90dp"
                             android:layout_height="wrap_content" />
                     </RadioGroup>
                     <TextView
                         android:text="Voice Quality"
+                        android:paddingTop="@dimen/intrinsic_padding"
+                        android:textAppearance="@style/TextAppearance.Subhead"
                         android:id="@+id/voiceQualityLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
@@ -149,24 +144,29 @@
                         <RadioButton
                             android:id="@+id/averageBtnId"
                             android:text="Average"
-                            android:textSize="@dimen/detailed_feedback_text_size"
+                            android:scaleX="0.6"
+                            android:scaleY="0.6"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
                         <RadioButton
                             android:id="@+id/goodBtnId"
-                            android:textSize="@dimen/detailed_feedback_text_size"
+                            android:scaleX="0.6"
+                            android:scaleY="0.6"
                             android:text="Good"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
                         <RadioButton
                             android:id="@+id/excellentBtnId"
-                            android:textSize="@dimen/detailed_feedback_text_size"
+                            android:scaleX="0.6"
+                            android:scaleY="0.6"
                             android:text="Excellent"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
                     </RadioGroup>
                     <TextView
                         android:text="Problems if any:"
+                        android:paddingTop="@dimen/intrinsic_padding"
+                        android:textAppearance="@style/TextAppearance.Subhead"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
                         <LinearLayout
@@ -175,26 +175,26 @@
                             android:orientation="horizontal" >
                         <CheckBox
                             android:id="@+id/pronounciationCheckboxId"
-                            android:textSize="@dimen/detailed_feedback_text_size"
-                            android:layout_weight="35"
-                            android:layout_width="0dp"
-                            android:layout_gravity="center"
+                            android:layout_marginLeft="-20dp"
+                            android:scaleX="0.6"
+                            android:scaleY="0.6"
+                            android:layout_width="130dp"
                             android:layout_height="wrap_content"
                             android:text="Pronounciation Distracting" />
                         <CheckBox
                             android:id="@+id/highPitchCheckboxId"
-                            android:textSize="@dimen/detailed_feedback_text_size"
-                            android:layout_weight="35"
-                            android:layout_width="0dp"
-                            android:layout_gravity="center"
+                            android:layout_marginLeft="-20dp"
+                            android:scaleX="0.6"
+                            android:scaleY="0.6"
+                            android:layout_width="100dp"
                             android:layout_height="wrap_content"
                             android:text="Bad at High Pitch" />
                         <CheckBox
                             android:id="@+id/noFeelCheckboxId"
-                            android:textSize="@dimen/detailed_feedback_text_size"
-                            android:layout_weight="30"
-                            android:layout_width="0dp"
-                            android:layout_gravity="center"
+                            android:layout_marginLeft="-20dp"
+                            android:scaleX="0.6"
+                            android:scaleY="0.6"
+                            android:layout_width="90dp"
                             android:layout_height="wrap_content"
                             android:text="Feel Missing" />
                         </LinearLayout>
@@ -215,27 +215,38 @@
 
                     </android.support.design.widget.TextInputLayout>
                 </LinearLayout>
-                <Button android:id="@+id/closeButton"
-                    android:layout_below="@id/detailedFeedbackLayout"
-                    android:text="close"
+                <Button
+                    android:id="@+id/moreTextView"
+                    style="@style/Widget.AppCompat.Button.Borderless.Colored"
                     android:minHeight="0dp"
                     android:minWidth="0dp"
-                    android:layout_alignParentRight="true"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_width="wrap_content" />
+                    android:layout_centerHorizontal="true"
+                    android:layout_alignBaseline="@id/closeButton"
+                    android:visibility="visible"
+                    android:text="Detailed Feedback" />
                 <Button android:id="@+id/submitButton"
                     android:layout_below="@id/detailedFeedbackLayout"
                     android:text="submit"
                     android:minHeight="0dp"
                     android:minWidth="0dp"
                     android:visibility="gone"
+                    style="@style/Widget.AppCompat.Button.Borderless.Colored"
                     android:layout_toLeftOf="@id/closeButton"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content" />
+                <Button android:id="@+id/closeButton"
+                    android:layout_below="@id/detailedFeedbackLayout"
+                    android:text="close"
+                    android:minHeight="0dp"
+                    android:minWidth="0dp"
+                    style="@style/Widget.AppCompat.Button.Borderless.Colored"
+                    android:layout_alignParentRight="true"
                     android:layout_height="wrap_content"
                     android:layout_width="wrap_content" />
             </RelativeLayout>
 
         </LinearLayout>
 
-    </android.support.v7.widget.CardView>
-
-</RelativeLayout>
+</ScrollView>

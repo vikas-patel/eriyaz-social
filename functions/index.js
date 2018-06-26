@@ -10,10 +10,10 @@ var paytm_config = require('./paytm/paytm_config').paytm_config;
 var paytm_checksum = require('./paytm/checksum');
 // const nodemailer = require('nodemailer');
 
-const actionTypeNewRating = "new_rating"
-const actionTypeNewComment = "new_comment"
-const actionTypeNewPost = "new_post"
-const notificationTitle = "RateMySinging"
+const actionTypeNewRating = "new_rating";
+const actionTypeNewComment = "new_comment";
+const actionTypeNewPost = "new_post";
+const notificationTitle = "RateMySinging";
 
 const postsTopic = "postsTopic"
 // Maximum concurrent database connection.
@@ -78,8 +78,10 @@ exports.pushNotificationRatings = functions.database.ref('/post-ratings/{postId}
                     actionType: actionTypeNewRating,
                     title: notificationTitle,
                     body: `${ratingAuthorProfile.username} rated your post`,
-                    icon: post.val().imagePath,
+                    icon: ratingAuthorProfile.photoUrl,
                     postId: postId,
+                    postTitle: post.val().title,
+                    authorName: ratingAuthorProfile.username
 
                 },
             };
@@ -177,8 +179,6 @@ exports.pushNotificationComments = functions.database.ref('/post-comments/{postI
 
     return getPostTask.then(post => {
 
-
-
         // Get the list of device notification tokens.
         const getDeviceTokensTask = admin.database().ref(`/profiles/${post.val().authorId}/notificationTokens`).once('value');
         console.log('getDeviceTokensTask path: ', `/profiles/${post.val().authorId}/notificationTokens`)
@@ -207,9 +207,11 @@ exports.pushNotificationComments = functions.database.ref('/post-comments/{postI
                 data : {
                     actionType: actionTypeNewComment,
                     title: notificationTitle,
+                    postTitle: post.val().title,
                     body: `${commentAuthorProfile.username} commented your post`,
-                    icon: post.val().imagePath,
-                    postId: postId,
+                    icon: commentAuthorProfile.photoUrl,
+                    authorName: commentAuthorProfile.username,
+                    postId: postId
                 },
             };
 
@@ -369,52 +371,43 @@ exports.pushNotificationNewBoughtFeedback = functions.database.ref('/bought-feed
     });
 
 });    
-// exports.commentsPoints = functions.database.ref('/post-comments/{postId}/{commentId}').onWrite(event => {
 
-//     if (event.data.exists() && event.data.previous.exists()) {
-//         return console.log("no points for comment updates");
-//     }
-//     const commentId = event.params.commentId;
-//     const postId = event.params.postId;
-//     const comment = event.data.exists() ? event.data.val() : event.data.previous.val();
-//     const commentAuthorId = comment.authorId;
-//     const comment_points = 2;
-
-//     console.log('New comment was added, post id: ', postId);
-
-//     // Get the commented post .
-//     const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
-
-//     return getPostTask.then(post => {
-
-//         if (commentAuthorId == post.val().authorId) {
-//             return console.log('User commented on own post');
-//         }
-
-//         // Get user points ref
-//         const userPointsRef = admin.database().ref(`/user-points/${commentAuthorId}`);
-//         var newPointRef = userPointsRef.push();
-//         newPointRef.set({
-//             'action': event.data.exists() ? "add":"remove",
-//             'type': 'comment',
-//             'value': event.data.exists() ? comment_points:-comment_points,
-//             'creationDate': admin.database.ServerValue.TIMESTAMP
-//         });
-
-//         // Get rating author.
-//         const authorProfilePointsRef = admin.database().ref(`/profiles/${commentAuthorId}/points`);
-//         return authorProfilePointsRef.transaction(current => {
-//             if (event.data.exists()) {
-//               return (current || 0) + comment_points;
-//             } else {
-//               return (current || 0) - comment_points;
-//             }
-//         }).then(() => {
-//             console.log('User comment points updated.');
-//         });
-
-//     })
-// });
+exports.detailedFeedbackPoints = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
+    const commentId = event.params.commentId;
+    const comment = event.data.val();
+    const commentAuthorId = comment.authorId;
+    const commentListRef = event.data.ref.parent;
+    const comment_points = 1;
+    if (!comment.detailedFeedback) return;
+    console.log("reward extra points for detailed feedback");
+    // Get all feedback with same parent feedback
+    const getChildrenCommentTask = commentListRef.orderByChild('authorId').equalTo(commentAuthorId).once('value');
+    return getChildrenCommentTask.then(snapshot => {
+        let awarded = false;
+        snapshot.forEach(function(commentSnap) {
+            if (awarded) return;
+            // exclude parent author & feedback author
+            const commentItem = commentSnap.val();
+            if (commentSnap.key != commentId && commentItem.detailedFeedback) {
+                // already extra point rewarded.
+                awarded = true;
+                return;
+            }
+        });
+        if (!awarded) {
+            // Get user points ref
+            const userPointsRef = admin.database().ref(`/user-points/${commentAuthorId}`);
+            var newPointRef = userPointsRef.push();
+            newPointRef.set({
+                'action': "add",
+                'type': 'detailed feedback',
+                'value': comment_points,
+                'creationDate': admin.database.ServerValue.TIMESTAMP
+            });
+            return addPoints(commentAuthorId, comment_points);
+        }
+    });
+});
 
 // Two different fuctions for post add and remove, because there were too many post update request
 // and firebase has restriction on frequency of function calls.

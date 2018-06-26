@@ -21,6 +21,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -50,13 +51,12 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private static final String TAG = MyFirebaseMessagingService.class.getSimpleName();
 
-    private static int notificationId = 0;
-
     private static final String POST_ID_KEY = "postId";
     private static final String AUTHOR_ID_KEY = "authorId";
+    private static final String AUTHOR_NAME_KEY = "authorName";
     private static final String ACTION_TYPE_KEY = "actionType";
     private static final String TITLE_KEY = "title";
-    private static final String BODY_KEY = "body";
+    private static final String POST_TITLE_KEY = "postTitle";
     private static final String ICON_KEY = "icon";
     private static final String ACTION_TYPE_NEW_RATING = "new_rating";
     private static final String ACTION_TYPE_NEW_COMMENT = "new_comment";
@@ -104,20 +104,20 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private void parseCommentOrLike(RemoteMessage remoteMessage) {
         String notificationTitle = remoteMessage.getData().get(TITLE_KEY);
-        String notificationBody = remoteMessage.getData().get(BODY_KEY);
         String notificationImageUrl = remoteMessage.getData().get(ICON_KEY);
         String postId = remoteMessage.getData().get(POST_ID_KEY);
+        String postTitle = remoteMessage.getData().get(POST_TITLE_KEY);
+        String authorName = remoteMessage.getData().get(AUTHOR_NAME_KEY);
 
         Intent backIntent = new Intent(this, MainActivity.class);
         Intent intent = new Intent(this, PostDetailsActivity.class);
         intent.putExtra(PostDetailsActivity.POST_ID_EXTRA_KEY, postId);
         intent.putExtra(PostDetailsActivity.POST_ORIGIN_EXTRA_KEY, PostOrigin.PUSH_NOTIFICATION);
+        String receivedActionType = remoteMessage.getData().get(ACTION_TYPE_KEY);
 
-        Bitmap bitmap = null;//getBitmapFromUrl(notificationImageUrl);
+        Bitmap bitmap = getBitmapFromUrl(notificationImageUrl);
 
-        sendNotification(notificationTitle, notificationBody, bitmap, intent, backIntent);
-
-        LogUtil.logDebug(TAG, "Message Notification Body: " + remoteMessage.getData().get(BODY_KEY));
+        sendNotification(notificationTitle, bitmap, intent, backIntent, postId, receivedActionType, authorName, postTitle);
     }
 
     public Bitmap getBitmapFromUrl(String imageUrl) {
@@ -136,11 +136,15 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
     }
 
-    private void sendNotification(String notificationTitle, String notificationBody, Bitmap bitmap, Intent intent) {
-        sendNotification(notificationTitle, notificationBody, bitmap, intent, null);
-    }
+    private void sendNotification(String notificationTitle, Bitmap bitmap,
+                                  Intent intent, Intent backIntent, String postId, String actionType, String authorName, String postTitle) {
+        int postIdInt = postId.hashCode();
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        Intent onCancelNotificationReceiver = new Intent(this, CancelNotificationReceiver.class);
+        onCancelNotificationReceiver.putExtra(PostDetailsActivity.POST_ID_EXTRA_KEY, postId);
+        PendingIntent onCancelNotificationReceiverPendingIntent = PendingIntent.getBroadcast(this.getApplicationContext(), postIdInt,
+                onCancelNotificationReceiver, 0);
 
-    private void sendNotification(String notificationTitle, String notificationBody, Bitmap bitmap, Intent intent, Intent backIntent) {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
         PendingIntent pendingIntent;
@@ -148,10 +152,21 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         if(backIntent != null) {
             backIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             Intent[] intents = new Intent[] {backIntent, intent};
-            pendingIntent = PendingIntent.getActivities(this, notificationId++, intents, PendingIntent.FLAG_ONE_SHOT);
+            pendingIntent = PendingIntent.getActivities(this, postIdInt, intents, PendingIntent.FLAG_ONE_SHOT);
         } else {
-            pendingIntent = PendingIntent.getActivity(this, notificationId++, intent, PendingIntent.FLAG_ONE_SHOT);
+            pendingIntent = PendingIntent.getActivity(this, postIdInt, intent, PendingIntent.FLAG_ONE_SHOT);
         }
+
+        SharedPreferences sharedPreferences = getSharedPreferences("NotificationData:"+postId, 0);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        if (actionType.equalsIgnoreCase(ACTION_TYPE_NEW_RATING)) {
+            editor.putString("lastLikedBy", authorName);
+            editor.putInt("likeCount", sharedPreferences.getInt("likeCount", 0) + 1);
+        } else {
+            editor.putString("lastCommentedBy", authorName);
+            editor.putInt("commentCount", sharedPreferences.getInt("commentCount", 0) + 1);
+        }
+        editor.apply();
 
         Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder = (NotificationCompat.Builder) new NotificationCompat.Builder(this)
@@ -159,14 +174,41 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 .setSmallIcon(R.drawable.ic_push_notification_small) //Notification icon
                 .setContentIntent(pendingIntent)
                 .setContentTitle(notificationTitle)
-                .setContentText(notificationBody)
-                //.setLargeIcon(bitmap)
-                .setSound(defaultSoundUri);
+                .setStyle(getStyleForNotification(postId, authorName, postTitle))
+                .setLargeIcon(bitmap)
+                .setSound(defaultSoundUri)
+                .setDeleteIntent(onCancelNotificationReceiverPendingIntent);
 
+        manager.notify(postIdInt /* ID of notification */, notificationBuilder.build());
+    }
 
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-        notificationManager.notify(notificationId++ /* ID of notification */, notificationBuilder.build());
-
+    private NotificationCompat.InboxStyle getStyleForNotification(String postId, String newAuthor, String postTitle) {
+        NotificationCompat.InboxStyle inbox = new NotificationCompat.InboxStyle();
+        SharedPreferences sharedPref = getSharedPreferences("NotificationData:"+postId, 0);
+        int likeCount = sharedPref.getInt("likeCount", 0);
+        if (likeCount > 0) {
+            String authorName = sharedPref.getString("lastLikedBy", "");
+            String message;
+            if (likeCount == 1) {
+                message = authorName + " rated.";
+            } else {
+                message = String.format(getResources().getQuantityString(R.plurals.push_notification_rated_body, likeCount-1), authorName, likeCount-1);
+            }
+            inbox.addLine(message);
+            inbox.setBigContentTitle("Your post '" + postTitle + "'");
+        }
+        int commentCount = sharedPref.getInt("commentCount", 0);
+        if (commentCount > 0) {
+            String authorName = sharedPref.getString("lastCommentedBy", "");
+            String message;
+            if (commentCount == 1) {
+                message = authorName + " commented.";
+            } else {
+                message = String.format(getResources().getQuantityString(R.plurals.push_notification_commented_body, commentCount-1), authorName, commentCount-1);
+            }
+            inbox.addLine(message);
+            inbox.setBigContentTitle("Your post '" + postTitle + "'");
+        }
+        return inbox;
     }
 }

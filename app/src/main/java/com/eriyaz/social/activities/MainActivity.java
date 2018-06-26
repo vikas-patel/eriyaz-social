@@ -170,7 +170,7 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
 
     private void showShareAppBanner() {
         int reward_points = (int) remoteConfig.getLong("reward_points");
-        Snackbar snackbar = Snackbar.make(floatingActionButton, String.format(getString(R.string.app_share_banner), reward_points), Snackbar.LENGTH_INDEFINITE)
+        final Snackbar snackbar = Snackbar.make(floatingActionButton, String.format(getString(R.string.app_share_banner), reward_points), Snackbar.LENGTH_LONG)
                 .setActionTextColor(getResources().getColor(R.color.accent))
                 .setAction("SHARE", new View.OnClickListener() {
             @Override
@@ -179,7 +179,13 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
             }
         });
         snackbar.getView().setBackgroundColor(getResources().getColor(R.color.red));
-        snackbar.show();
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                snackbar.show();
+            }
+        }, 6000);
     }
 
     @Override

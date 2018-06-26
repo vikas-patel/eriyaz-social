@@ -74,7 +74,6 @@ public class PlaybackFragment extends DialogFragment {
     private Rating rating;
     private RatingController ratingController;
     private boolean isRatingChanged = false;
-    private View ratingLayout;
     private long startTimePlayer;
     private SimpleExoPlayerView playerView;
     private SimpleExoPlayer player;
@@ -86,10 +85,11 @@ public class PlaybackFragment extends DialogFragment {
     private LinearLayout detailedFeedbackLayout;
     private Button submitButton;
     private EditText additionalCommentEditText;
-//    private BubbleSeekBar melodySeekBar;
     private RadioGroup melodyRadioGroup;
     private RadioGroup voiceQualityRadioGroup;
     private CommentManager commentManager;
+    private TextView ratingTextView;
+    private TextView earnExtraTextView;
     private TextView melodyPercentageLabel;
     private TextView voiceQualityLabel;
     private FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
@@ -97,6 +97,7 @@ public class PlaybackFragment extends DialogFragment {
     private CheckBox pronounciationView;
     private CheckBox highPitchView;
     private CheckBox feelView;
+    private int intialRatingValue = 0;
 
     public PlaybackFragment newInstance(RecordingItem item) {
         PlaybackFragment f = new PlaybackFragment();
@@ -165,7 +166,6 @@ public class PlaybackFragment extends DialogFragment {
 
         mFileNameTextView = (TextView) view.findViewById(R.id.file_name_text_view);
         ratingBar = (BubbleSeekBar) view.findViewById(R.id.ratingBar);
-        ratingLayout = view.findViewById(R.id.seekbarContainerLayout);
         closeButton = view.findViewById(R.id.closeButton);
         closeButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -194,7 +194,7 @@ public class PlaybackFragment extends DialogFragment {
                         v.setClickable(true);
 
                     }
-                }, 1000);
+                }, 2000);
             }
         });
         additionalCommentEditText = view.findViewById(R.id.additionalCommentEditText);
@@ -202,6 +202,8 @@ public class PlaybackFragment extends DialogFragment {
         melodyRadioGroup = view.findViewById(R.id.melodyPercRadioGroup);
         voiceQualityRadioGroup = view.findViewById(R.id.voiceQualityRadioGroup);
         melodyPercentageLabel = view.findViewById(R.id.melodyPercentageLabel);
+        ratingTextView = view.findViewById(R.id.ratingTextView);
+        earnExtraTextView = view.findViewById(R.id.earnExtraTextView);
         voiceQualityLabel = view.findViewById(R.id.voiceQualityLabel);
         pronounciationView = view.findViewById(R.id.pronounciationCheckboxId);
         highPitchView = view.findViewById(R.id.highPitchCheckboxId);
@@ -220,9 +222,9 @@ public class PlaybackFragment extends DialogFragment {
     }
 
     private void onCloseButton() {
-        if (ratingBar.getProgress() > 0 && ratingBar.getProgress() < 12 && melodyRadioGroup.getCheckedRadioButtonId() == -1) {
+        if (ratingBar.getProgress() > 0 && ratingBar.getProgress() <= 5 && melodyRadioGroup.getCheckedRadioButtonId() == -1) {
             android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(getActivity());
-            builder.setMessage(Html.fromHtml(getString(R.string.mandatory_detailed_feedback_popup)))
+            builder.setMessage(Html.fromHtml(getString(R.string.rating_lost_popup)))
                     .setNegativeButton(R.string.button_title_cancel, null)
                     .setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
                         @Override
@@ -255,6 +257,7 @@ public class PlaybackFragment extends DialogFragment {
         detailedFeedbackLayout.setVisibility(View.VISIBLE);
         submitButton.setVisibility(View.VISIBLE);
         moreTextView.setVisibility(View.GONE);
+        earnExtraTextView.setVisibility(View.GONE);
     }
 
     private boolean isAuthorized() {
@@ -273,18 +276,27 @@ public class PlaybackFragment extends DialogFragment {
 
     private void submitDetailedFeedback() {
         if (!isAuthorized()) return;
+        boolean error = false;
+        if (ratingBar.getProgress() == 0) {
+            ratingTextView.setError("Rating is not set.");
+            error = true;
+        } else {
+            ratingTextView.setError(null);
+        }
         if (melodyRadioGroup.getCheckedRadioButtonId() == -1) {
             melodyPercentageLabel.setError("'Tone Match %' is not set.");
-            return;
+            error = true;
+        } else {
+            melodyPercentageLabel.setError(null);
         }
 
         if (voiceQualityRadioGroup.getCheckedRadioButtonId() == -1) {
             voiceQualityLabel.setError("'Voice Quality is not set.");
-            return;
+            error = true;
+        } else {
+            voiceQualityLabel.setError(null);
         }
-        if (ratingBar.getProgress() > 0 && ratingBar.getProgress() < 12) {
-            ratingController.handleRatingClickAction((BaseActivity) getActivity(), post, ratingBar.getProgress());
-        }
+        if (error) return;
 
         RadioButton selectedVoiceQuality = voiceQualityRadioGroup.findViewById(voiceQualityRadioGroup.getCheckedRadioButtonId());
         String detailed_feedback_text = String.format(getString(R.string.detailed_feedback_combined),
@@ -293,9 +305,14 @@ public class PlaybackFragment extends DialogFragment {
                 getProblems(),
                 additionalCommentEditText.getText());
         Comment detailed_comment = new Comment(detailed_feedback_text);
-        detailed_comment.setDetailedFeedback(true);
+        if (ratingBar.getProgress() > 0 && ratingBar.getProgress() <= 5) {
+            ratingController.handleRatingClickAction((BaseActivity) getActivity(), post, ratingBar.getProgress());
+        } else if (ratingBar.getProgress() < 15){
+            // extra marks only on rating create
+            detailed_comment.setDetailedFeedback(true);
+        }
         detailed_comment.setAuthorId(firebaseAuth.getCurrentUser().getUid());
-        commentManager.createOrUpdateComment(detailed_feedback_text, post.getId(), new OnTaskCompleteListener() {
+        commentManager.createOrUpdateComment(detailed_comment, post.getId(), new OnTaskCompleteListener() {
             @Override
             public void onTaskComplete(boolean success) {
                 if (success) {
@@ -429,6 +446,7 @@ public class PlaybackFragment extends DialogFragment {
 
 
     private void updateRatingDetails() {
+        intialRatingValue = (int) rating.getRating();
         ratingController = new RatingController(ratingBar, post.getId(), rating);
         ratingBar.setCustomSectionTextArray(new BubbleSeekBar.CustomSectionTextArray() {
             @NonNull
@@ -477,8 +495,22 @@ public class PlaybackFragment extends DialogFragment {
                 }
                 ratingController.setUpdatingRatingCounter(false);
                 isRatingChanged = true;
-                if (progress > 0 && progress < 12) {
-                    openDetailedFeedback();
+                if (progress > 5 && progress < 15 && intialRatingValue == 0) {
+                    earnExtraTextView.setVisibility(View.VISIBLE);
+                } else {
+                    earnExtraTextView.setVisibility(View.GONE);
+                }
+
+                if (progress > 0 && progress <= 5) {
+                    android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(getActivity());
+                    builder.setMessage(getResources().getString(R.string.mandatory_detailed_feedback_popup));
+                    builder.setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            openDetailedFeedback();
+                        }
+                    });
+                    builder.show();
                     return;
                 }
                 ratingController.handleRatingClickAction((BaseActivity) getActivity(), post, progress);

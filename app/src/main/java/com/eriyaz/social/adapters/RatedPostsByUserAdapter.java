@@ -151,6 +151,7 @@ public class RatedPostsByUserAdapter extends RecyclerView.Adapter<RecyclerView.V
     public void updateSelectedPost() {
         if (selectedPostPosition != -1) {
             Rating selectedRating = getItemByPosition(selectedPostPosition);
+            if (selectedRating == null) return;
             FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
             // update rated post layout (rated value) only visited self profile
             if (firebaseUser != null && firebaseUser.getUid().equals(selectedRating.getAuthorId()))

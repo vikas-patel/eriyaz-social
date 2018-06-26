@@ -121,8 +121,9 @@ public class CommentViewHolder extends RecyclerView.ViewHolder {
 
     private void fillComment(String userName, String comment, ExpandableTextView commentTextView) {
         Spannable contentString = new SpannableStringBuilder(userName + "   " + comment);
+        int usernameLen = userName != null ? userName.length():0;
         contentString.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.highlight_text)),
-                0, userName.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                0, usernameLen, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
         commentTextView.setText(contentString);
     }

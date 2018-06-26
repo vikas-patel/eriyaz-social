@@ -30,7 +30,7 @@ public class Comment {
     private String text;
     private String authorId;
     private long createdDate;
-    private boolean isDetailedFeedback;
+    private boolean detailedFeedback;
 
 
     public Comment() {
@@ -76,20 +76,10 @@ public class Comment {
     }
 
     public boolean isDetailedFeedback() {
-        return isDetailedFeedback;
+        return detailedFeedback;
     }
 
-    public void setDetailedFeedback(boolean detailedFeedback) {
-        isDetailedFeedback = detailedFeedback;
-    }
-
-    public Map<String, Object> toMap() {
-        HashMap<String, Object> result = new HashMap<>();
-
-        result.put("text", text);
-        result.put("createdDate", createdDate);
-        result.put("createdDateText", FormatterUtil.getFirebaseDateFormat().format(new Date(createdDate)));
-
-        return result;
+    public void setDetailedFeedback(boolean aDetailedFeedback) {
+        detailedFeedback = aDetailedFeedback;
     }
 }
