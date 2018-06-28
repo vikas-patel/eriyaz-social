@@ -65,6 +65,7 @@ import com.eriyaz.social.enums.PaymentStatus;
 import com.eriyaz.social.enums.PostOrigin;
 import com.eriyaz.social.enums.PostStatus;
 import com.eriyaz.social.enums.ProfileStatus;
+import com.eriyaz.social.fragments.MistakesPlayFragment;
 import com.eriyaz.social.fragments.PlaybackFragment;
 import com.eriyaz.social.listeners.CustomTransitionListener;
 import com.eriyaz.social.managers.BoughtFeedbackManager;
@@ -420,6 +421,24 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             @Override
             public void onAuthorClick(String authorId, View view) {
                 openProfileActivity(authorId, view);
+            }
+
+            @Override
+            public void onTimeStampClick(String comment, String timestamp) {
+                try {
+                    RecordingItem item = new RecordingItem();
+                    item.setName(post.getTitle());
+                    item.setLength(post.getAudioDuration());
+                    item.setFilePath(post.getImagePath());
+
+                    MistakesPlayFragment mistakesPlayFragment =
+                            new MistakesPlayFragment().newInstance(item, post, rating, comment, timestamp);
+                    android.app.FragmentTransaction transaction = getFragmentManager()
+                            .beginTransaction();
+                    mistakesPlayFragment.show(transaction, "dialog_playback");
+                } catch (Exception e) {
+                    Log.e("", "exception", e);
+                }
             }
         });
         commentsRecyclerView.setAdapter(commentsAdapter);

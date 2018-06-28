@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.text.Html;
+import android.text.InputType;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.Window;
@@ -21,6 +22,7 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.eriyaz.social.Application;
 import com.eriyaz.social.Constants;
@@ -39,8 +41,8 @@ import com.eriyaz.social.model.Comment;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.model.RecordingItem;
-import com.eriyaz.social.utils.LogUtil;
 import com.eriyaz.social.utils.RatingUtil;
+import com.eriyaz.social.utils.TimestampTagUtil;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -50,12 +52,10 @@ import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
-import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
-import com.google.android.exoplayer2.upstream.FileDataSource;
 import com.google.android.exoplayer2.util.Util;
 import com.google.firebase.auth.FirebaseAuth;
+import com.volokh.danylo.hashtaghelper.HashTagHelper;
 import com.xw.repo.BubbleSeekBar;
 
 import java.util.Date;
@@ -98,6 +98,10 @@ public class PlaybackFragment extends DialogFragment {
     private CheckBox highPitchView;
     private CheckBox feelView;
     private int intialRatingValue = 0;
+
+    private EditText mistakesTextView;
+    private HashTagHelper mistakesTextHashTagHelper;
+    private Button mistakeTapButton;
 
     public PlaybackFragment newInstance(RecordingItem item) {
         PlaybackFragment f = new PlaybackFragment();
@@ -197,6 +201,27 @@ public class PlaybackFragment extends DialogFragment {
                 }, 2000);
             }
         });
+
+        mistakesTextView = view.findViewById(R.id.mistakesTextView);
+        mistakeTapButton = view.findViewById(R.id.mistakeTapButton);
+
+        mistakesTextHashTagHelper = HashTagHelper.Creator.create(getResources().getColor(R.color.red), new HashTagHelper.OnHashTagClickListener() {
+            @Override
+            public void onHashTagClicked(String hashTag) {
+                if(TimestampTagUtil.isValidTimestamp(hashTag)) {
+                    player.seekTo(TimestampTagUtil.timestampToMillis(hashTag));
+                }
+            }
+        }, new char[] {':'});
+        mistakesTextHashTagHelper.handle(mistakesTextView);
+
+        mistakeTapButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mistakesTextView.append(String.format(" #%s,", TimestampTagUtil.millisToTimestamp(player.getContentPosition())));
+            }
+        });
+
         additionalCommentEditText = view.findViewById(R.id.additionalCommentEditText);
 //        melodySeekBar = view.findViewById(R.id.melodySeekBar);
         melodyRadioGroup = view.findViewById(R.id.melodyPercRadioGroup);
@@ -300,6 +325,7 @@ public class PlaybackFragment extends DialogFragment {
 
         RadioButton selectedVoiceQuality = voiceQualityRadioGroup.findViewById(voiceQualityRadioGroup.getCheckedRadioButtonId());
         String detailed_feedback_text = String.format(getString(R.string.detailed_feedback_combined),
+                getMistakes(),
                 getMelodyText(),
                 selectedVoiceQuality.getText(),
                 getProblems(),
@@ -322,6 +348,12 @@ public class PlaybackFragment extends DialogFragment {
                 }
             }
         });
+    }
+
+    private CharSequence getMistakes() {
+        StringBuffer mistakes = new StringBuffer();
+        mistakes.append(mistakesTextView.getText());
+        return mistakes;
     }
 
     private CharSequence getProblems() {
