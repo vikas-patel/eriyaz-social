@@ -83,7 +83,8 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="26dp"
-            app:played_color="@color/play_control_color"/>
+            app:played_color="@color/play_control_color"
+            app:ad_marker_color="@color/red"/>
 
         <TextView android:id="@id/exo_duration"
             android:layout_width="wrap_content"

@@ -30,6 +30,7 @@ import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DataSpec;
@@ -40,6 +41,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.volokh.danylo.hashtaghelper.HashTagHelper;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by Daniel on 1/1/2015.
@@ -55,7 +57,7 @@ public class MistakesPlayFragment extends DialogFragment {
     private TextView mistakesCommentTextView = null;
     private String mistakesCommentText = "";
     private long startTimePlayer;
-    private SimpleExoPlayerView playerView;
+    private PlayerView playerView;
     private SimpleExoPlayer player;
     private int currentWindow = 0;
     private long playbackPosition = 0;
@@ -222,14 +224,33 @@ public class MistakesPlayFragment extends DialogFragment {
         playerView.setPlayer(player);
         player.addListener(componentListener);
 
+        setTimelineMarkers();
+
         player.setPlayWhenReady(playWhenReady);
         player.seekTo(currentWindow, playbackPosition);
+
+
         Uri uri = Uri.parse(item.getFilePath());
+
 
         MediaSource mediaSource = buildMediaSource(uri);
         player.prepare(mediaSource, true, false);
     }
 
+    private void setTimelineMarkers() {
+        List<String> timestamps = mistakesTextHashTagHelper.getAllHashTags();
+        for (String timestamp : timestamps) {
+            if(!TimestampTagUtil.isValidTimestamp(timestamp)) {
+                timestamps.remove(timestamp);
+            }
+        }
+        long[] adTimes = new long[timestamps.size()];
+        boolean[] adPlayed = new boolean[timestamps.size()];
+        for (int i=0; i<timestamps.size(); i++) {
+            adTimes[i] = TimestampTagUtil.timestampToMillis(timestamps.get(i));
+        }
+        playerView.setExtraAdGroupMarkers(adTimes, adPlayed);
+    }
 
     private MediaSource buildMediaSource(Uri uri) {
         return new ExtractorMediaSource.Factory(
