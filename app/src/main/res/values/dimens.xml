@@ -34,7 +34,7 @@
     <dimen name="circle_image_shadow_radius">3dp</dimen>
 
     <dimen name="post_counters_item_width">50dp</dimen>
-    <dimen name="post_counters_ratings_width">80dp</dimen>
+    <dimen name="post_counters_ratings_width">140dp</dimen>
     <dimen name="post_counters_ratingbar_width">100dp</dimen>
 
     <dimen name="base_login_button_corner_radius">8dp</dimen>

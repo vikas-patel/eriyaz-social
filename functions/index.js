@@ -26,6 +26,7 @@ const MAX_RATING_MINUTE = 120;
 const db = admin.database();
 var supportingAuthorIds;
 var masterAuthorIds;
+const WELCOME_ADMIN = functions.config().app.environment === 'dev' ? 'dsUhfoavcLUH4xsisgWW30N5v1u1' : 'eOaCAHXB8qfPKx1ZEKqSZXqrnXi2';
 
 // const gmailEmail = functions.config().gmail.email;
 // const gmailPassword = functions.config().gmail.password;
@@ -797,7 +798,7 @@ function sendAppMessageNotification(authorId, fromUserId, msg, extraKeyValue) {
 }
 
 function sendAppRewardsNotification(authorId, fromUserId, msg) {
-    console.log("sending msg:", msg);
+    console.log("sending reward notification:", msg);
     // Get user notification ref
     const userNotificationsRef = admin.database().ref(`/user-notifications/${authorId}`);
     var newNotificationRef = userNotificationsRef.push();
@@ -807,6 +808,19 @@ function sendAppRewardsNotification(authorId, fromUserId, msg) {
         'message': msg,
         'extraKey' : 'ProfileActivity.USER_ID_EXTRA_KEY',
         'extraKeyValue' : authorId,
+        'createdDate': admin.database.ServerValue.TIMESTAMP
+    });
+}
+
+function sendUserMessage(authorId, fromUserId, msg) {
+    // Get user notification ref
+    const userMessagesRef = admin.database().ref(`/user-messages/${authorId}`);
+    var newUserMsgRef = userMessagesRef.push();
+    return newUserMsgRef.set({
+        'id': newUserMsgRef.key,
+        'receiverId': authorId,
+        'senderId' : fromUserId,
+        'text': msg,
         'createdDate': admin.database.ServerValue.TIMESTAMP
     });
 }
@@ -1043,14 +1057,18 @@ exports.grantSignupReward = functions.database.ref('/profiles/{uid}/id').onCreat
         .once('value').then(function(profileSnap) {
           var profile = profileSnap.val();
           console.log("referred_by", profile.referred_by);
+          const WELCOME_MSG = `Hi ${profile.username}. Welcome to ${notificationTitle} community. I am the Developer and a Moderator here. Feel free to reach out to me for any questions/help. \nRemember this motto : Be Genuine, Encouraging & Respectful, and you should get along well with everyone here.`;
+          const welcomeMsgTask = sendUserMessage(uid, WELCOME_ADMIN, WELCOME_MSG);
           if (profile.referred_by) {
             // add reward points
             const addPointsTask =  addPoints(profile.referred_by, REWARD_POINTS);
             const msg = "Congrats your friend " +  profile.username + " joined. " +  REWARD_POINTS +" points added to your profile.";
             const notificationTask = sendAppRewardsNotification(profile.referred_by, uid, msg);
-            return Promise.all([addPointsTask, notificationTask]).then(results => {
+            return Promise.all([addPointsTask, notificationTask, welcomeMsgTask]).then(results => {
                 console.log("all reward tasks completed.");
             });
+          } else {
+            return welcomeMsgTask;
           }
         });
     });

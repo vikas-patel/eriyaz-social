@@ -24,81 +24,83 @@ import android.app.DialogFragment;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.GridView;
+import android.widget.ProgressBar;
 
+import com.eriyaz.social.ApplicationHelper;
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.PostDetailsActivity;
+import com.eriyaz.social.adapters.AvtarAdapter;
 import com.eriyaz.social.managers.CommentManager;
+import com.eriyaz.social.managers.listeners.OnDataChangedListener;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
-import com.eriyaz.social.utils.LogUtil;
+import com.eriyaz.social.model.Avatar;
+import com.eriyaz.social.model.Notification;
+
+import java.util.List;
 
 /**
  * Created by alexey on 12.05.17.
  */
 
-public class CommentDialog extends DialogFragment {
-    public static final String TAG = CommentDialog.class.getSimpleName();
-    public static final int NEW_COMMENT_REQUEST = 33;
-    private CommentManager commentManager;
+public class AvatarDialog extends DialogFragment {
+    public static final String TAG = AvatarDialog.class.getSimpleName();
+    public static final String AVATAR_IMAGE_URL_EXTRA_KEY = "AvatarDialog.AVATAR_IMAGE_URL_EXTRA_KEY";
+    private GridView gridView;
+    private ProgressBar progressBar;
 
-    private String postId;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        postId = (String) getArguments().get(PostDetailsActivity.POST_ID_EXTRA_KEY);
         super.onCreate(savedInstanceState);
-        commentManager = CommentManager.getInstance(getActivity());
     }
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View view = layoutInflater.inflate(R.layout.dialog_edit_comment, null);
-
-        final EditText editCommentEditText = view.findViewById(R.id.editCommentEditText);
-        editCommentEditText.setHint(R.string.comment_not_ok_hint);
+        View view = layoutInflater.inflate(R.layout.dialog_avatar_grid, null);
+        gridView = view.findViewById(R.id.gridView);
+        progressBar = view.findViewById(R.id.progressBar);
+        ApplicationHelper.getDatabaseHelper().getAvatarList(createOnAvatarsChangedDataListener());
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setView(view)
-                .setTitle(R.string.title_not_ok_comment)
-                .setNegativeButton(R.string.button_title_cancel, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        notifyToTarget(Activity.RESULT_CANCELED);
-                    }
-                })
-                .setPositiveButton(R.string.button_title_save, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String newCommentText = editCommentEditText.getText().toString();
-                        if (newCommentText.length() > 0) {
-                            commentManager.createOrUpdateComment(newCommentText, postId, new OnTaskCompleteListener() {
-                                @Override
-                                public void onTaskComplete(boolean success) {
-
-                                }
-                            });
-                            notifyToTarget(Activity.RESULT_OK);
-                        } else {
-                            notifyToTarget(Activity.RESULT_CANCELED);
-                        }
-                    }
-                });
-
+                .setTitle("Select Avatar..");
         return builder.create();
     }
 
-    private void notifyToTarget(int code) {
+    private void notifyToTarget(String imageUrl) {
         Fragment targetFragment = getTargetFragment();
         if (targetFragment != null) {
-            targetFragment.onActivityResult(getTargetRequestCode(), code, null);
-        } else {
-//            PostDetailsActivity activity = (PostDetailsActivity) getActivity();
-//            activity.onCommentDialogResult(getTargetRequestCode(), code, null);
+            Intent intent = getActivity().getIntent();
+            intent.putExtra(AVATAR_IMAGE_URL_EXTRA_KEY, imageUrl);
+            targetFragment.onActivityResult(getTargetRequestCode(), Activity.RESULT_OK, intent);
         }
+    }
+
+    private OnDataChangedListener<Avatar> createOnAvatarsChangedDataListener() {
+
+        return new OnDataChangedListener<Avatar>() {
+            @Override
+            public void onListChanged(List<Avatar> list) {
+                AvtarAdapter gridAdapter = new AvtarAdapter(getActivity());
+                gridAdapter.setList(list);
+                gridAdapter.setCallback(new AvtarAdapter.Callback() {
+                    @Override
+                    public void onItemClick(final Avatar avatar, final View view) {
+                        notifyToTarget(avatar.getImageUrl());
+                        dismiss();
+                    }
+                });
+                gridView.setAdapter(gridAdapter);
+                progressBar.setVisibility(View.GONE);
+            }
+        };
     }
 }

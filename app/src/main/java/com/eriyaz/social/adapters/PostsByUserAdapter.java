@@ -32,7 +32,10 @@ import com.eriyaz.social.managers.listeners.OnDataChangedListener;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.model.RecordingItem;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
+import java.util.Iterator;
 import java.util.List;
 
 
@@ -102,6 +105,14 @@ public class PostsByUserAdapter extends BasePostsAdapter implements ProfileTabIn
         OnDataChangedListener<Post> onPostsDataChangedListener = new OnDataChangedListener<Post>() {
             @Override
             public void onListChanged(List<Post> list) {
+                FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+                if (currentUser == null || !currentUser.getUid().equalsIgnoreCase(userId)) {
+                    // remove anonymous posts
+                    Iterator<Post> iterator = list.iterator();
+                    while (iterator.hasNext()) {
+                        if (iterator.next().isAnonymous()) iterator.remove();
+                    }
+                }
                 setList(list);
                 callBack.onPostsListChanged(list.size());
             }

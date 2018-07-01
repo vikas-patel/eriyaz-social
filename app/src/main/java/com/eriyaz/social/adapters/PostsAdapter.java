@@ -114,7 +114,7 @@ public class PostsAdapter extends BasePostsAdapter {
             @Override
             public void onAuthorClick(int position, View view) {
                 if (callback != null) {
-                    callback.onAuthorClick(getItemByPosition(position).getAuthorId(), view);
+                    callback.onAuthorClick(getItemByPosition(position), view);
                 }
             }
         };
@@ -224,7 +224,7 @@ public class PostsAdapter extends BasePostsAdapter {
     public interface Callback {
         void onItemClick(Post post, View view);
         void onListLoadingFinished();
-        void onAuthorClick(String authorId, View view);
+        void onAuthorClick(Post post, View view);
         void onCanceled(String message);
     }
 }

@@ -80,15 +80,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:autoLink="all"
-                            android:text="`"
                             android:textAppearance="@style/TextAppearance.Second" />
-                        <TextView
-                            android:id="@+id/attemptTextView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="12dp"
-                            android:textAppearance="@style/TextAppearance.Second.Dark"
-                            android:layout_marginTop="7dp"/>
                         <TextView
                             android:id="@+id/file_length_text"
                             android:layout_width="wrap_content"

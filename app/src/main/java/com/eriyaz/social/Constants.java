@@ -25,6 +25,7 @@ public class Constants {
     public static class ACTIVITY {
         public static final int CREATE_ADMIN = 30;
         public static final int CREATE_TNC = 40;
+        public static final int AVATAR_DIALOG = 41;
     }
 
     public static class Profile {

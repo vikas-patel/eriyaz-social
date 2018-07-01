@@ -23,6 +23,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.eriyaz.social.managers.listeners.OnPostCreatedListener;
+import com.eriyaz.social.model.Avatar;
 import com.eriyaz.social.model.BoughtFeedback;
 import com.eriyaz.social.model.Message;
 import com.eriyaz.social.model.Notification;
@@ -970,12 +971,6 @@ public class DatabaseHelper {
                         if (mapObj.containsKey("commentsCount")) {
                             post.setCommentsCount((long) mapObj.get("commentsCount"));
                         }
-                        if (mapObj.containsKey("version")) {
-                            post.setVersion((String) mapObj.get("version"));
-                        }
-//                        if (mapObj.containsKey("likesCount")) {
-//                            post.setLikesCount((long) mapObj.get("likesCount"));
-//                        }
                         if (mapObj.containsKey("ratingsCount")) {
                             post.setRatingsCount((long) mapObj.get("ratingsCount"));
                         }
@@ -987,6 +982,15 @@ public class DatabaseHelper {
                         }
                         if (mapObj.containsKey("watchersCount")) {
                             post.setWatchersCount((long) mapObj.get("watchersCount"));
+                        }
+                        if (mapObj.containsKey("anonymous")) {
+                            post.setAnonymous((boolean) mapObj.get("anonymous"));
+                        }
+                        if (mapObj.containsKey("anonymous")) {
+                            post.setNickName((String) mapObj.get("nickName"));
+                        }
+                        if (mapObj.containsKey("avatarImageUrl")) {
+                            post.setAvatarImageUrl((String) mapObj.get("avatarImageUrl"));
                         }
                         list.add(post);
                     }
@@ -1192,6 +1196,27 @@ public class DatabaseHelper {
         });
     }
 
+    public void getAvatarList(final OnDataChangedListener<Avatar> onDataChangedListener) {
+        DatabaseReference databaseReference = database.getReference("avatars");
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                List<Avatar> list = new ArrayList<>();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Avatar avatar = snapshot.getValue(Avatar.class);
+                    avatar.setId(snapshot.getKey());
+                    list.add(avatar);
+                }
+                onDataChangedListener.onListChanged(list);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                LogUtil.logError(TAG, "getAvatarList(), onCancelled", new Exception(databaseError.getMessage()));
+            }
+        });
+    }
+
     public ValueEventListener getRatingsList(String postId, final OnDataChangedListener<Rating> onDataChangedListener) {
         DatabaseReference databaseReference = database.getReference("post-ratings").child(postId);
         ValueEventListener valueEventListener = databaseReference.addValueEventListener(new ValueEventListener() {
@@ -1326,6 +1351,11 @@ public class DatabaseHelper {
     public void addComplainToPost(Post post) {
         DatabaseReference databaseReference = getDatabaseReference();
         databaseReference.child("posts").child(post.getId()).child("hasComplain").setValue(true);
+    }
+
+    public void makePostPublic(Post post) {
+        DatabaseReference databaseReference = getDatabaseReference();
+        databaseReference.child("posts").child(post.getId()).child("anonymous").setValue(false);
     }
 
     public void isPostExistSingleValue(String postId, final OnObjectExistListener<Post> onObjectExistListener) {

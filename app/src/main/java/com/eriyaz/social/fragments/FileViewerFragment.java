@@ -1,6 +1,8 @@
 package com.eriyaz.social.fragments;
 
+import android.app.Activity;
 import android.app.Fragment;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -12,13 +14,20 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.eriyaz.social.Constants;
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
 import com.eriyaz.social.activities.CreatePostActivity;
+import com.eriyaz.social.activities.PostDetailsActivity;
+import com.eriyaz.social.dialogs.AvatarDialog;
 import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.utils.ValidationUtil;
 
@@ -37,11 +46,14 @@ public class FileViewerFragment extends Fragment {
     private String filePath;
     private TextView vLength;
     private View cardView;
+    private ImageView avatarImageView;
     private Button retryButton;
+    private CheckBox anonymousCheckBox;
+    private String avatarImageUrl;
 
     protected EditText titleEditText;
     protected EditText descriptionEditText;
-    protected Spinner versionSpinner;
+    protected EditText nickNameEditText;
 
     public static FileViewerFragment newInstance(RecordingItem item) {
         FileViewerFragment f = new FileViewerFragment();
@@ -68,6 +80,32 @@ public class FileViewerFragment extends Fragment {
         vName.setText(item.getName());
         vLength.setText(String.format("%02d:%02d", minutes, seconds));
         filePath = item.getFilePath();
+
+        anonymousCheckBox.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                if (anonymousCheckBox.isChecked()) {
+                    // show avatar selection grid
+                    nickNameEditText.setVisibility(View.VISIBLE);
+                    avatarImageView.setVisibility(View.VISIBLE);
+                    openAvatarSelectionDialog();
+                } else {
+                    // remove nick name field and image view
+                    nickNameEditText.setVisibility(View.GONE);
+                    avatarImageView.setVisibility(View.GONE);
+                    avatarImageUrl = "";
+                }
+            }
+        });
+
+        avatarImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                openAvatarSelectionDialog();
+            }
+        });
 
         // define an on click listener to open PlaybackFragment
         cardView.setOnClickListener(new View.OnClickListener() {
@@ -97,7 +135,27 @@ public class FileViewerFragment extends Fragment {
         });
     }
 
+    private void openAvatarSelectionDialog() {
+        AvatarDialog dialog = new AvatarDialog();
+        Bundle args = new Bundle();
+        dialog.setArguments(args);
+        dialog.setTargetFragment(this, Constants.ACTIVITY.AVATAR_DIALOG);
+        dialog.show(getFragmentManager(), AvatarDialog.TAG);
+    }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK) {
+            // set image url
+            avatarImageUrl = data.getStringExtra(AvatarDialog.AVATAR_IMAGE_URL_EXTRA_KEY);
+            Glide.with(getActivity())
+                    .load(avatarImageUrl)
+                    .diskCacheStrategy(DiskCacheStrategy.SOURCE)
+                    .crossFade()
+                    .into(avatarImageView);
+        }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -107,8 +165,10 @@ public class FileViewerFragment extends Fragment {
         vLength = (TextView) v.findViewById(R.id.file_length_text);
         cardView = v.findViewById(R.id.card_view);
         titleEditText = (EditText) v.findViewById(R.id.titleEditText);
+        nickNameEditText = v.findViewById(R.id.nickNameEditText);
         descriptionEditText = v.findViewById(R.id.descriptionEditText);
-        versionSpinner = v.findViewById(R.id.versionSpinner);
+        anonymousCheckBox = v.findViewById(R.id.anonymousCheckboxId);
+        avatarImageView = v.findViewById(R.id.avatarImageViewId);
         retryButton = v.findViewById(R.id.retryButton);
         retryButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -124,9 +184,10 @@ public class FileViewerFragment extends Fragment {
         // Reset errors.
         titleEditText.setError(null);
         descriptionEditText.setError(null);
+        nickNameEditText.setError(null);
         String title = titleEditText.getText().toString().trim();
         String description = descriptionEditText.getText().toString().trim();
-        String version = versionSpinner.getSelectedItem().toString();
+        String nickName = nickNameEditText.getText().toString().trim();
         View focusView = null;
         boolean cancel = false;
 
@@ -146,9 +207,16 @@ public class FileViewerFragment extends Fragment {
             cancel = true;
         }
 
+        if (anonymousCheckBox.isChecked() && TextUtils.isEmpty(nickName)) {
+            nickNameEditText.setError("Nick name is required for anonymous post");
+            focusView = anonymousCheckBox;
+            cancel = true;
+        }
+
         if (!cancel) {
             ((BaseActivity) getActivity()).hideKeyboard();
-            ((CreatePostActivity) getActivity()).savePost(title, description, version, filePath);
+            ((CreatePostActivity) getActivity()).savePost(title, description, filePath,
+                    anonymousCheckBox.isChecked(), nickName, avatarImageUrl);
         } else if (focusView != null) {
             focusView.requestFocus();
         }

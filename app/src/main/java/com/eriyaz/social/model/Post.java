@@ -21,6 +21,7 @@ import android.os.Parcelable;
 import com.eriyaz.social.enums.BoughtFeedbackStatus;
 import com.eriyaz.social.enums.ItemType;
 import com.eriyaz.social.utils.FormatterUtil;
+import com.google.firebase.database.ServerValue;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -49,9 +50,11 @@ public class Post implements Serializable, LazyLoading {
     private boolean removed;
     private ItemType itemType;
     private long audioDuration;
-    private String version;
     private boolean longRecording;
     private BoughtFeedbackStatus boughtFeedbackStatus;
+    private boolean anonymous;
+    private String avatarImageUrl;
+    private String nickName;
 
     @Override
     public boolean equals(Object o) {
@@ -70,6 +73,7 @@ public class Post implements Serializable, LazyLoading {
 
     public Post() {
         this.createdDate = new Date().getTime();
+
         itemType = ItemType.ITEM;
     }
 
@@ -190,14 +194,6 @@ public class Post implements Serializable, LazyLoading {
         this.audioDuration = audioDuration;
     }
 
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
     public boolean isLongRecording() {
         return longRecording;
     }
@@ -214,12 +210,36 @@ public class Post implements Serializable, LazyLoading {
         this.removed = removed;
     }
 
+    public boolean isAnonymous() {
+        return anonymous;
+    }
+
+    public void setAnonymous(boolean anonymous) {
+        this.anonymous = anonymous;
+    }
+
+    public String getAvatarImageUrl() {
+        return avatarImageUrl;
+    }
+
+    public void setAvatarImageUrl(String avatarImageUrl) {
+        this.avatarImageUrl = avatarImageUrl;
+    }
+
+    public String getNickName() {
+        return nickName;
+    }
+
+    public void setNickName(String nickName) {
+        this.nickName = nickName;
+    }
+
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
 
         result.put("title", title);
         result.put("description", description);
-        result.put("createdDate", createdDate);
+        result.put("createdDate", ServerValue.TIMESTAMP);
         result.put("imagePath", imagePath);
         result.put("imageTitle", imageTitle);
         result.put("authorId", authorId);
@@ -230,9 +250,11 @@ public class Post implements Serializable, LazyLoading {
         result.put("audioDuration", audioDuration);
         result.put("watchersCount", watchersCount);
         result.put("hasComplain", hasComplain);
-        result.put("version", version);
         result.put("longRecording", longRecording);
         result.put("removed", removed);
+        result.put("avatarImageUrl", avatarImageUrl);
+        result.put("anonymous", anonymous);
+        result.put("nickName", nickName);
         result.put("createdDateText", FormatterUtil.getFirebaseDateFormat().format(new Date(createdDate)));
 
         return result;

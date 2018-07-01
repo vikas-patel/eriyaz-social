@@ -312,9 +312,11 @@ public class PlaybackFragment extends DialogFragment {
             detailed_comment.setDetailedFeedback(true);
         }
         detailed_comment.setAuthorId(firebaseAuth.getCurrentUser().getUid());
+        ((BaseActivity) getActivity()).showProgress(R.string.message_submit_detailed_feedback);
         commentManager.createOrUpdateComment(detailed_comment, post.getId(), new OnTaskCompleteListener() {
             @Override
             public void onTaskComplete(boolean success) {
+                ((BaseActivity) getActivity()).hideProgress();
                 if (success) {
                     dismiss();
                 } else {
@@ -520,6 +522,7 @@ public class PlaybackFragment extends DialogFragment {
     }
 
     public boolean isListenNotEnough() {
+        if (player.getDuration() == 0 || player.getDuration() < 0) return true;
         if (totalPlayed < Constants.RECORDING.MIN_PLAY_RECORDING*1000
                 && player.getDuration() > Constants.RECORDING.MIN_PLAY_RECORDING*1000) {
             return true;

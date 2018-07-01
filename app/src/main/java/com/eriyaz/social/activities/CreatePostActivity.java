@@ -131,13 +131,18 @@ public class CreatePostActivity extends BaseActivity implements OnPostCreatedLis
 //        }
 //    }
 
-    public void savePost(String title, String description, String version, String audioFilePath) {
+    public void savePost(String title, String description, String audioFilePath,
+                         boolean anonymous, String nickName, String avatarImageUrl) {
         showProgress(R.string.message_creating_post);
         Post post = new Post();
         post.setTitle(title);
         post.setDescription(description);
-        post.setVersion(version);
         post.setAuthorId(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        if (anonymous) {
+            post.setAnonymous(true);
+            post.setNickName(nickName);
+            post.setAvatarImageUrl(avatarImageUrl);
+        }
         FileViewerFragment fileFragment = (FileViewerFragment) getFragmentManager().findFragmentById(R.id.record_fragment);
         post.setAudioDuration(fileFragment.getRecordingItem().getLength());
         if (TimeUnit.MILLISECONDS.toSeconds(post.getAudioDuration()) > Constants.RECORDING.DEFAULT_RECORDING) {

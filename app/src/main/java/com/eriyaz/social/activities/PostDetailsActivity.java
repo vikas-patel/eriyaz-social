@@ -33,6 +33,7 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
+import android.text.Layout;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.transition.Transition;
@@ -49,6 +50,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -105,25 +107,23 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private Post post;
     private Profile profile;
     private ScrollView scrollView;
-//    private ViewGroup likesContainer;
-//    private ImageView likesImageView;
     private ViewGroup ratingsContainer;
     private ImageView ratingsImageView;
     private TextView ratingCounterTextView;
     private TextView averageRatingTextView;
-//    private BubbleSeekBar ratingBar;
+    private TextView ratingLabelTextView;
 
     private TextView commentsLabel;
 //    private TextView likeCounterTextView;
     private TextView commentsCountTextView;
     private TextView watcherCounterTextView;
+    private LinearLayout watcherContainerLayout;
     private TextView authorTextView;
     private TextView dateTextView;
     private ImageView authorImageView;
     private ProgressBar progressBar;
     private TextView fileName;
     private TextView audioLength;
-    private TextView attemptTextView;
     private View fileContainerView;
     private TextView descriptionEditText;
     private ProgressBar commentsProgressBar;
@@ -141,6 +141,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private MenuItem complainActionMenuItem;
     private MenuItem editActionMenuItem;
     private MenuItem deleteActionMenuItem;
+    private MenuItem publicActionMenuItem;
 
     private String postId;
 
@@ -186,7 +187,6 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 
         fileName = (TextView) findViewById(R.id.file_name_text);
         descriptionEditText = findViewById(R.id.descriptionEditText);
-        attemptTextView = findViewById(R.id.attemptTextView);
         audioLength = (TextView) findViewById(R.id.file_length_text);
         fileContainerView = findViewById(R.id.fileViewContainer);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
@@ -206,6 +206,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         ratingsImageView = (ImageView) findViewById(R.id.ratingImageView);
         ratingCounterTextView = (TextView) findViewById(R.id.ratingCounterTextView);
         averageRatingTextView = (TextView) findViewById(R.id.averageRatingTextView);
+        ratingLabelTextView = findViewById(R.id.ratingLabelTextView);
 //        ratingBar = (BubbleSeekBar) findViewById(R.id.ratingBar);
 
         authorImageView = (ImageView) findViewById(R.id.authorImageView);
@@ -213,6 +214,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 //        likeCounterTextView = (TextView) findViewById(R.id.likeCounterTextView);
         commentsCountTextView = (TextView) findViewById(R.id.commentsCountTextView);
         watcherCounterTextView = (TextView) findViewById(R.id.watcherCounterTextView);
+        watcherContainerLayout = findViewById(R.id.watchersContainer);
         dateTextView = (TextView) findViewById(R.id.dateTextView);
         commentsProgressBar = (ProgressBar) findViewById(R.id.commentsProgressBar);
         warningCommentsTextView = (TextView) findViewById(R.id.warningCommentsTextView);
@@ -317,7 +319,11 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             @Override
             public void onClick(View v) {
                 if (post != null) {
-                    openProfileActivity(post.getAuthorId(), v);
+                    if (post.isAnonymous()) {
+                        showSnackBar("Post is anonymous");
+                    } else {
+                        openProfileActivity(post.getAuthorId(), v);
+                    }
                 }
             }
         };
@@ -568,9 +574,8 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         setBoughtFeedbackStatus();
         updateCounters();
         initLikeButtonState();
-        updateOptionMenuVisibility();
+        invalidateOptionsMenu();
         progressBar.setVisibility(View.GONE);
-
     }
 
     private void incrementWatchersCount() {
@@ -610,12 +615,6 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             long seconds = TimeUnit.MILLISECONDS.toSeconds(post.getAudioDuration())
                     - TimeUnit.MINUTES.toSeconds(minutes);
             audioLength.setText(String.format("%02d:%02d", minutes, seconds));
-            if (TextUtils.isEmpty(post.getVersion())) {
-                attemptTextView.setVisibility(View.GONE);
-            } else {
-                attemptTextView.setText(post.getVersion());
-            }
-//            loadPostDetailsImage();
             loadAuthorImage();
         }
     }
@@ -706,10 +705,25 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             avgRatingText = String.format( "%.1f", post.getAverageRating());
         }
         averageRatingTextView.setText(avgRatingText);
+        if (post.getAverageRating() > 15) {
+            ratingLabelTextView.setText("AMAZING");
+            ratingLabelTextView.setTextColor(getResources().getColor(R.color.dark_green));
+        } else if (post.getAverageRating() > 10) {
+            ratingLabelTextView.setText("GOOD");
+            ratingLabelTextView.setTextColor(getResources().getColor(R.color.light_green));
+        } else if (post.getAverageRating() > 5) {
+            ratingLabelTextView.setText("AVERAGE");
+            ratingLabelTextView.setTextColor(getResources().getColor(R.color.accent));
+        } else if (post.getAverageRating() > 0){
+            ratingLabelTextView.setText("NOT OK");
+            ratingLabelTextView.setTextColor(getResources().getColor(R.color.red));
+        } else {
+            ratingLabelTextView.setText("");
+        }
 
 //        likeController.setUpdatingLikeCounter(false);
 //        ratingController.setUpdatingRatingCounter(false);
-
+        watcherContainerLayout.setVisibility(View.VISIBLE);
         watcherCounterTextView.setText(String.valueOf(post.getWatchersCount()));
 
         CharSequence date = FormatterUtil.getRelativeTimeSpanStringShort(this, post.getCreatedDate());
@@ -738,17 +752,25 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             public void onObjectChanged(Profile obj) {
                 if (isActivityDestroyed()) return;
                 profile = obj;
-                if (obj.getPhotoUrl() != null) {
-                    Glide.with(PostDetailsActivity.this)
-                            .load(obj.getPhotoUrl())
-                            .diskCacheStrategy(DiskCacheStrategy.SOURCE)
-                            .crossFade()
-                            .into(authorImageView);
+                invalidateOptionsMenu();
+                if (post.isAnonymous()) {
+                    showProfileDetails(post.getNickName(), post.getAvatarImageUrl());
+                } else {
+                    showProfileDetails(profile.getUsername(), profile.getPhotoUrl());
                 }
-
-                authorTextView.setText(obj.getUsername());
             }
         };
+    }
+
+    private void showProfileDetails(String userName, String profileImageUrl) {
+        if (profileImageUrl != null) {
+            Glide.with(PostDetailsActivity.this)
+                    .load(profileImageUrl)
+                    .diskCacheStrategy(DiskCacheStrategy.SOURCE)
+                    .crossFade()
+                    .into(authorImageView);
+        }
+        authorTextView.setText(userName);
     }
 
     private OnDataChangedListener<Rating> createOnRatingsChangedDataListener() {
@@ -1001,15 +1023,22 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         return currentUser != null && post != null && post.getAuthorId().equals(currentUser.getUid());
     }
 
-    private void updateOptionMenuVisibility() {
-        if (deleteActionMenuItem != null && deleteActionMenuItem != null && hasAccessToModifyPost()) {
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        if (profile == null || post == null) return true;
+        if (deleteActionMenuItem != null && hasAccessToModifyPost()) {
 //            editActionMenuItem.setVisible(true);
             deleteActionMenuItem.setVisible(true);
         }
 
-        if (complainActionMenuItem != null && post != null && !post.isHasComplain()) {
+        if (publicActionMenuItem != null && post.isAnonymous() && hasAccessToModifyPost()) {
+            publicActionMenuItem.setVisible(true);
+        }
+
+        if (complainActionMenuItem != null && post != null && !post.isHasComplain() && profile.isAdmin()) {
             complainActionMenuItem.setVisible(true);
         }
+        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
@@ -1017,12 +1046,9 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.post_details_menu, menu);
         complainActionMenuItem = menu.findItem(R.id.complain_action);
+        publicActionMenuItem = menu.findItem(R.id.make_public_action);
 //        editActionMenuItem = menu.findItem(R.id.edit_post_action);
         deleteActionMenuItem = menu.findItem(R.id.delete_post_action);
-
-        if (post != null) {
-            updateOptionMenuVisibility();
-        }
         return true;
     }
 
@@ -1036,6 +1062,9 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         switch (item.getItemId()) {
             case R.id.complain_action:
                 doComplainAction();
+                return true;
+            case R.id.make_public_action:
+                makePublicAction();
                 return true;
 
 //            case R.id.edit_post_action:
@@ -1059,6 +1088,19 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 
         if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
             openComplainDialog();
+        } else {
+            doAuthorization(profileStatus);
+        }
+    }
+
+    private void makePublicAction() {
+        if (!hasInternetConnection()) {
+            showSnackBar(R.string.internet_connection_failed);
+            return;
+        }
+        ProfileStatus profileStatus = profileManager.checkProfile();
+        if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
+            openConfirmPublicDialog();
         } else {
             doAuthorization(profileStatus);
         }
@@ -1119,6 +1161,20 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         builder.create().show();
     }
 
+    private void openConfirmPublicDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.confirm_public_post)
+                .setNegativeButton(R.string.button_title_cancel, null)
+                .setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        makePublic();
+                    }
+                });
+
+        builder.create().show();
+    }
+
     private void openConfirmPaymentDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(String.format(getString(R.string.confirm_continue_payment), paymentAmount))
@@ -1152,6 +1208,12 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         postManager.addComplain(post);
         complainActionMenuItem.setVisible(false);
         showSnackBar(R.string.complain_sent);
+    }
+
+    private void makePublic() {
+        postManager.makePublic(post);
+        publicActionMenuItem.setVisible(false);
+        showSnackBar(R.string.make_public_success);
     }
 
     private void removeComment(String commentId, final ActionMode mode, final int position) {

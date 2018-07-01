@@ -145,7 +145,7 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
             public void onObjectChanged(Profile aProfile) {
                 profile = aProfile;
                 userPoints = profile.getPoints();
-                if (userPoints < WARNING_MIN_POINTS) showShareAppBanner();
+//                if (userPoints < WARNING_MIN_POINTS) showShareAppBanner();
                 invalidateOptionsMenu();
             }
         };
@@ -290,8 +290,12 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
                 }
 
                 @Override
-                public void onAuthorClick(String authorId, View view) {
-                    openProfileActivity(authorId, view);
+                public void onAuthorClick(Post post, View view) {
+                    if (post.isAnonymous() && (profile == null || !profile.isAdmin())) {
+                        showSnackBar("Post is anonymous");
+                        return;
+                    }
+                    openProfileActivity(post.getAuthorId(), view);
                 }
 
                 @Override

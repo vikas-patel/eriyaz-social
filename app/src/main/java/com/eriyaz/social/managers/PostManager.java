@@ -213,6 +213,11 @@ public class PostManager extends FirebaseListenersManager {
         databaseHelper.addComplainToPost(post);
     }
 
+    public void makePublic(Post post) {
+        DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
+        databaseHelper.makePostPublic(post);
+    }
+
     public void hasCurrentUserLike(Context activityContext, String postId, String userId, final OnObjectExistListener<Like> onObjectExistListener) {
         DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
         ValueEventListener valueEventListener = databaseHelper.hasCurrentUserLike(postId, userId, onObjectExistListener);

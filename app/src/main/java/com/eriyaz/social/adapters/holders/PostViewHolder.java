@@ -53,16 +53,15 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     private Context context;
     private TextView fileName;
     private TextView detailsTextView;
-//    private TextView audioLength;
-    private TextView attemptTextView;
     protected View playImageView;
     private TextView authorTextView;
     private TextView averageRatingTextView;
     private TextView ratingCounterTextView;
     private ImageView ratingsImageView;
+    private TextView ratingLabelTextView;
 
     private TextView commentsCountTextView;
-    private TextView watcherCounterTextView;
+//    private TextView watcherCounterTextView;
     private TextView dateTextView;
     private ImageView authorImageView;
     protected View authorImageContainerView;
@@ -81,14 +80,14 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 
         fileName = view.findViewById(R.id.file_name_text);
 //        audioLength = view.findViewById(R.id.file_length_text);
-        attemptTextView = view.findViewById(R.id.attemptTextView);
         playImageView = view.findViewById(R.id.imageView);
         averageRatingTextView = (TextView) view.findViewById(R.id.averageRatingTextView);
+        ratingLabelTextView = view.findViewById(R.id.ratingLabelTextView);
         ratingCounterTextView = (TextView) view.findViewById(R.id.ratingCounterTextView);
         ratingsImageView = (ImageView) view.findViewById(R.id.ratingImageView);
 
         commentsCountTextView = (TextView) view.findViewById(R.id.commentsCountTextView);
-        watcherCounterTextView = (TextView) view.findViewById(R.id.watcherCounterTextView);
+//        watcherCounterTextView = (TextView) view.findViewById(R.id.watcherCounterTextView);
         dateTextView = (TextView) view.findViewById(R.id.dateTextView);
         authorTextView = (TextView) view.findViewById(R.id.authorTextView);
         detailsTextView = (TextView) view.findViewById(R.id.detailsTextView);
@@ -157,12 +156,6 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 //        long seconds = TimeUnit.MILLISECONDS.toSeconds(post.getAudioDuration())
 //                - TimeUnit.MINUTES.toSeconds(minutes);
 //        audioLength.setText(String.format("%02d:%02d", minutes, seconds));
-        if (TextUtils.isEmpty(post.getVersion())) {
-            attemptTextView.setVisibility(View.GONE);
-        } else {
-            attemptTextView.setVisibility(View.VISIBLE);
-            attemptTextView.setText(post.getVersion());
-        }
         String description = removeNewLinesDividers(post.getDescription());
         if (TextUtils.isEmpty(description)) {
             detailsTextView.setVisibility(View.GONE);
@@ -175,9 +168,24 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
             avgRatingText = String.format( "%.1f", post.getAverageRating());
         }
         averageRatingTextView.setText(avgRatingText);
+        if (post.getAverageRating() > 15) {
+            ratingLabelTextView.setText("AMAZING");
+            ratingLabelTextView.setTextColor(context.getResources().getColor(R.color.dark_green));
+        } else if (post.getAverageRating() > 10) {
+            ratingLabelTextView.setText("GOOD");
+            ratingLabelTextView.setTextColor(context.getResources().getColor(R.color.light_green));
+        } else if (post.getAverageRating() > 5) {
+            ratingLabelTextView.setText("AVERAGE");
+            ratingLabelTextView.setTextColor(context.getResources().getColor(R.color.accent));
+        } else if (post.getAverageRating() > 0){
+            ratingLabelTextView.setText("NOT OK");
+            ratingLabelTextView.setTextColor(context.getResources().getColor(R.color.red));
+        } else {
+            ratingLabelTextView.setText("");
+        }
         ratingCounterTextView.setText("(" + post.getRatingsCount() + ")");
         commentsCountTextView.setText(String.valueOf(post.getCommentsCount()));
-        watcherCounterTextView.setText(String.valueOf(post.getWatchersCount()));
+//        watcherCounterTextView.setText(String.valueOf(post.getWatchersCount()));
 
         CharSequence date = FormatterUtil.getRelativeTimeSpanStringShort(context, post.getCreatedDate());
         dateTextView.setText(date);
@@ -195,9 +203,10 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 //                .crossFade()
 //                .error(R.drawable.ic_stub)
 //                .into(postImageView);
-
-        if (post.getAuthorId() != null) {
-            profileManager.getProfileSingleValue(post.getAuthorId(), createProfileChangeListener(authorImageView));
+        if (post.isAnonymous()) {
+            setProfile(post.getNickName(), post.getAvatarImageUrl());
+        } else if (post.getAuthorId() != null) {
+            profileManager.getProfileSingleValue(post.getAuthorId(), createProfileChangeListener());
         }
 
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -213,23 +222,26 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         return text.substring(0, decoratedTextLength).replaceAll("\n", " ").trim();
     }
 
-    private OnObjectChangedListener<Profile> createProfileChangeListener(final ImageView authorImageView) {
+    private OnObjectChangedListener<Profile> createProfileChangeListener() {
         return new OnObjectChangedListener<Profile>() {
             @Override
             public void onObjectChanged(final Profile obj) {
                 if (((BaseActivity)context).isActivityDestroyed()) return;
-                authorTextView.setText(obj.getUsername());
-                if (obj.getPhotoUrl() != null) {
-
-                    Glide.with(context)
-                            .load(obj.getPhotoUrl())
-                            .diskCacheStrategy(DiskCacheStrategy.ALL)
-                            .centerCrop()
-                            .crossFade()
-                            .into(authorImageView);
-                }
+                setProfile(obj.getUsername(), obj.getPhotoUrl());
             }
         };
+    }
+
+    private void setProfile(String userName, String profileUrl) {
+        authorTextView.setText(userName);
+        if (profileUrl != null) {
+            Glide.with(context)
+                    .load(profileUrl)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .centerCrop()
+                    .crossFade()
+                    .into(authorImageView);
+        }
     }
 
 //    private OnObjectExistListener<Like> createOnLikeObjectExistListener() {

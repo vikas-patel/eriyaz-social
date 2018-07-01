@@ -60,6 +60,7 @@
     <string name="error_incorrect_file_type">Incorrect file type</string>
     <string name="error_bigger_file">File size is bigger than 10Mb</string>
     <string name="message_creating_post">Creating post ..</string>
+    <string name="message_submit_detailed_feedback">Submitting detailed feedback ..</string>
     <string name="message_saving">Saving ..</string>
     <string name="warning_empty_image">Image is required</string>
     <string name="warning_empty_title">Title is required</string>
@@ -71,6 +72,7 @@
     <string name="error_fail_update_post">Fail to update post</string>
     <string name="error_post_was_removed">Post was removed</string>
     <string name="confirm_deletion_post">Delete this post?</string>
+    <string name="confirm_public_post">Make this post public?</string>
     <string name="confirm_deletion_message">Delete this message?</string>
     <string name="confirm_close_play_popup">Your inputs will be lost. Are you sure want to close?</string>
     <string name="rating_lost_popup">Your rating will also be removed on close and no points will be earned.\nAre you sure you want to close?</string>
@@ -137,6 +139,7 @@
     <string name="collapse_text_label">show less</string>
     <string name="expand_text_label">show more</string>
     <string name="add_complain">Complain</string>
+    <string name="make_public">Make public</string>
     <string name="edit_post_menu">Edit post</string>
     <string name="delete_post_menu">Delete post</string>
     <string name="tnc_menu_item">T&amp;C</string>
@@ -185,6 +188,7 @@
     <string name="message_button">MESSAGE</string>
     <string name="posts_label">Posts:</string>
     <string name="complain_sent">Complain was sent successfully</string>
+    <string name="make_public_success">Post is public now</string>
     <string name="now_time_range">now</string>
 
     <string name="duration_minutes_shortest">%1$d m</string>
