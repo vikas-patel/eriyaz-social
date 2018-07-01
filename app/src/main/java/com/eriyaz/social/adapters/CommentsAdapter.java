@@ -73,5 +73,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentViewHolder> {
         void onLongItemClick(View view, int position);
 
         void onAuthorClick(String authorId, View view);
+
+        void onTimeStampClick(String comment, String timestamp);
     }
 }

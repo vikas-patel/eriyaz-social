@@ -225,7 +225,7 @@
     <string name="notification_recording">Recording...</string>
     <string name="toast_recording_start">Recording started</string>
     <string name="toast_recording_finish">Recording saved to</string>
-    <string name="detailed_feedback_combined">Tune Match: %1$s \nVoice Quality: %2$s %3$s\n%4$s</string>
+    <string name="detailed_feedback_combined">Mistakes: %1$s\nTune Match: %2$s \nVoice Quality: %3$s %4$s\n%5$s</string>
 
     <!--Firebase errors-->
     <string name="permission_denied_error">Please check your rules to access the Firebase Realtime Database</string>

@@ -24,21 +24,27 @@ import android.support.v7.widget.RecyclerView;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
 import com.eriyaz.social.adapters.CommentsAdapter;
+import com.eriyaz.social.fragments.PlaybackFragment;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.model.Comment;
 import com.eriyaz.social.model.Profile;
+import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.utils.FormatterUtil;
+import com.eriyaz.social.utils.TimestampTagUtil;
 import com.eriyaz.social.views.ExpandableTextView;
+import com.volokh.danylo.hashtaghelper.HashTagHelper;
 
 /**
  * Created by alexey on 10.05.17.
@@ -52,6 +58,9 @@ public class CommentViewHolder extends RecyclerView.ViewHolder {
     private final ProfileManager profileManager;
     private CommentsAdapter.Callback callback;
     private Context context;
+
+    private HashTagHelper mistakesTextHashTagHelper;
+
 
     public CommentViewHolder(View itemView, final CommentsAdapter.Callback callback) {
         super(itemView);
@@ -78,6 +87,19 @@ public class CommentViewHolder extends RecyclerView.ViewHolder {
                 }
             });
         }
+
+        mistakesTextHashTagHelper = HashTagHelper.Creator.create(itemView.getResources().getColor(R.color.red), new HashTagHelper.OnHashTagClickListener() {
+            @Override
+            public void onHashTagClicked(String hashTag) {
+                if(TimestampTagUtil.isValidTimestamp(hashTag))
+                    callback.onTimeStampClick(commentTextView.getText().toString(), hashTag);
+            }
+        }, new char[] {':'});
+
+
+        // pass a TextView or any descendant of it (incliding EditText) here.
+        // Hash tags that are in the text will be hightlighed with a color passed to HasTagHelper
+        mistakesTextHashTagHelper.handle(commentTextView.getTextView());
     }
 
     public void bindData(Comment comment) {
