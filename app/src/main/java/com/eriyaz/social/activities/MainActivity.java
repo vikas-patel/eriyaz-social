@@ -414,6 +414,12 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         startActivityForResult(intent, Constants.ACTIVITY.CREATE_ADMIN);
     }
 
+    private void openRatingsChartActivity() {
+        Intent intent = new Intent(MainActivity.this, RatingsChartActivity.class);
+        startActivity(intent);
+//        startActivityForResult(intent, Constants.ACTIVITY.CREATE_ADMIN);
+    }
+
     private void openTnCActivity() {
         Intent intent = new Intent(MainActivity.this, TnCActivity.class);
         startActivityForResult(intent, Constants.ACTIVITY.CREATE_ADMIN);
@@ -508,6 +514,9 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
                 return true;
             case R.id.feedback:
                 openFeedbackActivity();
+                return true;
+            case R.id.ratings_chart_menu_item:
+                openRatingsChartActivity();
                 return true;
             case R.id.admin_menu_item:
                 openAdminActivity();

@@ -1091,7 +1091,9 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 //                    openEditPostActivity();
 //                }
 //                return true;
-
+            case R.id.ratings_chart_menu_item:
+                openRatingsChartActivity();
+                return true;
             case R.id.delete_post_action:
                 if (hasAccessToModifyPost()) {
                     attemptToRemovePost();
@@ -1123,6 +1125,12 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         } else {
             doAuthorization(profileStatus);
         }
+    }
+
+    private void openRatingsChartActivity() {
+        Intent intent = new Intent(PostDetailsActivity.this, RatingsChartActivity.class);
+        startActivity(intent);
+//        startActivityForResult(intent, Constants.ACTIVITY.CREATE_ADMIN);
     }
 
     private void attemptToRemovePost() {

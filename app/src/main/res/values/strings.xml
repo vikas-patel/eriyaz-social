@@ -38,6 +38,8 @@
     <string name="title_activity_messages">Messages</string>
     <string name="title_activity_feedback">Contact Us</string>
     <string name="title_activity_tnc">Term &amp; Conditions</string>
+    <string name="title_activity_ratings_chart">Ratings Chart</string>
+
 
     <string name="text_take_photo">Take photo</string>
     <string name="text_pick_photo">Pick from Gallery</string>

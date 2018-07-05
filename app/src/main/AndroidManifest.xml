@@ -120,6 +120,9 @@
             android:configChanges="orientation|screenSize"
             android:label="@string/title_activity_notification"
             android:theme="@style/AppCompat.NoActionBar" />
+        <activity
+            android:name=".activities.RatingsChartActivity"
+            android:label="@string/title_activity_ratings_chart" />
 
         <meta-data
             android:name="io.fabric.ApiKey"
@@ -144,6 +147,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+
     </application>
 
 </manifest>
