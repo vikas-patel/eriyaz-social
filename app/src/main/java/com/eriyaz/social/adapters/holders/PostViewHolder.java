@@ -226,13 +226,13 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         return new OnObjectChangedListener<Profile>() {
             @Override
             public void onObjectChanged(final Profile obj) {
-                if (((BaseActivity)context).isActivityDestroyed()) return;
                 setProfile(obj.getUsername(), obj.getPhotoUrl());
             }
         };
     }
 
     private void setProfile(String userName, String profileUrl) {
+        if (((BaseActivity)context).isActivityDestroyed()) return;
         authorTextView.setText(userName);
         if (profileUrl != null) {
             Glide.with(context)

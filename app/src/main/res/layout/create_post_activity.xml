@@ -1,73 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="@dimen/intrinsic_padding"
+    android:orientation="vertical"
     tools:context=".activities.CreatePostActivity">
-
-    <RelativeLayout
-        android:id="@+id/imageContainer"
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleLarge"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:focusableInTouchMode="true"
-        android:focusable="true">
+        android:layout_height="40dp"
+        android:layout_centerInParent="true"
+        android:visibility="gone"/>
 
-        <!--<ImageView-->
-            <!--android:id="@+id/imageView"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="match_parent"-->
-            <!--android:src="@drawable/ic_stub"-->
-            <!--android:focusableInTouchMode="true"-->
-            <!--android:focusable="true" />-->
-        <FrameLayout
-            android:id="@+id/record_fragment"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+    <android.support.design.widget.TabLayout
+        android:id="@+id/tabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:elevation="4dp"
+        android:theme="@style/Theme.AppCompat.Light.DarkActionBar"/>
 
-        </FrameLayout>
-
-        <ProgressBar
-            android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyleLarge"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_centerInParent="true"
-            android:visibility="gone" />
-
-    </RelativeLayout>
-
-        <!--<android.support.design.widget.TextInputLayout-->
-            <!--android:id="@+id/input_layout_title"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:layout_marginBottom="@dimen/intrinsic_padding"-->
-            <!--android:layout_below="@+id/imageContainer">-->
-
-            <!--<EditText-->
-                <!--android:id="@+id/titleEditText"-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:hint="@string/hint_title"-->
-                <!--android:inputType="textMultiLine" />-->
-
-        <!--</android.support.design.widget.TextInputLayout>-->
-
-        <!--<android.support.design.widget.TextInputLayout-->
-            <!--android:id="@+id/input_layout_description"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-
-            <!--android:layout_below="@+id/input_layout_title">-->
-
-            <!--<EditText-->
-                <!--android:id="@+id/descriptionEditText"-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:gravity="start"-->
-                <!--android:hint="@string/hint_description"-->
-                <!--android:inputType="textMultiLine" />-->
-
-        <!--</android.support.design.widget.TextInputLayout>-->
-
-</RelativeLayout>
+    <android.support.v4.view.ViewPager
+        android:id="@+id/pager"
+        android:layout_width="match_parent"
+        android:layout_height="0px"
+        android:layout_weight="1"
+        android:background="@android:color/white" />
+</LinearLayout>

@@ -17,6 +17,8 @@
 package com.eriyaz.social.adapters;
 
 import android.app.Activity;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
@@ -96,7 +98,7 @@ public abstract class BasePostsAdapter extends RecyclerView.Adapter<RecyclerView
             item.setFilePath(post.getImagePath());
             PlaybackFragment playbackFragment =
                     new PlaybackFragment().newInstance(item, post, rating);
-            android.app.FragmentTransaction transaction = ((Activity)view.getContext()).getFragmentManager()
+            FragmentTransaction transaction = ((AppCompatActivity)view.getContext()).getSupportFragmentManager()
                     .beginTransaction();
             playbackFragment.show(transaction, "dialog_playback");
         } catch (Exception e) {

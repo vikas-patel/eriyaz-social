@@ -27,6 +27,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.DividerItemDecoration;
@@ -266,7 +267,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
                     item.setFilePath(post.getImagePath());
                     PlaybackFragment playbackFragment =
                             new PlaybackFragment().newInstance(item, post, rating);
-                    android.app.FragmentTransaction transaction = getFragmentManager()
+                    FragmentTransaction transaction = getSupportFragmentManager()
                             .beginTransaction();
                     playbackFragment.show(transaction, "dialog_playback");
                 } catch (Exception e) {

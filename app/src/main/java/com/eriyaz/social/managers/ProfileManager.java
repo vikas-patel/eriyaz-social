@@ -26,6 +26,7 @@ import com.eriyaz.social.model.Message;
 import com.eriyaz.social.model.Notification;
 import com.eriyaz.social.model.Point;
 import com.eriyaz.social.model.Rating;
+import com.eriyaz.social.model.RecordingItem;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -184,6 +185,15 @@ public class ProfileManager extends FirebaseListenersManager {
     public void getMessagesList(Context activityContext, String userId, OnDataChangedListener<Message> onDataChangedListener) {
         ValueEventListener valueEventListener = ApplicationHelper.getDatabaseHelper().getMessagesList(userId, onDataChangedListener);
         addListenerToMap(activityContext, valueEventListener);
+    }
+
+    public void getSavedRecordings(Context activityContext, OnDataChangedListener<RecordingItem> onDataChangedListener) {
+        ValueEventListener valueEventListener = ApplicationHelper.getDatabaseHelper().getSavedRecordings(onDataChangedListener);
+        addListenerToMap(activityContext, valueEventListener);
+    }
+
+    public void removeSavedRecording(String itemId) {
+        ApplicationHelper.getDatabaseHelper().removeSavedRecording(itemId);
     }
 
     public void removeMessage(String messageId, final String userId, final OnTaskCompleteListener onTaskCompleteListener) {

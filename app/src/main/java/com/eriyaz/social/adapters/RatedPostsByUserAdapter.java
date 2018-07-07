@@ -17,6 +17,7 @@
 package com.eriyaz.social.adapters;
 
 import android.app.Activity;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -86,7 +87,7 @@ public class RatedPostsByUserAdapter extends RecyclerView.Adapter<RecyclerView.V
                     item.setFilePath(post.getImagePath());
                     PlaybackFragment playbackFragment =
                             new PlaybackFragment().newInstance(item, post, rating);
-                    android.app.FragmentTransaction transaction = activity.getFragmentManager()
+                    FragmentTransaction transaction = activity.getSupportFragmentManager()
                             .beginTransaction();
                     playbackFragment.show(transaction, "dialog_playback");
                 } catch (Exception e) {

@@ -38,6 +38,7 @@
     <string name="title_activity_messages">Messages</string>
     <string name="title_activity_feedback">Contact Us</string>
     <string name="title_activity_tnc">Term &amp; Conditions</string>
+    <string name="post_limit_error">1 post allowed in 4 hours, you can create next post after %1$s. You can save this recording for later.</string>
 
     <string name="text_take_photo">Take photo</string>
     <string name="text_pick_photo">Pick from Gallery</string>
@@ -51,8 +52,10 @@
     <string name="hint_detailed_comment">Additional Comment.</string>
 
     <string name="message_post_was_created">Post was created</string>
+    <string name="message_record_was_saved">Recording saved locally</string>
     <string name="feedback_sent">Your feedback was sent</string>
     <string name="error_fail_create_post">Fail to create post</string>
+    <string name="error_fail_save_recording">Fail to save recording</string>
     <string name="error_fail_create_detailed_feedback">Fail to save detailed feedback</string>
     <string name="error_fail_load_image">Fail to load image</string>
     <string name="error_fail_crop_image">Fail to crop image</string>
@@ -236,6 +239,31 @@
     <string name="awaiting_official_feedback">Awaiting Official Feedback</string>
     <string name="received_official_feedback">Received Official Feedback</string>
     <string name="payment_status_pending">Payment Status Pending</string>
+
+    <string name="tab_title_record">Record</string>
+    <string name="tab_title_saved_recordings">Saved Recordings</string>
+
+    <string name="toast_file_delete">%1$s successfully deleted</string>
+    <string name="toast_file_exists">The file %1$s already exists. Please choose a different file name.</string>
+    <string name="send_to">Send to</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_title_delete">Confirm Delete...</string>
+    <string name="dialog_text_delete">Are you sure you would like to delete this file?</string>
+    <string name="dialog_title_licenses">Open Source Licenses</string>
+    <string name="dialog_title_share">Share File</string>
+    <string name="dialog_title_rename">Rename File</string>
+    <string name="dialog_title_options">Options</string>
+
+    <string name="dialog_file_share">Share File</string>
+    <string name="dialog_file_rename">Rename File</string>
+    <string name="dialog_file_delete">Delete File</string>
+    <string name="dialog_action_cancel">Cancel</string>
+    <string name="dialog_action_ok">OK</string>
+    <string name="dialog_action_yes">Yes</string>
+    <string name="dialog_action_no">No</string>
+
+    <string name="no_saved_recordings_message">No saved recordings</string>
 
     <string-array name="attempt_arrays">
         <item>Attempt 1</item>
