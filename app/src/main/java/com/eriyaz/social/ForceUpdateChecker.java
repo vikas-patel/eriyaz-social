@@ -3,11 +3,10 @@ package com.eriyaz.social;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
-import android.text.TextUtils;
 import android.util.Log;
 
-import com.eriyaz.social.utils.LogUtil;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 
 /**
  * Created by vikas on 15/4/18.
@@ -17,14 +16,16 @@ public class ForceUpdateChecker {
 
     private static final String TAG = ForceUpdateChecker.class.getSimpleName();
 
-    public static final String KEY_UPDATE_REQUIRED = "update_required";
+    public static final String KEY_UPDATE_COMPULSORY= "is_update_compulsory";
+    public static final String KEY_UPDATE_BANNER_PERSISTENCE= "is_update_banner_persistent";
     public static final String KEY_CURRENT_VERSION = "current_version";
 
     private OnUpdateNeededListener onUpdateNeededListener;
     private Context context;
 
     public interface OnUpdateNeededListener {
-        void onUpdateNeeded();
+        void onUpdateCompulsory();
+        void onUpdateReminder(boolean isPersistent);
     }
 
     public static Builder with(@NonNull Context context) {
@@ -39,12 +40,15 @@ public class ForceUpdateChecker {
 
     public void check() {
         final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
-        if (remoteConfig.getBoolean(KEY_UPDATE_REQUIRED)) {
-            int currentVersion = (int) remoteConfig.getLong(KEY_CURRENT_VERSION);
-            int appVersion = getAppVersion(context);
-            if (appVersion != 0 && currentVersion > appVersion
-                    && onUpdateNeededListener != null) {
-                onUpdateNeededListener.onUpdateNeeded();
+        int currentVersion = (int) remoteConfig.getLong(KEY_CURRENT_VERSION);
+        int appVersion = getAppVersion(context);
+        if (appVersion != 0 && currentVersion > appVersion
+                && onUpdateNeededListener != null) {
+//        if(true) {
+            if (remoteConfig.getBoolean(KEY_UPDATE_COMPULSORY)) {
+                onUpdateNeededListener.onUpdateCompulsory();
+            } else {
+                onUpdateNeededListener.onUpdateReminder(remoteConfig.getBoolean(KEY_UPDATE_BANNER_PERSISTENCE));
             }
         }
     }
