@@ -292,6 +292,11 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
         startActivityForResult(intent, CreatePostActivity.CREATE_NEW_POST_REQUEST);
     }
 
+    private void openRatingsChartActivity() {
+        Intent intent = new Intent(this, RatingsChartActivity.class);
+        startActivity(intent);
+//        startActivityForResult(intent, Constants.ACTIVITY.CREATE_ADMIN);
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         if (userID.equals(currentUserId)) {
@@ -313,6 +318,9 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
             case R.id.signOut:
                 LogoutHelper.signOut(mGoogleApiClient, this, true);
                 startMainActivity();
+                return true;
+            case R.id.ratings_chart_menu_item:
+                openRatingsChartActivity();
                 return true;
             case R.id.createPost:
                 if (hasInternetConnection()) {

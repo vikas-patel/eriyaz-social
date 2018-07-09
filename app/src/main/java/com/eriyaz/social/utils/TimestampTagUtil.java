@@ -8,17 +8,20 @@ import java.util.regex.Pattern;
 
 public class TimestampTagUtil {
     public static String millisToTimestamp(long millis) {
-        return String.format("00:%02d", Math.round(millis/1000));
+        long mins = (millis/1000)/60;
+        long secs = (millis/1000)%60;
+        return String.format("%02d:%02d", mins,secs);
     }
 
     public static Long timestampToMillis(String timestamp) {
         if(isValidTimestamp(timestamp)) {
-            return 1000 * Long.parseLong(timestamp.split(":")[1]);
+            return 1000 * (60 * Long.parseLong(timestamp.split(":")[0])
+                                +  Long.parseLong(timestamp.split(":")[1]));
         } else return 0L;
     }
 
     public static boolean isValidTimestamp(String timestamp) {
-        Pattern pattern = Pattern.compile("00:[0-5][0-9]");
+        Pattern pattern = Pattern.compile("[0-5][0-9]:[0-5][0-9]");
         return pattern.matcher(timestamp).matches();
     }
 }

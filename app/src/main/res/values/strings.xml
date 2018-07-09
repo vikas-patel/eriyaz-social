@@ -38,6 +38,7 @@
     <string name="title_activity_messages">Messages</string>
     <string name="title_activity_feedback">Contact Us</string>
     <string name="title_activity_tnc">Term &amp; Conditions</string>
+    <string name="title_activity_ratings_chart">Ratings Chart</string>
     <string name="post_limit_error">1 post allowed in 4 hours, you can create next post after %1$s. You can save this recording for later.</string>
 
     <string name="text_take_photo">Take photo</string>

@@ -29,4 +29,10 @@
         android:orderInCategory="2"
         android:visible="false" />
 
+    <item
+        android:id="@+id/ratings_chart_menu_item"
+        android:title="Ratings Chart"
+        app:showAsAction="never"
+        android:orderInCategory="1" />
+
 </menu>

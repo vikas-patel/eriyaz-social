@@ -26,6 +26,11 @@
         app:showAsAction="never"
         android:orderInCategory="1" />
     <item
+        android:id="@+id/ratings_chart_menu_item"
+        android:title="Ratings Chart"
+        app:showAsAction="never"
+        android:orderInCategory="1" />
+    <item
         android:id="@+id/admin_menu_item"
         android:title="@string/admin_menu_item"
         app:showAsAction="never"
