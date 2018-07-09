@@ -28,7 +28,7 @@ import android.widget.Toast;
 import com.eriyaz.social.Constants;
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
-import com.eriyaz.social.activities.ProfileActivity;
+import com.eriyaz.social.activities.CreatePostActivity;
 import com.eriyaz.social.managers.listeners.OnRecordingEndListener;
 import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.services.RecordingService;
@@ -62,7 +62,6 @@ public class RecordFragment extends Fragment {
     private TextView mCountDownText;
     private ProgressBar recordProgressBar;
     private int mRecordPromptCount = 0;
-    private int userPoints = 0;
 
     private boolean mStartRecording = true;
     private boolean mPauseRecording = true;
@@ -96,10 +95,9 @@ public class RecordFragment extends Fragment {
      *
      * @return A new instance of fragment Record_Fragment.
      */
-    public static RecordFragment newInstance(int userPoints) {
+    public static RecordFragment newInstance() {
         RecordFragment f = new RecordFragment();
         Bundle b = new Bundle();
-        b.putInt(ProfileActivity.USER_POINTS_EXTRA_KEY, userPoints);
         f.setArguments(b);
         return f;
     }
@@ -110,8 +108,6 @@ public class RecordFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        userPoints = getArguments().getInt(ProfileActivity.USER_POINTS_EXTRA_KEY);
-        //position = getArguments().getInt(ARG_POSITION);
     }
 
     @Override
@@ -304,6 +300,8 @@ public class RecordFragment extends Fragment {
     }
 
     private void openConfirmSwitchDialog() {
+        CreatePostActivity rootActivity = (CreatePostActivity) getActivity();
+        final int userPoints = (int) rootActivity.getProfile().getPoints();
         AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
         builder.setMessage(Html.fromHtml(getString(R.string.confirm_longer_recording)))
                 .setNegativeButton(R.string.button_title_cancel, null)

@@ -16,7 +16,7 @@
 
 package com.eriyaz.social.managers.listeners;
 
-public interface OnTaskCompleteListener {
+public interface OnTaskCompleteMessageListener {
 
-    public void onTaskComplete(boolean success);
+    public void onTaskComplete(boolean success, String message);
 }

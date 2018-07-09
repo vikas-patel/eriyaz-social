@@ -25,6 +25,8 @@ import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
 import com.eriyaz.social.activities.CreatePostActivity;
 import com.eriyaz.social.dialogs.AvatarDialog;
+import com.eriyaz.social.managers.DatabaseHelper;
+import com.eriyaz.social.managers.listeners.OnTaskCompleteMessageListener;
 import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.utils.ValidationUtil;
 
@@ -208,6 +210,7 @@ public class SavePostFragment extends Fragment {
         titleEditText.setError(null);
         descriptionEditText.setError(null);
         nickNameEditText.setError(null);
+        postLimitErrorTextView.setText("");
         String title = titleEditText.getText().toString().trim();
         String description = descriptionEditText.getText().toString().trim();
         String nickName = nickNameEditText.getText().toString().trim();
@@ -293,9 +296,27 @@ public class SavePostFragment extends Fragment {
             focusView.requestFocus();
             return;
         }
-        CreatePostActivity activity = (CreatePostActivity) getActivity();
         item.setName(title);
-        activity.saveRecording(item);
+        saveRecording(item);
+    }
+
+    public void saveRecording(RecordingItem item) {
+        final CreatePostActivity activity = (CreatePostActivity) getActivity();
+        activity.showProgress(R.string.message_saving);
+        DatabaseHelper.getInstance(activity).saveRecording(item, new OnTaskCompleteMessageListener() {
+            @Override
+            public void onTaskComplete(boolean success, String errorMessage) {
+                activity.hideProgress();
+                if (success) {
+                    activity.showSnackBar(R.string.message_record_was_saved);
+                    activity.recordingSaved();
+                } else {
+                    postLimitErrorTextView.setText(errorMessage);
+                    postLimitErrorTextView.setVisibility(View.VISIBLE);
+                    activity.showSnackBar(R.string.error_fail_save_recording);
+                }
+            }
+        });
     }
 }
 

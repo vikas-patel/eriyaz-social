@@ -151,17 +151,20 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         ProfileTabAdapter tabAdapter = (ProfileTabAdapter) profileTabViewPager.getAdapter();
-        PostsByUserFragment selectedFragment = tabAdapter.getSelectedFragment(profileTabViewPager.getCurrentItem());
+        PostsByUserFragment selectedFragment;
 
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case CreatePostActivity.CREATE_NEW_POST_REQUEST:
+                    profileTabViewPager.setCurrentItem(1);
+                    selectedFragment = tabAdapter.getSelectedFragment(profileTabViewPager.getCurrentItem());
                     selectedFragment.getPostsAdapter().loadPosts();
                     showSnackBar(R.string.message_post_was_created);
                     setResult(RESULT_OK);
                     break;
 
                 case PostDetailsActivity.UPDATE_POST_REQUEST:
+                    selectedFragment = tabAdapter.getSelectedFragment(profileTabViewPager.getCurrentItem());
                     if (data != null) {
                         PostStatus postStatus = (PostStatus) data.getSerializableExtra(PostDetailsActivity.POST_STATUS_EXTRA_KEY);
                         if (selectedFragment == null || selectedFragment.getPostsAdapter() == null) return;
@@ -288,15 +291,9 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
 
     private void openCreatePostActivity() {
         Intent intent = new Intent(this, CreatePostActivity.class);
-        intent.putExtra(ProfileActivity.USER_POINTS_EXTRA_KEY, userPoints);
         startActivityForResult(intent, CreatePostActivity.CREATE_NEW_POST_REQUEST);
     }
 
-    private void openRatingsChartActivity() {
-        Intent intent = new Intent(this, RatingsChartActivity.class);
-        startActivity(intent);
-//        startActivityForResult(intent, Constants.ACTIVITY.CREATE_ADMIN);
-    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         if (userID.equals(currentUserId)) {
@@ -318,9 +315,6 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
             case R.id.signOut:
                 LogoutHelper.signOut(mGoogleApiClient, this, true);
                 startMainActivity();
-                return true;
-            case R.id.ratings_chart_menu_item:
-                openRatingsChartActivity();
                 return true;
             case R.id.createPost:
                 if (hasInternetConnection()) {

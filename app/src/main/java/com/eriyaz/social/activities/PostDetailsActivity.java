@@ -1131,7 +1131,6 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private void openRatingsChartActivity() {
         Intent intent = new Intent(PostDetailsActivity.this, RatingsChartActivity.class);
         startActivity(intent);
-//        startActivityForResult(intent, Constants.ACTIVITY.CREATE_ADMIN);
     }
 
     private void attemptToRemovePost() {

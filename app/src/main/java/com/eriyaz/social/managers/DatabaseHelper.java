@@ -23,6 +23,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.eriyaz.social.managers.listeners.OnPostCreatedListener;
+import com.eriyaz.social.managers.listeners.OnTaskCompleteMessageListener;
 import com.eriyaz.social.model.Avatar;
 import com.eriyaz.social.model.BoughtFeedback;
 import com.eriyaz.social.model.Message;
@@ -351,20 +352,37 @@ public class DatabaseHelper {
         }
     }
 
-    public void saveRecording(RecordingItem item, final OnTaskCompleteListener onTaskCompleteListener) {
+    public void saveRecording(final RecordingItem item, final OnTaskCompleteMessageListener onTaskCompleteListener) {
         try {
             String authorId = firebaseAuth.getCurrentUser().getUid();
-            DatabaseReference savedRecordingsReference = database.getReference().child("saved-recordings/" + authorId);
-            String itemId = savedRecordingsReference.push().getKey();
-            savedRecordingsReference.child(itemId).setValue(item, new DatabaseReference.CompletionListener() {
+            final DatabaseReference savedRecordingsReference = database.getReference().child("saved-recordings/" + authorId);
+            Query recordingQuery = savedRecordingsReference.orderByChild("name").equalTo(item.getName());
+            recordingQuery.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
-                public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                    if (databaseError == null) {
-                        onTaskCompleteListener.onTaskComplete(true);
-                    } else {
-                        onTaskCompleteListener.onTaskComplete(false);
-                        LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        // file name already exists
+                        onTaskCompleteListener.onTaskComplete(false,
+                                String.format(context.getString(R.string.toast_file_exists), item.getName()));
+                        return;
                     }
+                    String itemId = savedRecordingsReference.push().getKey();
+                    savedRecordingsReference.child(itemId).setValue(item, new DatabaseReference.CompletionListener() {
+                        @Override
+                        public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                            if (databaseError == null) {
+                                onTaskCompleteListener.onTaskComplete(true, "");
+                            } else {
+                                onTaskCompleteListener.onTaskComplete(false, databaseError.getMessage());
+                                LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
+                            }
+                        }
+                    });
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    onTaskCompleteListener.onTaskComplete(false, databaseError.getMessage());
                 }
             });
         } catch (Exception e) {

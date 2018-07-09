@@ -1,5 +1,6 @@
 package com.eriyaz.social.activities;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
@@ -13,10 +14,6 @@ import com.eriyaz.social.managers.BoughtFeedbackManager;
 
 
 public class RatingsChartActivity extends BaseActivity {
-    private RecyclerView commentsRecyclerView;
-    private BoughtFeedbackAdapter commentsAdapter;
-    private BoughtFeedbackManager commentManager;
-    private TextView ratingsText;
     private WebView webView;
 
     @Override
@@ -27,11 +24,31 @@ public class RatingsChartActivity extends BaseActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        ratingsText = findViewById(R.id.textView);
-        ratingsText.setText(Html.fromHtml("i love <b>html</b>. What <i>about</i> yoU?"));
-
         webView = findViewById(R.id.webView);
-        webView.setWebViewClient(new WebViewClient());
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon){
+                // Page loading started
+                showProgress(R.string.loading);
+            }
+
+            /*
+                public void onPageFinished (WebView view, String url)
+                    Notify the host application that a page has finished loading. This
+                    method is called only for main frame. When onPageFinished() is called,
+                    the rendering picture may not be updated yet. To get the notification
+                    for the new Picture, use onNewPicture(WebView, Picture).
+
+                Parameters
+                    view WebView: The WebView that is initiating the callback.
+                    url String: The url of the page.
+            */
+            @Override
+            public void onPageFinished(WebView view, String url){
+                // Page loading finished
+                hideProgress();
+            }
+        });
 
 //        setContentView(webView);
         webView.clearCache(true);

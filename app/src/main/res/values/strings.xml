@@ -20,7 +20,7 @@
     <string name="app_share_description">Connect with other singers and get their feedback on your singing. </string>
     <string name="app_share_banner">Earn %1$d points by sharing app.</string>
     <string name="app_share_title">RateMySinging - Android Play Store App</string>
-    <string name="app_share_popup_title"><![CDATA[You will earn <font color=\'#F44336\'><b>%1$d points</b></font> for every new user who joins from referral. Share on :]]></string>
+    <string name="app_share_popup_title">Share this app on :</string>
     <string name="app_url">https://play.google.com/store/apps/details?id=com.eriyaz.social</string>
     <string name="dynamic_link_domain2">eriyaz.app.goo.gl</string>
     <string name="dynamic_link_domain">t6kaz.app.goo.gl</string>
@@ -229,7 +229,7 @@
     <string name="notification_recording">Recording...</string>
     <string name="toast_recording_start">Recording started</string>
     <string name="toast_recording_finish">Recording saved to</string>
-    <string name="detailed_feedback_combined">Mistakes at times: %1$s\nTune Match: %2$s \nVoice Quality: %3$s %4$s\n%5$s</string>
+    <string name="detailed_feedback_combined">%1$s\nTune Match: %2$s \nVoice Quality: %3$s %4$s</string>
 
     <!--Firebase errors-->
     <string name="permission_denied_error">Please check your rules to access the Firebase Realtime Database</string>
@@ -245,12 +245,12 @@
     <string name="tab_title_saved_recordings">Saved Recordings</string>
 
     <string name="toast_file_delete">%1$s successfully deleted</string>
-    <string name="toast_file_exists">The file %1$s already exists. Please choose a different file name.</string>
+    <string name="toast_file_exists">The recording %1$s already exists. Please choose a different recording name.</string>
     <string name="send_to">Send to</string>
 
     <!-- Dialogs -->
     <string name="dialog_title_delete">Confirm Delete...</string>
-    <string name="dialog_text_delete">Are you sure you would like to delete this file?</string>
+    <string name="dialog_text_delete">Are you sure you would like to delete this recording?</string>
     <string name="dialog_title_licenses">Open Source Licenses</string>
     <string name="dialog_title_share">Share File</string>
     <string name="dialog_title_rename">Rename File</string>

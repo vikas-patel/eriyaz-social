@@ -29,10 +29,8 @@ import android.widget.ProgressBar;
 import com.eriyaz.social.Constants;
 import com.eriyaz.social.fragments.HostFragment;
 import com.eriyaz.social.fragments.SavedRecordingsFragment;
-import com.eriyaz.social.managers.DatabaseHelper;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.managers.listeners.OnRecordingEndListener;
-import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.RecordingItem;
 import com.google.firebase.auth.FirebaseAuth;
@@ -53,7 +51,6 @@ public class CreatePostActivity extends BaseActivity implements OnRecordingEndLi
 
     protected ImageView imageView;
     protected ProgressBar progressBar;
-    private int userPoints;
 
     protected PostManager postManager;
     protected boolean creatingPost = false;
@@ -69,7 +66,6 @@ public class CreatePostActivity extends BaseActivity implements OnRecordingEndLi
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
-        userPoints = getIntent().getIntExtra(ProfileActivity.USER_POINTS_EXTRA_KEY, 0);
         postManager = PostManager.getInstance(CreatePostActivity.this);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         pager = (ViewPager) findViewById(R.id.pager);
@@ -134,22 +130,12 @@ public class CreatePostActivity extends BaseActivity implements OnRecordingEndLi
         }
     }
 
-    public void saveRecording(RecordingItem item) {
-        DatabaseHelper.getInstance(this).saveRecording(item, new OnTaskCompleteListener() {
-            @Override
-            public void onTaskComplete(boolean success) {
-                if (success) {
-                    showSnackBar(R.string.message_record_was_saved);
-                    pager.setCurrentItem(1);
-                } else {
-                    showSnackBar(R.string.error_fail_save_recording);
-                }
-            }
-        });
+    public void recordingSaved() {
+        pager.setCurrentItem(1);
     }
 
     public void startRecordFragment() {
-        tabAdapter.replaceFragment(RecordFragment.newInstance(userPoints));
+        tabAdapter.replaceFragment(RecordFragment.newInstance());
     }
 
     @Override
@@ -178,7 +164,7 @@ public class CreatePostActivity extends BaseActivity implements OnRecordingEndLi
         public Fragment getItem(int position) {
             switch(position){
                 case 0:{
-                    hostFragment = HostFragment.newInstance(RecordFragment.newInstance(userPoints));
+                    hostFragment = HostFragment.newInstance(RecordFragment.newInstance());
                     return hostFragment;
                 }
                 case 1:{
