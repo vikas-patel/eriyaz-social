@@ -35,6 +35,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SimpleItemAnimator;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -116,7 +117,7 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
     }
 
     @Override
-    public void onUpdateNeeded() {
+    public void onUpdateCompulsory() {
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("New version available")
                 .setMessage("Please, update app to new version to continue reposting.")
@@ -130,6 +131,11 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         dialog.setCancelable(false);
 //        dialog.setCanceledOnTouchOutside(false);
         dialog.show();
+    }
+
+    @Override
+    public void onUpdateReminder(boolean isPersistent) {
+        showUpdateAppBanner(isPersistent);
     }
 
     private void redirectStore() {
@@ -178,6 +184,25 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
                 onShareClick();
             }
         });
+        snackbar.getView().setBackgroundColor(getResources().getColor(R.color.red));
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                snackbar.show();
+            }
+        }, 6000);
+    }
+
+    private void showUpdateAppBanner(boolean isPersistent) {
+        final Snackbar snackbar = Snackbar.make(floatingActionButton, getString(R.string.app_update_banner), isPersistent? Snackbar.LENGTH_INDEFINITE : Snackbar.LENGTH_LONG)
+                .setActionTextColor(getResources().getColor(R.color.accent))
+                .setAction("UPDATE", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        redirectStore();
+                    }
+                });
         snackbar.getView().setBackgroundColor(getResources().getColor(R.color.red));
         final Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
