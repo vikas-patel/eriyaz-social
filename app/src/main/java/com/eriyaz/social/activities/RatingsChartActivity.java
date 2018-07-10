@@ -8,6 +8,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
 
+import com.eriyaz.social.BuildConfig;
 import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.BoughtFeedbackAdapter;
 import com.eriyaz.social.managers.BoughtFeedbackManager;
@@ -52,7 +53,12 @@ public class RatingsChartActivity extends BaseActivity {
 
 //        setContentView(webView);
         webView.clearCache(true);
-        webView.loadUrl("https://eriyaz-social-dev.firebaseapp.com/ratings_chart.html");
+        if (BuildConfig.DEBUG) {
+            webView.loadUrl("https://eriyaz-social-dev.firebaseapp.com/ratings_chart.html");
+        } else {
+            webView.loadUrl("https://eriyaz-social.firebaseapp.com/ratings_chart.html");
+        }
+
 
 //        webView.loadData("<table><tr><td>1</td><td>average</td></tr><tr><td>2</td><td>good</td></tr></table>", "text/html", null);
     }

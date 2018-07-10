@@ -243,7 +243,7 @@ public class SavePostFragment extends Fragment {
         long lastPostDate = rootActivity.getProfile().getLastPostCreatedDate();
         long currentTime = Calendar.getInstance().getTimeInMillis();
         // 4 hrs
-        long minInterval = 4*DateUtils.HOUR_IN_MILLIS;
+        long minInterval = 2*DateUtils.HOUR_IN_MILLIS;
         if (currentTime - lastPostDate < minInterval) {
             cancel = true;
             long hours = (lastPostDate + minInterval - currentTime)/(1000 * 60 * 60);
@@ -279,6 +279,7 @@ public class SavePostFragment extends Fragment {
     private void onSaveLaterClick() {
         // Reset errors.
         titleEditText.setError(null);
+        postLimitErrorTextView.setText("");
         String title = titleEditText.getText().toString().trim();
         View focusView = null;
         boolean cancel = false;
