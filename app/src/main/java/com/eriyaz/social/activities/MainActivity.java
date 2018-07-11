@@ -46,6 +46,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.eriyaz.social.BuildConfig;
 import com.eriyaz.social.Constants;
 import com.eriyaz.social.ForceUpdateChecker;
 import com.eriyaz.social.R;
@@ -68,6 +69,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
 import com.google.firebase.dynamiclinks.PendingDynamicLinkData;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
+import com.uxcam.UXCam;
 
 import static com.eriyaz.social.utils.ImageUtil.setBadgeCount;
 
@@ -111,6 +113,12 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         };
 
         postManager.setPostCounterWatcher(postCounterWatcher);
+
+        if (BuildConfig.DEBUG) {
+            //UXCam.startWithKey("8e284e93d1b8286","dev");
+        } else {
+            UXCam.startWithKey("8e284e93d1b8286");
+        }
 
         getDynamicLink();
         ForceUpdateChecker.with(this).onUpdateNeeded(this).check();
