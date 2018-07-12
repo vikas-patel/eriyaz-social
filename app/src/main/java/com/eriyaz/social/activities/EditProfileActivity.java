@@ -34,6 +34,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.eriyaz.social.utils.ImageUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.eriyaz.social.R;
@@ -126,6 +127,11 @@ public class EditProfileActivity extends PickImageActivity implements OnProfileC
                             }
                         })
                         .into(imageView);
+            } else {
+                progressBar.setVisibility(View.GONE);
+                imageView.setImageDrawable(ImageUtil.getTextDrawable(profile.getUsername(),
+                        getResources().getDimensionPixelSize(R.dimen.profile_photo_side),
+                        getResources().getDimensionPixelSize(R.dimen.profile_photo_side)));
             }
         }
         hideProgress();

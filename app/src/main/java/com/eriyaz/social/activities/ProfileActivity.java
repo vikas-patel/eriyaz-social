@@ -17,6 +17,7 @@
 package com.eriyaz.social.activities;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TabLayout;
@@ -36,6 +37,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.amulyakhare.textdrawable.TextDrawable;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
@@ -48,6 +50,7 @@ import com.eriyaz.social.fragments.PostsByUserFragment;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.model.Profile;
+import com.eriyaz.social.utils.ImageUtil;
 import com.eriyaz.social.utils.LogUtil;
 import com.eriyaz.social.utils.LogoutHelper;
 import com.google.android.gms.common.ConnectionResult;
@@ -239,7 +242,10 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
                         .into(imageView);
             } else {
                 progressBar.setVisibility(View.GONE);
-                imageView.setImageResource(R.drawable.ic_stub);
+                imageView.setImageDrawable(ImageUtil.getTextDrawable(profile.getUsername(),
+                        getResources().getDimensionPixelSize(R.dimen.profile_screen_avatar_size),
+                        getResources().getDimensionPixelSize(R.dimen.profile_screen_avatar_size)));
+//                imageView.setImageResource(R.drawable.ic_stub);
             }
 
             userPoints = (int) profile.getPoints();

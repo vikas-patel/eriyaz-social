@@ -32,6 +32,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.widget.ImageView;
 
+import com.amulyakhare.textdrawable.TextDrawable;
 import com.eriyaz.social.R;
 
 public class CircularImageView extends AppCompatImageView {

@@ -42,6 +42,7 @@ import com.eriyaz.social.model.Comment;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.utils.FormatterUtil;
+import com.eriyaz.social.utils.ImageUtil;
 import com.eriyaz.social.utils.TimestampTagUtil;
 import com.eriyaz.social.views.ExpandableTextView;
 import com.volokh.danylo.hashtaghelper.HashTagHelper;
@@ -136,6 +137,10 @@ public class CommentViewHolder extends RecyclerView.ViewHolder {
                             .crossFade()
                             .error(R.drawable.ic_stub)
                             .into(avatarImageView);
+                } else {
+                    avatarImageView.setImageDrawable(ImageUtil.getTextDrawable(userName,
+                            context.getResources().getDimensionPixelSize(R.dimen.comment_list_avatar_height),
+                            context.getResources().getDimensionPixelSize(R.dimen.comment_list_avatar_height)));
                 }
             }
         };

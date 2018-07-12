@@ -35,6 +35,7 @@ import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.utils.FormatterUtil;
+import com.eriyaz.social.utils.ImageUtil;
 import com.eriyaz.social.views.ExpandableTextView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -160,6 +161,10 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                             .crossFade()
                             .error(R.drawable.ic_stub)
                             .into(avatarImageView);
+                } else {
+                    avatarImageView.setImageDrawable(ImageUtil.getTextDrawable(obj.getUsername(),
+                            context.getResources().getDimensionPixelSize(R.dimen.rating_list_avatar_height),
+                            context.getResources().getDimensionPixelSize(R.dimen.rating_list_avatar_height)));
                 }
             }
         };

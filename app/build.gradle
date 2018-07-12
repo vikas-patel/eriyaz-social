@@ -39,8 +39,8 @@ android {
         minSdkVersion 16
         targetSdkVersion 27
         //Update remote config as well
-        versionCode 38
-        versionName "2.4"
+        versionCode 39
+        versionName "2.5"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -81,6 +81,7 @@ dependencies {
     compile 'com.paytm:pgplussdk:1.1.2'
     compile 'com.android.volley:volley:1.0.0'
     compile 'com.github.KatherineDrozhak:HashTagHelper:master-SNAPSHOT'
+    compile 'com.amulyakhare:com.amulyakhare.textdrawable:1.0.1'
 }
 
 apply plugin: 'com.google.gms.google-services'

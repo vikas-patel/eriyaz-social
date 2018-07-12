@@ -18,15 +18,19 @@
 package com.eriyaz.social.adapters.holders;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.amulyakhare.textdrawable.TextDrawable;
+import com.amulyakhare.textdrawable.util.ColorGenerator;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.eriyaz.social.activities.BaseActivity;
+import com.eriyaz.social.utils.ImageUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.eriyaz.social.Constants;
@@ -241,6 +245,10 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
                     .centerCrop()
                     .crossFade()
                     .into(authorImageView);
+        } else if (userName != null && !userName.isEmpty()){
+            authorImageView.setImageDrawable(ImageUtil.getTextDrawable(userName,
+                    context.getResources().getDimensionPixelSize(R.dimen.post_list_item_author_image_side),
+                    context.getResources().getDimensionPixelSize(R.dimen.post_list_item_author_image_side)));
         }
     }
 

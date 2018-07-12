@@ -37,6 +37,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.eriyaz.social.utils.ImageUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.iid.FirebaseInstanceId;
@@ -102,7 +103,9 @@ public class CreateProfileActivity extends PickImageActivity implements OnProfil
                     .into(imageView);
         } else {
             progressBar.setVisibility(View.GONE);
-            imageView.setImageResource(R.drawable.ic_stub);
+            imageView.setImageDrawable(ImageUtil.getTextDrawable(profile.getEmail(),
+                    getResources().getDimensionPixelSize(R.dimen.profile_photo_side),
+                    getResources().getDimensionPixelSize(R.dimen.profile_photo_side)));
         }
 
         nameEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
