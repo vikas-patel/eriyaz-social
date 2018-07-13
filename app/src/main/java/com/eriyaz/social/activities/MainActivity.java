@@ -117,7 +117,9 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         if (BuildConfig.DEBUG) {
             //UXCam.startWithKey("8e284e93d1b8286","dev");
         } else {
-            UXCam.startWithKey("8e284e93d1b8286");
+            if(profileManager.checkProfile().equals(ProfileStatus.NOT_AUTHORIZED) || profileManager.checkProfile().equals(ProfileStatus.NO_PROFILE)) {
+                UXCam.startWithKey("8e284e93d1b8286");
+            }
         }
 
         getDynamicLink();
