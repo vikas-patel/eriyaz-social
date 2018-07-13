@@ -22,6 +22,7 @@ import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.View.OnClickListener;
 
+import com.eriyaz.social.fragments.EmailPasswordFragment;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -134,6 +135,14 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
             @Override
             public void onClick(View v) {
                 signInWithFacebook();
+            }
+        });
+
+        findViewById(R.id.localSignInButton).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                EmailPasswordFragment emailPasswordFragment = new EmailPasswordFragment();
+                emailPasswordFragment.show(getSupportFragmentManager(), EmailPasswordFragment.TAG);
             }
         });
     }

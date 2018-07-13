@@ -20,6 +20,8 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 
+import com.amulyakhare.textdrawable.TextDrawable;
+import com.amulyakhare.textdrawable.util.ColorGenerator;
 import com.eriyaz.social.R;
 import com.eriyaz.social.enums.UploadImagePrefix;
 import com.eriyaz.social.views.BadgeDrawable;
@@ -49,5 +51,18 @@ public class ImageUtil {
         badge.setCount(count);
         icon.mutate();
         icon.setDrawableByLayerId(R.id.ic_badge, badge);
+    }
+
+    public static TextDrawable getTextDrawable(String userName, int width, int height) {
+        ColorGenerator generator = ColorGenerator.MATERIAL;
+        String initialChar = Character.toString(userName.charAt(0));
+        int color = generator.getColor(initialChar);
+        TextDrawable drawable = TextDrawable.builder()
+                .beginConfig()
+                .width(width)  // width in px
+                .height(height) // height in px
+                .endConfig()
+                .buildRect(initialChar, color);
+        return drawable;
     }
 }

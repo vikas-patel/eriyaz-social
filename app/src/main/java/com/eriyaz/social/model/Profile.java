@@ -31,6 +31,7 @@ public class Profile implements Serializable {
     private String photoUrl;
     private long points;
     private int postCount;
+    private long lastPostCreatedDate;
     private int unseen;
     private String registrationToken;
     private boolean admin;
@@ -113,6 +114,14 @@ public class Profile implements Serializable {
 
     public void setAdmin(boolean admin) {
         this.admin = admin;
+    }
+
+    public long getLastPostCreatedDate() {
+        return lastPostCreatedDate;
+    }
+
+    public void setLastPostCreatedDate(long lastPostCreatedDate) {
+        this.lastPostCreatedDate = lastPostCreatedDate;
     }
 
     public Map<String, Object> toMap() {

@@ -34,6 +34,7 @@ import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.model.BoughtFeedback;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.FormatterUtil;
+import com.eriyaz.social.utils.ImageUtil;
 
 /**
  * Created by alexey on 10.05.17.
@@ -111,6 +112,10 @@ public class BoughtFeedbackViewHolder extends RecyclerView.ViewHolder {
                             .crossFade()
                             .error(R.drawable.ic_stub)
                             .into(avatarImageView);
+                } else {
+                    avatarImageView.setImageDrawable(ImageUtil.getTextDrawable(obj.getUsername(),
+                            context.getResources().getDimensionPixelSize(R.dimen.bought_feedback_list_avatar_height),
+                            context.getResources().getDimensionPixelSize(R.dimen.bought_feedback_list_avatar_height)));
                 }
             }
         };

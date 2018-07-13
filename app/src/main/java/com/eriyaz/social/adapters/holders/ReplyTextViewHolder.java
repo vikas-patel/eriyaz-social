@@ -18,6 +18,7 @@ import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.model.ListItem;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.ReplyTextItem;
+import com.eriyaz.social.utils.ImageUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -110,6 +111,10 @@ public class ReplyTextViewHolder extends ViewHolder {
                             .crossFade()
                             .error(R.drawable.ic_stub)
                             .into(avatarImageView);
+                } else {
+                    avatarImageView.setImageDrawable(ImageUtil.getTextDrawable(obj.getUsername(),
+                            context.getResources().getDimensionPixelSize(R.dimen.reply_avatar_height),
+                            context.getResources().getDimensionPixelSize(R.dimen.reply_avatar_height)));
                 }
             }
         };

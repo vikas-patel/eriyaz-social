@@ -3,14 +3,13 @@ package com.eriyaz.social.fragments;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.DialogFragment;
 import android.text.Html;
-import android.text.InputType;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.Window;
@@ -22,7 +21,6 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.eriyaz.social.Application;
 import com.eriyaz.social.Constants;
@@ -84,7 +82,6 @@ public class PlaybackFragment extends DialogFragment {
     private TextView moreTextView;
     private LinearLayout detailedFeedbackLayout;
     private Button submitButton;
-    private EditText additionalCommentEditText;
     private RadioGroup melodyRadioGroup;
     private RadioGroup voiceQualityRadioGroup;
     private CommentManager commentManager;
@@ -94,6 +91,7 @@ public class PlaybackFragment extends DialogFragment {
     private TextView voiceQualityLabel;
     private FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
     private Application application;
+    private CheckBox harkateView;
     private CheckBox pronounciationView;
     private CheckBox highPitchView;
     private CheckBox feelView;
@@ -222,14 +220,13 @@ public class PlaybackFragment extends DialogFragment {
             }
         });
 
-        additionalCommentEditText = view.findViewById(R.id.additionalCommentEditText);
-//        melodySeekBar = view.findViewById(R.id.melodySeekBar);
         melodyRadioGroup = view.findViewById(R.id.melodyPercRadioGroup);
         voiceQualityRadioGroup = view.findViewById(R.id.voiceQualityRadioGroup);
         melodyPercentageLabel = view.findViewById(R.id.melodyPercentageLabel);
         ratingTextView = view.findViewById(R.id.ratingTextView);
         earnExtraTextView = view.findViewById(R.id.earnExtraTextView);
         voiceQualityLabel = view.findViewById(R.id.voiceQualityLabel);
+        harkateView = view.findViewById(R.id.harkateCheckboxId);
         pronounciationView = view.findViewById(R.id.pronounciationCheckboxId);
         highPitchView = view.findViewById(R.id.highPitchCheckboxId);
         feelView = view.findViewById(R.id.noFeelCheckboxId);
@@ -262,7 +259,7 @@ public class PlaybackFragment extends DialogFragment {
         }
         if (melodyRadioGroup.getCheckedRadioButtonId() != -1 ||
                 voiceQualityRadioGroup.getCheckedRadioButtonId() != -1 ||
-                additionalCommentEditText.getText().length() > 0) {
+                mistakesTextView.getText().length() > 0) {
             android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(getActivity());
             builder.setMessage(R.string.confirm_close_play_popup)
                     .setNegativeButton(R.string.button_title_cancel, null)
@@ -325,11 +322,10 @@ public class PlaybackFragment extends DialogFragment {
 
         RadioButton selectedVoiceQuality = voiceQualityRadioGroup.findViewById(voiceQualityRadioGroup.getCheckedRadioButtonId());
         String detailed_feedback_text = String.format(getString(R.string.detailed_feedback_combined),
-                getMistakes(),
+                mistakesTextView.getText(),
                 getMelodyText(),
                 selectedVoiceQuality.getText(),
-                getProblems(),
-                additionalCommentEditText.getText());
+                getProblems());
         Comment detailed_comment = new Comment(detailed_feedback_text);
         if (ratingBar.getProgress() > 0 && ratingBar.getProgress() <= 5) {
             ratingController.handleRatingClickAction((BaseActivity) getActivity(), post, ratingBar.getProgress());
@@ -352,28 +348,28 @@ public class PlaybackFragment extends DialogFragment {
         });
     }
 
-    private CharSequence getMistakes() {
-        StringBuffer mistakes = new StringBuffer();
-        mistakes.append(mistakesTextView.getText());
-        return mistakes;
-    }
-
     private CharSequence getProblems() {
         StringBuffer problems = new StringBuffer();
+        if (harkateView.isChecked()) {
+            problems.append(harkateView.getText());
+        }
         if (pronounciationView.isChecked()) {
-            problems.append("Pronounciation Distracting");
+            if (problems.length() > 0) {
+                problems.append(", ");
+            }
+            problems.append(pronounciationView.getText());
         }
         if (highPitchView.isChecked()) {
             if (problems.length() > 0) {
                 problems.append(", ");
             }
-            problems.append("Bad at High Pitch");
+            problems.append(highPitchView.getText());
         }
         if (feelView.isChecked()) {
             if (problems.length() > 0) {
                 problems.append(", ");
             }
-            problems.append("Feel Missing");
+            problems.append(feelView.getText());
         }
         if (problems.length() > 0) {
             return "\nProblems: " + problems.toString();
@@ -383,14 +379,8 @@ public class PlaybackFragment extends DialogFragment {
 
     private CharSequence getMelodyText() {
         int selectedMelodyRadioId = melodyRadioGroup.getCheckedRadioButtonId();
-        if (selectedMelodyRadioId == R.id.fourthBtnId) {
-            return "Excellent";
-        } else if (selectedMelodyRadioId == R.id.thirdBtnId) {
-            return "80% (Harkate Missing/Problem)";
-        } else {
-            RadioButton selectedButton = melodyRadioGroup.findViewById(selectedMelodyRadioId);
-            return selectedButton.getText();
-        }
+        RadioButton selectedButton = melodyRadioGroup.findViewById(selectedMelodyRadioId);
+        return selectedButton.getText();
     }
 
     @Override

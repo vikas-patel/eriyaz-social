@@ -9,8 +9,8 @@
 
     <com.eriyaz.social.views.CircularImageView
         android:id="@+id/avatarImageView"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="@dimen/rating_list_avatar_height"
+        android:layout_height="@dimen/rating_list_avatar_height"
         android:src="@drawable/ic_stub"
         app:shadow="false"
         app:border="true"

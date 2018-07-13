@@ -21,6 +21,7 @@ import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.model.Notification;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.FormatterUtil;
+import com.eriyaz.social.utils.ImageUtil;
 import com.eriyaz.social.utils.LogUtil;
 
 /**
@@ -100,6 +101,10 @@ public class NotificationHolder extends RecyclerView.ViewHolder {
                             .crossFade()
                             .error(R.drawable.ic_stub)
                             .into(avatarImageView);
+                } else {
+                    avatarImageView.setImageDrawable(ImageUtil.getTextDrawable(obj.getUsername(),
+                            context.getResources().getDimensionPixelSize(R.dimen.notification_list_avatar_height),
+                            context.getResources().getDimensionPixelSize(R.dimen.notification_list_avatar_height)));
                 }
             }
         };

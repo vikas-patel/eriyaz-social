@@ -17,6 +17,11 @@
     <dimen name="reply_max_height">50dp</dimen>
     <dimen name="reply_avatar_height">30dp</dimen>
     <dimen name="message_avatar_height">50dp</dimen>
+    <dimen name="comment_list_avatar_height">50dp</dimen>
+    <dimen name="rating_list_avatar_height">50dp</dimen>
+    <dimen name="notification_list_avatar_height">50dp</dimen>
+    <dimen name="bought_feedback_list_avatar_height">50dp</dimen>
+
 
     <dimen name="profile_photo_side">150dp</dimen>
 

@@ -431,7 +431,6 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
             return;
         }
         Intent intent = new Intent(this, CreatePostActivity.class);
-        intent.putExtra(ProfileActivity.USER_POINTS_EXTRA_KEY, (int) userPoints);
         startActivityForResult(intent, CreatePostActivity.CREATE_NEW_POST_REQUEST);
     }
 
@@ -452,7 +451,6 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
     private void openRatingsChartActivity() {
         Intent intent = new Intent(MainActivity.this, RatingsChartActivity.class);
         startActivity(intent);
-//        startActivityForResult(intent, Constants.ACTIVITY.CREATE_ADMIN);
     }
 
     private void openTnCActivity() {

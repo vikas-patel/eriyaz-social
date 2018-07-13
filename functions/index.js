@@ -1061,8 +1061,8 @@ exports.grantSignupReward = functions.database.ref('/profiles/{uid}/id').onCreat
           const welcomeMsgTask = sendUserMessage(uid, WELCOME_ADMIN, WELCOME_MSG);
           if (profile.referred_by) {
             // add reward points
-            const addPointsTask =  addPoints(profile.referred_by, REWARD_POINTS);
-            const msg = "Congrats your friend " +  profile.username + " joined. " +  REWARD_POINTS +" points added to your profile.";
+            // const addPointsTask =  addPoints(profile.referred_by, REWARD_POINTS);
+            const msg = "Congrats your friend " +  profile.username + " joined.";
             const notificationTask = sendAppRewardsNotification(profile.referred_by, uid, msg);
             return Promise.all([addPointsTask, notificationTask, welcomeMsgTask]).then(results => {
                 console.log("all reward tasks completed.");

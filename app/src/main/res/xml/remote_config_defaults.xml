@@ -15,10 +15,14 @@
     </entry>
     <entry>
         <key>current_version</key>
-        <value>36</value>
+        <value>39</value>
     </entry>
     <entry>
-        <key>update_required</key>
+        <key>is_update_compulsory</key>
+        <value>false</value>
+    </entry>
+    <entry>
+        <key>is_update_banner_persistent</key>
         <value>false</value>
     </entry>
 </defaultsMap>

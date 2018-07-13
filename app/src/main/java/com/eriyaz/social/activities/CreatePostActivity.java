@@ -18,13 +18,24 @@ package com.eriyaz.social.activities;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
 import com.eriyaz.social.Constants;
+import com.eriyaz.social.fragments.HostFragment;
+import com.eriyaz.social.fragments.SavedRecordingsFragment;
+import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
+import com.eriyaz.social.managers.listeners.OnRecordingEndListener;
+import com.eriyaz.social.model.Profile;
+import com.eriyaz.social.model.RecordingItem;
 import com.google.firebase.auth.FirebaseAuth;
 import com.eriyaz.social.R;
-import com.eriyaz.social.fragments.FileViewerFragment;
+import com.eriyaz.social.fragments.SavePostFragment;
 import com.eriyaz.social.fragments.RecordFragment;
 import com.eriyaz.social.managers.PostManager;
 import com.eriyaz.social.managers.listeners.OnPostCreatedListener;
@@ -34,19 +45,19 @@ import com.eriyaz.social.utils.LogUtil;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
-public class CreatePostActivity extends BaseActivity implements OnPostCreatedListener {
+public class CreatePostActivity extends BaseActivity implements OnRecordingEndListener {
     private static final String TAG = CreatePostActivity.class.getSimpleName();
     public static final int CREATE_NEW_POST_REQUEST = 11;
 
     protected ImageView imageView;
     protected ProgressBar progressBar;
-    private int userPoints;
-//    protected EditText titleEditText;
-//    protected EditText descriptionEditText;
 
     protected PostManager postManager;
     protected boolean creatingPost = false;
-    protected RecordFragment recordFragment;
+    private ViewPager pager;
+    private TabLayout tabLayout;
+    private RecordingTabAdapter tabAdapter;
+    private Profile profile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,83 +66,27 @@ public class CreatePostActivity extends BaseActivity implements OnPostCreatedLis
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
-        userPoints = getIntent().getIntExtra(ProfileActivity.USER_POINTS_EXTRA_KEY, 0);
         postManager = PostManager.getInstance(CreatePostActivity.this);
-
-//        titleEditText = (EditText) findViewById(R.id.titleEditText);
-//        descriptionEditText = (EditText) findViewById(R.id.descriptionEditText);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        recordFragment  = RecordFragment.newInstance(userPoints);
-        getFragmentManager()
-                .beginTransaction()
-                .add(R.id.record_fragment, recordFragment, "record_fragment")
-                .disallowAddToBackStack()
-                .commit();
-
-//        imageView = (ImageView) findViewById(R.id.imageView);
-//
-//        imageView.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                onSelectImageClick(v);
-//            }
-//        });
-
-//        titleEditText.setOnTouchListener(new View.OnTouchListener() {
-//            @Override
-//            public boolean onTouch(View v, MotionEvent event) {
-//                if (titleEditText.hasFocus() && titleEditText.getError() != null) {
-//                    titleEditText.setError(null);
-//                    return true;
-//                }
-//                return false;
-//            }
-//        });
+        pager = (ViewPager) findViewById(R.id.pager);
+        tabAdapter = new RecordingTabAdapter(getSupportFragmentManager());
+        pager.setAdapter(tabAdapter);
+        tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(pager);
+        profileManager.getProfileSingleValue(FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                createOnProfileChangedListener());
     }
 
-//    protected void attemptCreatePost() {
-//        // Reset errors.
-//        titleEditText.setError(null);
-////        descriptionEditText.setError(null);
-//
-//        String title = titleEditText.getText().toString().trim();
-////        String description = descriptionEditText.getText().toString().trim();
-//
-//        View focusView = null;
-//        boolean cancel = false;
-//
-////        if (TextUtils.isEmpty(description)) {
-////            descriptionEditText.setError(getString(R.string.warning_empty_description));
-////            focusView = descriptionEditText;
-////            cancel = true;
-////        }
-//
-//        if (TextUtils.isEmpty(title)) {
-//            titleEditText.setError(getString(R.string.warning_empty_title));
-//            focusView = titleEditText;
-//            cancel = true;
-//        } else if (!ValidationUtil.isPostTitleValid(title)) {
-//            titleEditText.setError(getString(R.string.error_post_title_length));
-//            focusView = titleEditText;
-//            cancel = true;
-//        }
-//
-////        if (!(this instanceof EditPostActivity) && imageUri == null) {
-////            showWarningDialog(R.string.warning_empty_image);
-////            focusView = imageView;
-////            cancel = true;
-////        }
-//
-//        if (!cancel) {
-//            creatingPost = true;
-//            hideKeyboard();
-//            savePost(title);
-//        } else if (focusView != null) {
-//            focusView.requestFocus();
-//        }
-//    }
+    private OnObjectChangedListener<Profile> createOnProfileChangedListener() {
+        return new OnObjectChangedListener<Profile>() {
+            @Override
+            public void onObjectChanged(Profile aProfile) {
+                profile = aProfile;
+            }
+        };
+    }
 
-    public void savePost(String title, String description, String audioFilePath,
+    public void savePost(final RecordingItem item, String title, String description, String audioFilePath, long audioDuration,
                          boolean anonymous, String nickName, String avatarImageUrl) {
         showProgress(R.string.message_creating_post);
         Post post = new Post();
@@ -143,61 +98,100 @@ public class CreatePostActivity extends BaseActivity implements OnPostCreatedLis
             post.setNickName(nickName);
             post.setAvatarImageUrl(avatarImageUrl);
         }
-        FileViewerFragment fileFragment = (FileViewerFragment) getFragmentManager().findFragmentById(R.id.record_fragment);
-        post.setAudioDuration(fileFragment.getRecordingItem().getLength());
+//        FileViewerFragment fileFragment = (FileViewerFragment) getSupportFragmentManager().findFragmentById(R.id.record_fragment);
+        post.setAudioDuration(audioDuration);
         if (TimeUnit.MILLISECONDS.toSeconds(post.getAudioDuration()) > Constants.RECORDING.DEFAULT_RECORDING) {
             post.setLongRecording(true);
         }
         Uri audioUri = Uri.fromFile(new File(audioFilePath));
-        postManager.createOrUpdatePostWithAudio(audioUri, CreatePostActivity.this, post);
+        postManager.createOrUpdatePostWithAudio(audioUri, new OnPostCreatedListener() {
+            @Override
+            public void onPostSaved(boolean success) {
+                hideProgress();
+                if (success) {
+                    setResult(RESULT_OK);
+                    removeLocalRecording(item);
+                    CreatePostActivity.this.finish();
+                    LogUtil.logDebug(TAG, "Post was created");
+                } else {
+                    creatingPost = false;
+                    showSnackBar(R.string.error_fail_create_post);
+                    LogUtil.logDebug(TAG, "Failed to create a post");
+                }
+            }
+        }, post);
     }
 
-    @Override
-    public void onPostSaved(boolean success) {
-        hideProgress();
-
-        if (success) {
-            setResult(RESULT_OK);
-            CreatePostActivity.this.finish();
-            LogUtil.logDebug(TAG, "Post was created");
-        } else {
-            creatingPost = false;
-            showSnackBar(R.string.error_fail_create_post);
-            LogUtil.logDebug(TAG, "Failed to create a post");
+    private void removeLocalRecording(RecordingItem item) {
+        File file = new File(item.getFilePath());
+        file.delete();
+        if (item.getId() != null && !item.getId().isEmpty()) {
+            profileManager.removeSavedRecording(item.getId());
         }
     }
 
-    public void startRecordFragment() {
-        getFragmentManager()
-                .beginTransaction()
-                .replace(R.id.record_fragment, recordFragment, "record_fragment")
-                .disallowAddToBackStack()
-                .commit();
+    public void recordingSaved() {
+        pager.setCurrentItem(1);
     }
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        MenuInflater inflater = getMenuInflater();
-//        inflater.inflate(R.menu.create_post_menu, menu);
-//        return true;
-//    }
+    public void startRecordFragment() {
+        tabAdapter.replaceFragment(RecordFragment.newInstance());
+    }
 
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        // Handle item selection
-//        switch (item.getItemId()) {
-//            case R.id.post:
-//                if (!creatingPost) {
-//                    if (hasInternetConnection()) {
-//                        attemptCreatePost();
-//                    } else {
-//                        showSnackBar(R.string.internet_connection_failed);
-//                    }
-//                }
-//
-//                return true;
-//            default:
-//                return super.onOptionsItemSelected(item);
-//        }
-//    }
+    @Override
+    public void onRecordEnd(RecordingItem item) {
+        tabAdapter.replaceFragment(SavePostFragment.newInstance(item));
+        if (pager.getCurrentItem() != 0) {
+            pager.setCurrentItem(0);
+        }
+    }
+
+    public Profile getProfile() {
+        return profile;
+    }
+
+    public class RecordingTabAdapter extends FragmentPagerAdapter {
+        private String[] titles = { getString(R.string.tab_title_record),
+                getString(R.string.tab_title_saved_recordings) };
+
+        private HostFragment hostFragment;
+
+        public RecordingTabAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            switch(position){
+                case 0:{
+                    hostFragment = HostFragment.newInstance(RecordFragment.newInstance());
+                    return hostFragment;
+                }
+                case 1:{
+                    return SavedRecordingsFragment.newInstance();
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public int getCount() {
+            return titles.length;
+        }
+
+        @Override
+        public int getItemPosition(Object object)
+        {
+            return POSITION_NONE;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return titles[position];
+        }
+
+        public void replaceFragment(Fragment fragment) {
+            hostFragment.replaceFragment(fragment, false);
+        }
+    }
 }

@@ -1,45 +1,25 @@
 package com.eriyaz.social.fragments;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.DialogFragment;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.text.Html;
-import android.util.SparseArray;
+import android.support.v4.app.DialogFragment;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.TextView;
 
-import com.eriyaz.social.Application;
-import com.eriyaz.social.Constants;
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
-import com.eriyaz.social.activities.MainActivity;
 import com.eriyaz.social.activities.PostDetailsActivity;
-import com.eriyaz.social.activities.ProfileActivity;
-import com.eriyaz.social.controllers.RatingController;
-import com.eriyaz.social.dialogs.CommentDialog;
 import com.eriyaz.social.enums.ProfileStatus;
-import com.eriyaz.social.managers.CommentManager;
 import com.eriyaz.social.managers.ProfileManager;
-import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
-import com.eriyaz.social.model.Comment;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.model.RecordingItem;
-import com.eriyaz.social.utils.RatingUtil;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -51,11 +31,8 @@ import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DataSpec;
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.upstream.FileDataSource;
 import com.google.android.exoplayer2.util.Util;
-import com.google.firebase.auth.FirebaseAuth;
-import com.xw.repo.BubbleSeekBar;
 
 import java.util.Date;
 
@@ -75,10 +52,8 @@ public class RecordPlayFragment extends DialogFragment {
     private long playbackPosition = 0;
     private boolean playWhenReady = false;
     private ComponentListener componentListener;
-    private FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
-    private Application application;
 
-    public RecordPlayFragment newInstance(RecordingItem item) {
+    public static RecordPlayFragment newInstance(RecordingItem item) {
         RecordPlayFragment f = new RecordPlayFragment();
         Bundle b = new Bundle();
         b.putParcelable(RECORDING_ITEM, item);
@@ -86,7 +61,7 @@ public class RecordPlayFragment extends DialogFragment {
         return f;
     }
 
-    public RecordPlayFragment newInstance(RecordingItem item, Post post, Rating rating) {
+    public static RecordPlayFragment newInstance(RecordingItem item, Post post, Rating rating) {
         RecordPlayFragment f = new RecordPlayFragment();
         Bundle b = new Bundle();
         b.putParcelable(RECORDING_ITEM, item);

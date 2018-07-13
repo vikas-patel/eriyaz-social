@@ -63,7 +63,6 @@ public class EditPostActivity extends CreatePostActivity {
         postManager.closeListeners(this);
     }
 
-    @Override
     public void onPostSaved(boolean success) {
         hideProgress();
         creatingPost = false;

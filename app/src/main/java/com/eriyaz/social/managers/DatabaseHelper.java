@@ -23,11 +23,13 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.eriyaz.social.managers.listeners.OnPostCreatedListener;
+import com.eriyaz.social.managers.listeners.OnTaskCompleteMessageListener;
 import com.eriyaz.social.model.Avatar;
 import com.eriyaz.social.model.BoughtFeedback;
 import com.eriyaz.social.model.Message;
 import com.eriyaz.social.model.Notification;
 import com.eriyaz.social.model.Point;
+import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.utils.Analytics;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -70,6 +72,7 @@ import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.utils.LogUtil;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -245,23 +248,23 @@ public class DatabaseHelper {
                 @Override
                 public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
                     if (databaseError == null) {
-                        DatabaseReference postCountRef = database.getReference("profiles/" + post.getAuthorId() + "/postCount");
-                        incrementPostCount(postCountRef);
+                        DatabaseReference profileRef = database.getReference("profiles/" + post.getAuthorId());
+                        incrementPostCount(profileRef);
                     } else {
                         onPostCreatedListener.onPostSaved(false);
                         LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
                     }
                 }
 
-                private void incrementPostCount(DatabaseReference postRef) {
-                    postRef.runTransaction(new Transaction.Handler() {
+                private void incrementPostCount(DatabaseReference profileRef) {
+                    profileRef.runTransaction(new Transaction.Handler() {
                         @Override
                         public Transaction.Result doTransaction(MutableData mutableData) {
-                            Integer currentValue = mutableData.getValue(Integer.class);
-                            if (currentValue == null) {
-                                mutableData.setValue(1);
-                            } else {
-                                mutableData.setValue(currentValue + 1);
+                            Profile currentValue = mutableData.getValue(Profile.class);
+                            if (currentValue != null) {
+                                currentValue.setPostCount(currentValue.getPostCount() + 1);
+                                currentValue.setLastPostCreatedDate(Calendar.getInstance().getTimeInMillis());
+                                mutableData.setValue(currentValue);
                             }
 
                             return Transaction.success(mutableData);
@@ -342,6 +345,44 @@ public class DatabaseHelper {
                         onTaskCompleteListener.onTaskComplete(false);
                         LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
                     }
+                }
+            });
+        } catch (Exception e) {
+            LogUtil.logError(TAG, "createMessage()", e);
+        }
+    }
+
+    public void saveRecording(final RecordingItem item, final OnTaskCompleteMessageListener onTaskCompleteListener) {
+        try {
+            String authorId = firebaseAuth.getCurrentUser().getUid();
+            final DatabaseReference savedRecordingsReference = database.getReference().child("saved-recordings/" + authorId);
+            Query recordingQuery = savedRecordingsReference.orderByChild("name").equalTo(item.getName());
+            recordingQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        // file name already exists
+                        onTaskCompleteListener.onTaskComplete(false,
+                                String.format(context.getString(R.string.toast_file_exists), item.getName()));
+                        return;
+                    }
+                    String itemId = savedRecordingsReference.push().getKey();
+                    savedRecordingsReference.child(itemId).setValue(item, new DatabaseReference.CompletionListener() {
+                        @Override
+                        public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                            if (databaseError == null) {
+                                onTaskCompleteListener.onTaskComplete(true, "");
+                            } else {
+                                onTaskCompleteListener.onTaskComplete(false, databaseError.getMessage());
+                                LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
+                            }
+                        }
+                    });
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    onTaskCompleteListener.onTaskComplete(false, databaseError.getMessage());
                 }
             });
         } catch (Exception e) {
@@ -1105,6 +1146,47 @@ public class DatabaseHelper {
         return valueEventListener;
     }
 
+    public Task<Void> removeSavedRecording(String itemId) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference databaseReference = database.getReference();
+        DatabaseReference itemRef = databaseReference.child("saved-recordings").child(userId).child(itemId);
+        return itemRef.removeValue();
+    }
+
+    public ValueEventListener getSavedRecordings(final OnDataChangedListener<RecordingItem> onDataChangedListener) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference databaseReference = database.getReference("saved-recordings").child(userId);
+        ValueEventListener valueEventListener = databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                List<RecordingItem> list = new ArrayList<>();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    RecordingItem item = snapshot.getValue(RecordingItem.class);
+                    item.setId(snapshot.getKey());
+                    list.add(item);
+                }
+
+                Collections.sort(list, new Comparator<RecordingItem>() {
+                    @Override
+                    public int compare(RecordingItem lhs, RecordingItem rhs) {
+                        return ((Long) rhs.getTime()).compareTo((Long) lhs.getTime());
+                    }
+                });
+
+                onDataChangedListener.onListChanged(list);
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                LogUtil.logError(TAG, "getSavedRecordings(), onCancelled", new Exception(databaseError.getMessage()));
+            }
+        });
+
+        activeListeners.put(valueEventListener, databaseReference);
+        return valueEventListener;
+    }
+
     public ValueEventListener getFeedbackList(final OnDataChangedListener<Message> onDataChangedListener) {
         DatabaseReference databaseReference = database.getReference("feedbacks");
         ValueEventListener valueEventListener = databaseReference.addValueEventListener(new ValueEventListener() {
@@ -1249,6 +1331,8 @@ public class DatabaseHelper {
         activeListeners.put(valueEventListener, databaseReference);
         return valueEventListener;
     }
+
+
 
     public ValueEventListener getCurrentUserRating(String postId, String userId, final OnObjectChangedListener<Rating> listener) {
         DatabaseReference databaseReference = database.getReference("post-ratings").child(postId).child(userId);

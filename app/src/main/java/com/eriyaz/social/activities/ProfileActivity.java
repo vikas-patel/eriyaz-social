@@ -17,6 +17,7 @@
 package com.eriyaz.social.activities;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TabLayout;
@@ -36,6 +37,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.amulyakhare.textdrawable.TextDrawable;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
@@ -48,6 +50,7 @@ import com.eriyaz.social.fragments.PostsByUserFragment;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.model.Profile;
+import com.eriyaz.social.utils.ImageUtil;
 import com.eriyaz.social.utils.LogUtil;
 import com.eriyaz.social.utils.LogoutHelper;
 import com.google.android.gms.common.ConnectionResult;
@@ -151,17 +154,20 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         ProfileTabAdapter tabAdapter = (ProfileTabAdapter) profileTabViewPager.getAdapter();
-        PostsByUserFragment selectedFragment = tabAdapter.getSelectedFragment(profileTabViewPager.getCurrentItem());
+        PostsByUserFragment selectedFragment;
 
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case CreatePostActivity.CREATE_NEW_POST_REQUEST:
+                    profileTabViewPager.setCurrentItem(1);
+                    selectedFragment = tabAdapter.getSelectedFragment(profileTabViewPager.getCurrentItem());
                     selectedFragment.getPostsAdapter().loadPosts();
                     showSnackBar(R.string.message_post_was_created);
                     setResult(RESULT_OK);
                     break;
 
                 case PostDetailsActivity.UPDATE_POST_REQUEST:
+                    selectedFragment = tabAdapter.getSelectedFragment(profileTabViewPager.getCurrentItem());
                     if (data != null) {
                         PostStatus postStatus = (PostStatus) data.getSerializableExtra(PostDetailsActivity.POST_STATUS_EXTRA_KEY);
                         if (selectedFragment == null || selectedFragment.getPostsAdapter() == null) return;
@@ -236,7 +242,10 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
                         .into(imageView);
             } else {
                 progressBar.setVisibility(View.GONE);
-                imageView.setImageResource(R.drawable.ic_stub);
+                imageView.setImageDrawable(ImageUtil.getTextDrawable(profile.getUsername(),
+                        getResources().getDimensionPixelSize(R.dimen.profile_screen_avatar_size),
+                        getResources().getDimensionPixelSize(R.dimen.profile_screen_avatar_size)));
+//                imageView.setImageResource(R.drawable.ic_stub);
             }
 
             userPoints = (int) profile.getPoints();
@@ -288,15 +297,9 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
 
     private void openCreatePostActivity() {
         Intent intent = new Intent(this, CreatePostActivity.class);
-        intent.putExtra(ProfileActivity.USER_POINTS_EXTRA_KEY, userPoints);
         startActivityForResult(intent, CreatePostActivity.CREATE_NEW_POST_REQUEST);
     }
 
-    private void openRatingsChartActivity() {
-        Intent intent = new Intent(this, RatingsChartActivity.class);
-        startActivity(intent);
-//        startActivityForResult(intent, Constants.ACTIVITY.CREATE_ADMIN);
-    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         if (userID.equals(currentUserId)) {
@@ -318,9 +321,6 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
             case R.id.signOut:
                 LogoutHelper.signOut(mGoogleApiClient, this, true);
                 startMainActivity();
-                return true;
-            case R.id.ratings_chart_menu_item:
-                openRatingsChartActivity();
                 return true;
             case R.id.createPost:
                 if (hasInternetConnection()) {
