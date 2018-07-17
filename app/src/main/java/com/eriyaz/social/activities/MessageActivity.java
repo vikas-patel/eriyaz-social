@@ -167,7 +167,7 @@ public class MessageActivity extends BaseActivity {
     }
 
     private void openConfirmDeletingDialog(final String messageId) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new BaseAlertDialogBuilder(this);
         builder.setMessage(R.string.confirm_deletion_message)
                 .setNegativeButton(R.string.button_title_cancel, null)
                 .setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {

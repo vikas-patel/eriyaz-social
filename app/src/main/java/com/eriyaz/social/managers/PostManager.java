@@ -21,6 +21,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.eriyaz.social.model.Flag;
 import com.eriyaz.social.utils.Analytics;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -211,6 +212,11 @@ public class PostManager extends FirebaseListenersManager {
     public void addComplain(Post post) {
         DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
         databaseHelper.addComplainToPost(post);
+    }
+
+    public void flagUser(Flag flag, OnTaskCompleteListener onTaskCompleteListener) {
+        DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
+        databaseHelper.createFlag(flag, onTaskCompleteListener);
     }
 
     public void makePublic(Post post) {

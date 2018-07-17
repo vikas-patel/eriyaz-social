@@ -39,8 +39,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by Daniel on 12/23/2014.
  */
-public class SavePostFragment extends Fragment {
-    private static final String ARG_POSITION = "position";
+public class SavePostFragment extends BaseFragment {
     private static final String LOG_TAG = "FileViewerFragment";
     private static final String ARG_ITEM = "recording_item";
 

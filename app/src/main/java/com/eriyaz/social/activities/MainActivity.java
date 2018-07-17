@@ -126,7 +126,7 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
 
     @Override
     public void onUpdateCompulsory() {
-        AlertDialog dialog = new AlertDialog.Builder(this)
+        AlertDialog dialog = new BaseAlertDialogBuilder(this)
                 .setTitle("New version available")
                 .setMessage("Please, update app to new version to continue reposting.")
 //                .setNegativeButton("No, thanks", null)
@@ -503,7 +503,7 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
     }
 
     private void showPopupDialog(int messageId) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new BaseAlertDialogBuilder(this);
         builder.setMessage(getResources().getString(messageId));
         builder.setPositiveButton(R.string.button_ok, null);
         builder.show();

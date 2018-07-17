@@ -51,7 +51,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private static final String TAG = MyFirebaseMessagingService.class.getSimpleName();
 
+    private static int notificationId = 0;
     private static final String POST_ID_KEY = "postId";
+    private static final String BODY_KEY = "body";
     private static final String AUTHOR_ID_KEY = "authorId";
     private static final String AUTHOR_NAME_KEY = "authorName";
     private static final String ACTION_TYPE_KEY = "actionType";
@@ -61,6 +63,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     private static final String ACTION_TYPE_NEW_RATING = "new_rating";
     private static final String ACTION_TYPE_NEW_COMMENT = "new_comment";
     private static final String ACTION_TYPE_NEW_POST = "new_post";
+    private static final String ACTION_TYPE_OFFICIAL_FEEDBACK = "official_feedback";
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
@@ -89,6 +92,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             case ACTION_TYPE_NEW_POST:
                 handleNewPostCreatedAction(remoteMessage);
                 break;
+            case ACTION_TYPE_OFFICIAL_FEEDBACK:
+                parseOfficialFeedback(remoteMessage);
+                break;
         }
     }
 
@@ -100,6 +106,24 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         if (firebaseUser != null && !firebaseUser.getUid().equals(postAuthorId)) {
             PostManager.getInstance(this.getApplicationContext()).incrementNewPostsCounter();
         }
+    }
+
+    private void parseOfficialFeedback(RemoteMessage remoteMessage) {
+        String notificationTitle = remoteMessage.getData().get(TITLE_KEY);
+        String notificationBody = remoteMessage.getData().get(BODY_KEY);
+        String notificationImageUrl = remoteMessage.getData().get(ICON_KEY);
+        String postId = remoteMessage.getData().get(POST_ID_KEY);
+
+        Intent backIntent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(this, PostDetailsActivity.class);
+        intent.putExtra(PostDetailsActivity.POST_ID_EXTRA_KEY, postId);
+        intent.putExtra(PostDetailsActivity.POST_ORIGIN_EXTRA_KEY, PostOrigin.PUSH_NOTIFICATION);
+
+        Bitmap bitmap = getBitmapFromUrl(notificationImageUrl);
+
+        sendIndividualNotification(notificationTitle, notificationBody, bitmap, intent, backIntent);
+
+        LogUtil.logDebug(TAG, "Message Notification Body: " + remoteMessage.getData().get(BODY_KEY));
     }
 
     private void parseCommentOrLike(RemoteMessage remoteMessage) {
@@ -134,6 +158,36 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             LogUtil.logError(TAG, "getBitmapfromUrl", e);
             return null;
         }
+    }
+
+    private void sendIndividualNotification(String notificationTitle, String notificationBody, Bitmap bitmap, Intent intent, Intent backIntent) {
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+        PendingIntent pendingIntent;
+
+        if(backIntent != null) {
+            backIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            Intent[] intents = new Intent[] {backIntent, intent};
+            pendingIntent = PendingIntent.getActivities(this, notificationId++, intents, PendingIntent.FLAG_ONE_SHOT);
+        } else {
+            pendingIntent = PendingIntent.getActivity(this, notificationId++, intent, PendingIntent.FLAG_ONE_SHOT);
+        }
+
+        Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        NotificationCompat.Builder notificationBuilder = (NotificationCompat.Builder) new NotificationCompat.Builder(this)
+                .setAutoCancel(true)   //Automatically delete the notification
+                .setSmallIcon(R.drawable.ic_push_notification_small) //Notification icon
+                .setContentIntent(pendingIntent)
+                .setContentTitle(notificationTitle)
+                .setContentText(notificationBody)
+                //.setLargeIcon(bitmap)
+                .setSound(defaultSoundUri);
+
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        notificationManager.notify(notificationId++ /* ID of notification */, notificationBuilder.build());
+
     }
 
     private void sendNotification(String notificationTitle, Bitmap bitmap,

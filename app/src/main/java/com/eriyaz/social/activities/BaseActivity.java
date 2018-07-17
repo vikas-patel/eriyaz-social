@@ -169,14 +169,14 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     public void showWarningDialog(int messageId) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new BaseAlertDialogBuilder(this);
         builder.setMessage(messageId);
         builder.setPositiveButton(R.string.button_ok, null);
         builder.show();
     }
 
     public void showWarningDialog(String message) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new BaseAlertDialogBuilder(this);
         builder.setMessage(message);
         builder.setPositiveButton(R.string.button_ok, null);
         builder.show();

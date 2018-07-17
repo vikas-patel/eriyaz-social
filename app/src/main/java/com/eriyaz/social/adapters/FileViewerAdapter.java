@@ -1,12 +1,12 @@
 package com.eriyaz.social.adapters;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateUtils;
@@ -20,6 +20,7 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import com.eriyaz.social.R;
+import com.eriyaz.social.activities.BaseAlertDialogBuilder;
 import com.eriyaz.social.fragments.RecordPlayFragment;
 import com.eriyaz.social.model.RecordingItem;
 
@@ -170,7 +171,7 @@ public class FileViewerAdapter extends RecyclerView.Adapter<FileViewerAdapter.Re
 
     public void deleteFileDialog (final int position) {
         // File delete confirm
-        AlertDialog.Builder confirmDelete = new AlertDialog.Builder(mContext);
+        AlertDialog.Builder confirmDelete = new BaseAlertDialogBuilder(mContext);
         confirmDelete.setTitle(mContext.getString(R.string.dialog_title_delete));
         confirmDelete.setMessage(mContext.getString(R.string.dialog_text_delete));
         confirmDelete.setCancelable(true);

@@ -1,7 +1,6 @@
 package com.eriyaz.social.fragments;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -9,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
+import android.support.v7.app.AlertDialog;
 import android.text.Html;
 import android.util.SparseArray;
 import android.view.View;
@@ -26,6 +26,7 @@ import com.eriyaz.social.Application;
 import com.eriyaz.social.Constants;
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
+import com.eriyaz.social.activities.BaseAlertDialogBuilder;
 import com.eriyaz.social.activities.MainActivity;
 import com.eriyaz.social.activities.PostDetailsActivity;
 import com.eriyaz.social.activities.ProfileActivity;
@@ -61,7 +62,7 @@ import java.util.Date;
 /**
  * Created by Daniel on 1/1/2015.
  */
-public class PlaybackFragment extends DialogFragment {
+public class PlaybackFragment extends BaseDialogFragment {
 
     public static final String RECORDING_ITEM = "recording_item";
     private RecordingItem item;
@@ -163,7 +164,7 @@ public class PlaybackFragment extends DialogFragment {
 
         Dialog dialog = super.onCreateDialog(savedInstanceState);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        AlertDialog.Builder builder = new BaseAlertDialogBuilder(getActivity());
         View view = getActivity().getLayoutInflater().inflate(R.layout.fragment_media_playback, null);
 
         mFileNameTextView = (TextView) view.findViewById(R.id.file_name_text_view);
@@ -245,7 +246,7 @@ public class PlaybackFragment extends DialogFragment {
 
     private void onCloseButton() {
         if (ratingBar.getProgress() > 0 && ratingBar.getProgress() <= 5 && melodyRadioGroup.getCheckedRadioButtonId() == -1) {
-            android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(getActivity());
+            AlertDialog.Builder builder = new BaseAlertDialogBuilder(getActivity());
             builder.setMessage(Html.fromHtml(getString(R.string.rating_lost_popup)))
                     .setNegativeButton(R.string.button_title_cancel, null)
                     .setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
@@ -260,7 +261,7 @@ public class PlaybackFragment extends DialogFragment {
         if (melodyRadioGroup.getCheckedRadioButtonId() != -1 ||
                 voiceQualityRadioGroup.getCheckedRadioButtonId() != -1 ||
                 mistakesTextView.getText().length() > 0) {
-            android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(getActivity());
+            AlertDialog.Builder builder = new BaseAlertDialogBuilder(getActivity());
             builder.setMessage(R.string.confirm_close_play_popup)
                     .setNegativeButton(R.string.button_title_cancel, null)
                     .setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
@@ -526,7 +527,7 @@ public class PlaybackFragment extends DialogFragment {
                 }
 
                 if (progress > 0 && progress <= 5) {
-                    android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(getActivity());
+                    AlertDialog.Builder builder = new BaseAlertDialogBuilder(getActivity());
                     builder.setMessage(getResources().getString(R.string.mandatory_detailed_feedback_popup));
                     builder.setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
                         @Override
@@ -565,7 +566,7 @@ public class PlaybackFragment extends DialogFragment {
 
 
     private void showDialog(int messageId) {
-        android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(this.getActivity());
+        AlertDialog.Builder builder = new BaseAlertDialogBuilder(this.getActivity());
         builder.setMessage(getResources().getString(messageId));
         builder.setPositiveButton(R.string.button_ok, null);
         builder.show();

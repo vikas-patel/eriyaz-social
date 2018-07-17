@@ -26,6 +26,7 @@ import android.view.ViewGroup;
 import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.holders.CommentViewHolder;
 import com.eriyaz.social.model.Comment;
+import com.eriyaz.social.model.Post;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,11 @@ import java.util.List;
 public class CommentsAdapter extends RecyclerView.Adapter<CommentViewHolder> {
     private List<Comment> list = new ArrayList<>();
     private Callback callback;
+    private Post post;
+
+    public CommentsAdapter(Post aPost) {
+        post = aPost;
+    }
 
     @Override
     public CommentViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -48,7 +54,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentViewHolder> {
     @Override
     public void onBindViewHolder(CommentViewHolder holder, int position) {
         holder.itemView.setLongClickable(true);
-        holder.bindData(getItemByPosition(position));
+        holder.bindData(getItemByPosition(position), post);
     }
 
     public Comment getItemByPosition(int position) {
@@ -70,7 +76,11 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentViewHolder> {
     }
 
     public interface Callback {
-        void onLongItemClick(View view, int position);
+        void onDeleteClick(View view, int position);
+
+        void onEditClick(View view, int position);
+
+        void onReportClick(View view, int position);
 
         void onAuthorClick(String authorId, View view);
 

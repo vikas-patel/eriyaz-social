@@ -29,6 +29,7 @@ import android.view.View;
 import android.widget.EditText;
 
 import com.eriyaz.social.R;
+import com.eriyaz.social.activities.BaseAlertDialogBuilder;
 
 /**
  * Created by alexey on 12.05.17.
@@ -68,7 +69,7 @@ public class EditCommentDialog extends DialogFragment {
             editCommentEditText.setText(commentText);
         }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        AlertDialog.Builder builder = new BaseAlertDialogBuilder(getActivity());
         builder.setView(view)
                 .setTitle(R.string.title_edit_comment)
                 .setNegativeButton(R.string.button_title_cancel, null)

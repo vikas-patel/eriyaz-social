@@ -62,6 +62,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.CommentsAdapter;
 import com.eriyaz.social.adapters.RatingsAdapter;
+import com.eriyaz.social.dialogs.ComplainDialog;
 import com.eriyaz.social.dialogs.EditCommentDialog;
 import com.eriyaz.social.enums.BoughtFeedbackStatus;
 import com.eriyaz.social.enums.PaymentStatus;
@@ -81,6 +82,7 @@ import com.eriyaz.social.managers.listeners.OnPaymentCompleteListener;
 import com.eriyaz.social.managers.listeners.OnPostChangedListener;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
 import com.eriyaz.social.model.Comment;
+import com.eriyaz.social.model.Flag;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.Rating;
@@ -95,7 +97,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class PostDetailsActivity extends BaseActivity implements EditCommentDialog.CommentDialogCallback {
+public class PostDetailsActivity extends BaseActivity implements EditCommentDialog.CommentDialogCallback, ComplainDialog.ComplainCallback {
 
     public static final String POST_ID_EXTRA_KEY = "PostDetailsActivity.POST_ID_EXTRA_KEY";
     public static final String AUTHOR_ANIMATION_NEEDED_EXTRA_KEY = "PostDetailsActivity.AUTHOR_ANIMATION_NEEDED_EXTRA_KEY";
@@ -109,7 +111,6 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private Post post;
     private Profile profile;
     private ScrollView scrollView;
-    private ViewGroup ratingsContainer;
     private ImageView ratingsImageView;
     private TextView ratingCounterTextView;
     private TextView averageRatingTextView;
@@ -204,7 +205,6 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 
 //        likesContainer = (ViewGroup) findViewById(R.id.likesContainer);
 //        likesImageView = (ImageView) findViewById(R.id.likesImageView);
-        ratingsContainer = (ViewGroup) findViewById(R.id.ratingContainer);
         ratingsImageView = (ImageView) findViewById(R.id.ratingImageView);
         ratingCounterTextView = (TextView) findViewById(R.id.ratingCounterTextView);
         averageRatingTextView = (TextView) findViewById(R.id.averageRatingTextView);
@@ -243,8 +243,6 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         }
 
         final Button sendButton = (Button) findViewById(R.id.sendButton);
-
-        initRecyclerView();
 
         postManager.getPost(this, postId, createOnPostChangeListener());
 
@@ -416,13 +414,36 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         }
     }
 
-    private void initRecyclerView() {
-        commentsAdapter = new CommentsAdapter();
+    private void initCommentRecyclerView() {
+        commentsAdapter = new CommentsAdapter(post);
         commentsAdapter.setCallback(new CommentsAdapter.Callback() {
             @Override
-            public void onLongItemClick(View view, int position) {
-                Comment selectedComment = commentsAdapter.getItemByPosition(position);
-                startActionMode(selectedComment);
+            public void onDeleteClick(View view, int position) {
+                Comment comment = commentsAdapter.getItemByPosition(position);
+                removeComment(comment.getId());
+            }
+
+            @Override
+            public void onEditClick(View view, int position) {
+                Comment comment = commentsAdapter.getItemByPosition(position);
+                openEditCommentDialog(comment);
+            }
+
+            @Override
+            public void onReportClick(View view, int position) {
+                Comment comment = commentsAdapter.getItemByPosition(position);
+                if (!hasInternetConnection()) {
+                    showSnackBar(R.string.internet_connection_failed);
+                    return;
+                }
+                ProfileStatus profileStatus = profileManager.checkProfile();
+                if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
+                    Flag flag = new Flag(postId, "", comment.getId(), "",
+                            comment.getAuthorId(), FirebaseAuth.getInstance().getCurrentUser().getUid());
+                    openUserComplainDialog(flag);
+                } else {
+                    doAuthorization(profileStatus);
+                }
             }
 
             @Override
@@ -440,7 +461,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 
                     MistakesPlayFragment mistakesPlayFragment =
                             new MistakesPlayFragment().newInstance(item, post, rating, comment, timestamp);
-                    android.app.FragmentTransaction transaction = getFragmentManager()
+                    FragmentTransaction transaction = getSupportFragmentManager()
                             .beginTransaction();
                     mistakesPlayFragment.show(transaction, "dialog_playback");
                 } catch (Exception e) {
@@ -459,10 +480,22 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private void initRatingRecyclerView() {
         ratingsAdapter = new RatingsAdapter(post);
         ratingsAdapter.setCallback(new RatingsAdapter.Callback() {
+
             @Override
-            public void onLongItemClick(View view, int position) {
-                Rating selectedRating = ratingsAdapter.getItemByPosition(position);
-//                startActionMode(selectedRating);
+            public void onReportClick(View view, int position) {
+                Rating rating = ratingsAdapter.getItemByPosition(position);
+                if (!hasInternetConnection()) {
+                    showSnackBar(R.string.internet_connection_failed);
+                    return;
+                }
+                ProfileStatus profileStatus = profileManager.checkProfile();
+                if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
+                    Flag flag = new Flag(postId, rating.getId(), "", "",
+                            rating.getAuthorId(), FirebaseAuth.getInstance().getCurrentUser().getUid());
+                    openUserComplainDialog(flag);
+                } else {
+                    doAuthorization(profileStatus);
+                }
             }
 
             @Override
@@ -524,36 +557,36 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     }
 
     private void showPaymentDialog(String msg) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new BaseAlertDialogBuilder(this);
         builder.setMessage(msg);
         builder.setPositiveButton(R.string.button_ok, null);
         builder.show();
     }
 
     private void showPointsNeededDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new BaseAlertDialogBuilder(this);
         builder.setMessage(String.format(getResources().getString(R.string.insufficient_points_view_rating), profile.getUsername()));
         builder.setPositiveButton(R.string.button_ok, null);
         builder.show();
     }
 
     private void showRatingSelfRecordingDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new BaseAlertDialogBuilder(this);
         builder.setMessage(getResources().getString(R.string.rating_self_recording));
         builder.setPositiveButton(R.string.button_ok, null);
         builder.show();
     }
 
-    private void startActionMode(Comment selectedComment) {
-        if (mActionMode != null) {
-            return;
-        }
-
-        //check access to modify or remove post
-        if (hasAccessToEditComment(selectedComment.getAuthorId()) || hasAccessToModifyPost()) {
-            mActionMode = startSupportActionMode(new ActionModeCallback(selectedComment));
-        }
-    }
+//    private void startActionMode(Comment selectedComment) {
+//        if (mActionMode != null) {
+//            return;
+//        }
+//
+//        //check access to modify or remove post
+//        if (hasAccessToEditComment(selectedComment.getAuthorId()) || hasAccessToModifyPost()) {
+//            mActionMode = startSupportActionMode(new ActionModeCallback(selectedComment));
+//        }
+//    }
 
     private OnPostChangedListener createOnPostChangeListener() {
         return new OnPostChangedListener() {
@@ -572,7 +605,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 
             @Override
             public void onError(String errorText) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(PostDetailsActivity.this);
+                AlertDialog.Builder builder = new BaseAlertDialogBuilder(PostDetailsActivity.this);
                 builder.setMessage(errorText);
                 builder.setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
                     @Override
@@ -589,6 +622,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private void afterPostLoaded() {
         isPostExist = true;
         initRatingRecyclerView();
+        initCommentRecyclerView();
         initLikes();
         fillPostFields();
         setBoughtFeedbackStatus();
@@ -605,7 +639,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     }
 
     private void showPostWasRemovedDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(PostDetailsActivity.this);
+        AlertDialog.Builder builder = new BaseAlertDialogBuilder(PostDetailsActivity.this);
         builder.setMessage(R.string.error_post_was_removed);
         builder.setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
             @Override
@@ -1175,7 +1209,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     }
 
     private void openConfirmDeletingDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new BaseAlertDialogBuilder(this);
         builder.setMessage(R.string.confirm_deletion_post)
                 .setNegativeButton(R.string.button_title_cancel, null)
                 .setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
@@ -1189,7 +1223,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     }
 
     private void openConfirmPublicDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new BaseAlertDialogBuilder(this);
         builder.setMessage(R.string.confirm_public_post)
                 .setNegativeButton(R.string.button_title_cancel, null)
                 .setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
@@ -1203,7 +1237,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     }
 
     private void openConfirmPaymentDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new BaseAlertDialogBuilder(this);
         builder.setMessage(String.format(getString(R.string.confirm_continue_payment), paymentAmount))
                 .setNegativeButton(R.string.button_title_cancel, null)
                 .setPositiveButton(R.string.button_title_continue, new DialogInterface.OnClickListener() {
@@ -1217,7 +1251,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     }
 
     private void openComplainDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new BaseAlertDialogBuilder(this);
         builder.setTitle(R.string.add_complain)
                 .setMessage(R.string.complain_text)
                 .setNegativeButton(R.string.button_title_cancel, null)
@@ -1243,13 +1277,12 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         showSnackBar(R.string.make_public_success);
     }
 
-    private void removeComment(String commentId, final ActionMode mode, final int position) {
+    private void removeComment(String commentId) {
         showProgress();
         commentManager.removeComment(commentId, postId, new OnTaskCompleteListener() {
             @Override
             public void onTaskComplete(boolean success) {
                 hideProgress();
-                mode.finish(); // Action picked, so close the CAB
                 showSnackBar(R.string.message_comment_was_removed);
             }
         });
@@ -1280,55 +1313,55 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         updateComment(newText, commentId);
     }
 
-    private class ActionModeCallback implements ActionMode.Callback {
-        Comment selectedComment;
-        int position;
-
-        ActionModeCallback(Comment selectedComment) {
-            this.selectedComment = selectedComment;
-        }
-
-        // Called when the action mode is created; startActionMode() was called
-        @Override
-        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-            // Inflate a menu resource providing context menu items
-            MenuInflater inflater = mode.getMenuInflater();
-            inflater.inflate(R.menu.comment_context_menu, menu);
-
-            menu.findItem(R.id.editMenuItem).setVisible(hasAccessToEditComment(selectedComment.getAuthorId()));
-
-            return true;
-        }
-
-        // Called each time the action mode is shown. Always called after onCreateActionMode, but
-        // may be called multiple times if the mode is invalidated.
-        @Override
-        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-            return false; // Return false if nothing is done
-        }
-
-        // Called when the user selects a contextual menu item
-        @Override
-        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-            switch (item.getItemId()) {
-                case R.id.editMenuItem:
-                    openEditCommentDialog(selectedComment);
-                    mode.finish(); // Action picked, so close the CAB
-                    return true;
-                case R.id.deleteMenuItem:
-                    removeComment(selectedComment.getId(), mode, position);
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        // Called when the user exits the action mode
-        @Override
-        public void onDestroyActionMode(ActionMode mode) {
-            mActionMode = null;
-        }
-    }
+//    private class ActionModeCallback implements ActionMode.Callback {
+//        Comment selectedComment;
+//        int position;
+//
+//        ActionModeCallback(Comment selectedComment) {
+//            this.selectedComment = selectedComment;
+//        }
+//
+//        // Called when the action mode is created; startActionMode() was called
+//        @Override
+//        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+//            // Inflate a menu resource providing context menu items
+//            MenuInflater inflater = mode.getMenuInflater();
+//            inflater.inflate(R.menu.comment_context_menu, menu);
+//
+//            menu.findItem(R.id.editMenuItem).setVisible(hasAccessToEditComment(selectedComment.getAuthorId()));
+//
+//            return true;
+//        }
+//
+//        // Called each time the action mode is shown. Always called after onCreateActionMode, but
+//        // may be called multiple times if the mode is invalidated.
+//        @Override
+//        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+//            return false; // Return false if nothing is done
+//        }
+//
+//        // Called when the user selects a contextual menu item
+//        @Override
+//        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+//            switch (item.getItemId()) {
+//                case R.id.editMenuItem:
+//                    openEditCommentDialog(selectedComment);
+//                    mode.finish(); // Action picked, so close the CAB
+//                    return true;
+//                case R.id.deleteMenuItem:
+//                    removeComment(selectedComment.getId(), mode, position);
+//                    return true;
+//                default:
+//                    return false;
+//            }
+//        }
+//
+//        // Called when the user exits the action mode
+//        @Override
+//        public void onDestroyActionMode(ActionMode mode) {
+//            mActionMode = null;
+//        }
+//    }
     Animator.AnimatorListener authorAnimatorListener = new Animator.AnimatorListener() {
         @Override
         public void onAnimationStart(Animator animation) {
@@ -1351,4 +1384,25 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         }
     };
 
+    private void openUserComplainDialog(Flag flag) {
+        ComplainDialog complainDialog = new ComplainDialog();
+        Bundle args = new Bundle();
+        args.putSerializable(ComplainDialog.FLAG_KEY, flag);
+        complainDialog.setArguments(args);
+        complainDialog.show(getFragmentManager(), ComplainDialog.TAG);
+    }
+
+    @Override
+    public void onFlagReason(Flag flag) {
+        postManager.flagUser(flag, new OnTaskCompleteListener() {
+            @Override
+            public void onTaskComplete(boolean success) {
+                if (success) {
+                    showPaymentDialog("Received your complaint. Will review and send a warning to user.");
+                } else {
+                    showSnackBar(R.string.error_fail_create_complain);
+                }
+            }
+        });
+    }
 }

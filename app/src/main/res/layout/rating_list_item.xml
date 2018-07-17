@@ -15,15 +15,25 @@
         app:shadow="false"
         app:border="true"
         app:border_width="0dp" />
-    <ImageView
-        android:id="@+id/replyImageView"
-        app:srcCompat="@drawable/ic_message_reply"
+    <ImageButton
+        android:id="@+id/optionMenuButton"
         android:layout_width="wrap_content"
-        android:paddingRight="@dimen/intrinsic_padding"
-        android:visibility="gone"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/ic_more_vert"
+        android:layout_marginLeft="@dimen/intrinsic_padding"
+        android:layout_below="@+id/item_detail"
         android:layout_alignParentRight="true"
-        android:layout_alignParentBottom="true"
-        android:layout_height="wrap_content" />
+        android:layout_alignParentEnd="true"
+        android:background="@null"/>
+    <!--<ImageView-->
+        <!--android:id="@+id/replyImageView"-->
+        <!--app:srcCompat="@drawable/ic_message_reply"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:paddingRight="@dimen/intrinsic_padding"-->
+        <!--android:visibility="gone"-->
+        <!--android:layout_alignParentRight="true"-->
+        <!--android:layout_alignParentBottom="true"-->
+        <!--android:layout_height="wrap_content" />-->
 
     <com.eriyaz.social.views.ExpandableTextView
         android:id="@+id/ratingText"

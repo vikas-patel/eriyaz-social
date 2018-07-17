@@ -35,6 +35,7 @@ import android.widget.ProgressBar;
 
 import com.eriyaz.social.ApplicationHelper;
 import com.eriyaz.social.R;
+import com.eriyaz.social.activities.BaseAlertDialogBuilder;
 import com.eriyaz.social.activities.PostDetailsActivity;
 import com.eriyaz.social.adapters.AvtarAdapter;
 import com.eriyaz.social.managers.CommentManager;
@@ -69,7 +70,7 @@ public class AvatarDialog extends DialogFragment {
         progressBar = view.findViewById(R.id.progressBar);
         ApplicationHelper.getDatabaseHelper().getAvatarList(createOnAvatarsChangedDataListener());
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        AlertDialog.Builder builder = new BaseAlertDialogBuilder(getActivity());
         builder.setView(view)
                 .setTitle("Select Avatar..");
         return builder.create();

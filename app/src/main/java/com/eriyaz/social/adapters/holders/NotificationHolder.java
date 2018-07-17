@@ -48,14 +48,19 @@ public class NotificationHolder extends RecyclerView.ViewHolder {
 
     public void bindData(final Notification notification) {
         final String authorId = notification.getFromUserId();
-        if (authorId != null)
+        if (authorId != null) {
             profileManager.getProfileSingleValue(authorId, createOnProfileChangeListener(avatarImageView));
+        } else if (notification.isFromSystem()) {
+            avatarImageView.setImageResource(R.drawable.ratemysinging);
+        }
 
         messageTextView.setText(notification.getMessage());
 
         CharSequence date = FormatterUtil.getRelativeTimeSpanString(context, notification.getCreatedDate());
         dateTextView.setText(date);
-        if (!notification.isRead()) itemView.setBackgroundColor(context.getResources().getColor(android.R.color.white));
+        if (notification.isFromSystem()) {
+            itemView.setBackgroundColor(context.getResources().getColor(R.color.highlight_bg));
+        } else if (!notification.isRead()) itemView.setBackgroundColor(context.getResources().getColor(android.R.color.white));
 
         itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -76,7 +81,7 @@ public class NotificationHolder extends RecyclerView.ViewHolder {
             } catch (android.content.ActivityNotFoundException anfe) {
                 ((Activity)context).startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
             }
-        } else {
+        } else if (notification.getAction() != null && !notification.getAction().isEmpty()) {
             try {
                 Class<?> c = Class.forName(notification.getAction());
                 Intent intent = new Intent(context, c);

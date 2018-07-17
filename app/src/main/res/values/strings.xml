@@ -83,6 +83,7 @@
     <string name="rating_lost_popup">Your rating will also be removed on close and no points will be earned.\nAre you sure you want to close?</string>
     <string name="mandatory_detailed_feedback_popup">\'Detailed feedback\' below is mandatory for \'Not Ok\' rating.</string>
     <string name="confirm_continue_payment">Get official feedback from Paarth Singh.\nWill be given in 24 hours".\nPrice: Rs %1$d.</string>
+    <string name="error_fail_create_complain">Fail to create complain</string>
 
     <string name="comment_text_hint">Enter your comment…</string>
     <string name="message_text_hint">Enter your message…</string>
@@ -212,9 +213,11 @@
 
     <string name="edit_comment_menu_item">Edit</string>
     <string name="delete_comment_menu_item">Delete</string>
+    <string name="report_comment_menu_item">Report</string>
     <string name="message_comment_was_removed">Comment was removed</string>
     <string name="message_comment_was_edited">Comment was edited</string>
     <string name="title_edit_comment">Edit comment</string>
+    <string name="title_complain_reason">Complain</string>
     <string name="title_not_ok_comment">Why \'Not Ok\'?</string>
     <string name="message_was_removed">Message was removed</string>
     <string name="feedback_was_removed">Feedback was removed</string>

@@ -26,6 +26,7 @@ import com.eriyaz.social.managers.listeners.OnPostCreatedListener;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteMessageListener;
 import com.eriyaz.social.model.Avatar;
 import com.eriyaz.social.model.BoughtFeedback;
+import com.eriyaz.social.model.Flag;
 import com.eriyaz.social.model.Message;
 import com.eriyaz.social.model.Notification;
 import com.eriyaz.social.model.Point;
@@ -406,6 +407,19 @@ public class DatabaseHelper {
                         onTaskCompleteListener.onTaskComplete(true);
                     }
                 }});
+    }
+
+    public void createFlag(Flag flag, final OnTaskCompleteListener onTaskCompleteListener) {
+        DatabaseReference flagReference = database.getReference().child("flags/"+flag.getFlaggedUser());
+        String flagId = flagReference.push().getKey();
+        analytics.logFeedback();
+        flagReference.child(flagId).setValue(flag, new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                if (onTaskCompleteListener != null) {
+                    onTaskCompleteListener.onTaskComplete(true);
+                }
+            }});
     }
 
     public void createComment(Comment comment, final String postId, final OnTaskCompleteListener onTaskCompleteListener) {

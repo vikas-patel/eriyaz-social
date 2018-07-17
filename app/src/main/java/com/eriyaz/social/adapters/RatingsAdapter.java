@@ -79,7 +79,7 @@ public class RatingsAdapter extends RecyclerView.Adapter<RatingViewHolder> {
     }
 
     public interface Callback {
-        void onLongItemClick(View view, int position);
+        void onReportClick(View view, int position);
 
         void onAuthorClick(String authorId, View view);
 

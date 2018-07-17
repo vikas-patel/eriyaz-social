@@ -8,9 +8,10 @@ const promisePool = require('es6-promise-pool');
 const PromisePool = promisePool.PromisePool;
 var paytm_config = require('./paytm/paytm_config').paytm_config;
 var paytm_checksum = require('./paytm/checksum');
-// const nodemailer = require('nodemailer');
+const nodemailer = require('nodemailer');
 
 const actionTypeNewRating = "new_rating";
+const actionTypeOfficialFeedback = "official_feedback";
 const actionTypeNewComment = "new_comment";
 const actionTypeNewPost = "new_post";
 const notificationTitle = "RateMySinging";
@@ -28,15 +29,15 @@ var supportingAuthorIds;
 var masterAuthorIds;
 const WELCOME_ADMIN = functions.config().app.environment === 'dev' ? 'dsUhfoavcLUH4xsisgWW30N5v1u1' : 'eOaCAHXB8qfPKx1ZEKqSZXqrnXi2';
 
-// const gmailEmail = functions.config().gmail.email;
-// const gmailPassword = functions.config().gmail.password;
-// const mailTransport = nodemailer.createTransport({
-//   service: 'gmail',
-//   auth: {
-//     user: gmailEmail,
-//     pass: gmailPassword,
-//   },
-// });
+const gmailEmail = functions.config().gmail.email;
+const gmailPassword = functions.config().gmail.password;
+const mailTransport = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: gmailEmail,
+    pass: gmailPassword,
+  },
+});
 
 exports.pushNotificationRatings = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onCreate(event => {
 
@@ -135,7 +136,7 @@ function sendPushNotification(senderId, receiverId, postId, body) {
         // Create a notification
         const payload = {
             data : {
-                actionType: actionTypeNewRating,
+                actionType: actionTypeOfficialFeedback,
                 title: notificationTitle,
                 body: `${ratingAuthorProfile.username} ${body}`,
                 icon: ratingAuthorProfile.photoUrl,
@@ -291,6 +292,22 @@ exports.pushNotificationPostNew = functions.database.ref('/posts/{postId}').onCr
 //     .then(() => console.log(`email sent`))
 //     .catch((error) => console.error('There was an error while sending the email:', error));
 // });
+
+function sendEmail(subject, body) {
+    const mailOptions = {
+        from: '"RateMySinging App" <eriyazonline@gmail.com>',
+        to: gmailEmail,
+      };
+
+      // Building Email message.
+      mailOptions.subject = subject;
+      mailOptions.text = body;
+
+      return mailTransport.sendMail(mailOptions)
+        .then(() => console.log(`email sent`))
+        .catch((error) => console.error('There was an error while sending the email:', error));
+}
+
 
 // Keeps track of the length of the 'likes' child list in a separate property.
 exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onWrite(event => {
@@ -648,6 +665,29 @@ exports.appNotificationComments = functions.database.ref('/post-comments/{postId
             });
         });
     })
+});
+
+exports.appNotificationFlag = functions.database.ref('/flags/{flaggedUser}/{flagId}').onCreate(event => {
+    console.log('App notification for new flag');
+
+    const flagId = event.params.flagId;
+    const flag = event.data.val();
+    const flaggedUser = event.params.flaggedUser;
+    const reason = flag.reason;
+
+    const userNotificationsRef = admin.database().ref(`/user-notifications/${flaggedUser}`);
+    var newNotificationRef = userNotificationsRef.push();
+    var msg = `RateMySinging: Received following complaint against you. "${reason}". Nothing to worry, but if too many complaints then we may need to take action.`;
+    const notificationTask = newNotificationRef.set({
+        'fromSystem' : true,
+        'message': msg,
+        'createdDate': admin.database.ServerValue.TIMESTAMP
+    });
+    const emailTask = sendEmail("RateMySinging: New user complain", reason);
+
+    return Promise.all([notificationTask, emailTask]).then(results => {
+                console.log("all flag tasks completed.");
+            });
 });
 
 exports.appNotificationCommentConversation = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {

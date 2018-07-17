@@ -19,17 +19,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/editMenuItem"
-        android:icon="@drawable/ic_edit_menu_item"
+        android:id="@+id/messageMenuItem"
         android:orderInCategory="1"
         android:visible="false"
-        android:title="@string/edit_comment_menu_item" />
-    <item
-        android:id="@+id/deleteMenuItem"
-        android:icon="@drawable/ic_delete_menu_item"
-        android:visible="false"
-        android:orderInCategory="1"
-        android:title="@string/delete_comment_menu_item" />
+        android:title="Message" />
     <item
         android:id="@+id/reportMenuItem"
         android:orderInCategory="1"

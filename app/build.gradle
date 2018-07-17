@@ -87,6 +87,7 @@ dependencies {
     compile 'com.paytm:pgplussdk:1.1.2'
     compile 'com.android.volley:volley:1.0.0'
     compile 'com.github.KatherineDrozhak:HashTagHelper:master-SNAPSHOT'
+    compile 'com.uxcam:uxcam:2.6.5@aar'
     compile 'com.amulyakhare:com.amulyakhare.textdrawable:1.0.1'
     compile 'com.uxcam:uxcam:2.6.5@aar'
 }

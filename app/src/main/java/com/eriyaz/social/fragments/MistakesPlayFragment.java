@@ -1,11 +1,10 @@
 package com.eriyaz.social.fragments;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.DialogFragment;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -15,6 +14,7 @@ import android.widget.TextView;
 import com.eriyaz.social.Application;
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
+import com.eriyaz.social.activities.BaseAlertDialogBuilder;
 import com.eriyaz.social.activities.PostDetailsActivity;
 import com.eriyaz.social.enums.ProfileStatus;
 import com.eriyaz.social.managers.ProfileManager;
@@ -46,7 +46,7 @@ import java.util.List;
 /**
  * Created by Daniel on 1/1/2015.
  */
-public class MistakesPlayFragment extends DialogFragment {
+public class MistakesPlayFragment extends BaseDialogFragment {
 
     public static final String RECORDING_ITEM = "recording_item";
     private static final String MISTAKES_TEXT = "mistakes_text";
@@ -106,7 +106,7 @@ public class MistakesPlayFragment extends DialogFragment {
 
         Dialog dialog = super.onCreateDialog(savedInstanceState);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        AlertDialog.Builder builder = new BaseAlertDialogBuilder(getActivity());
         View view = getActivity().getLayoutInflater().inflate(R.layout.fragment_mistakes_play, null);
 
         mFileNameTextView = (TextView) view.findViewById(R.id.file_name_text_view);

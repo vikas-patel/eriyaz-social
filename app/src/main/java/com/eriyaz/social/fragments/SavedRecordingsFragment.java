@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Created by Daniel on 12/23/2014.
  */
-public class SavedRecordingsFragment extends Fragment {
+public class SavedRecordingsFragment extends BaseFragment {
     private static final String LOG_TAG = "FileViewerFragment";
 
     private String userId;

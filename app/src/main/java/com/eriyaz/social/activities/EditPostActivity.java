@@ -97,7 +97,7 @@ public class EditPostActivity extends CreatePostActivity {
             }
 
             private void showWarningDialog(String message) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(EditPostActivity.this);
+                AlertDialog.Builder builder = new BaseAlertDialogBuilder(EditPostActivity.this);
                 builder.setMessage(message);
                 builder.setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
                     @Override

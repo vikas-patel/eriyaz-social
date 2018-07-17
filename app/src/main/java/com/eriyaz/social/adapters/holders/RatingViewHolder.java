@@ -20,8 +20,11 @@ package com.eriyaz.social.adapters.holders;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -52,9 +55,9 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
     private final TextView authorNameTextView;
     private final TextView dateTextView;
     private final ImageView questionImageView;
-    private final ImageView replyImageView;
     private final ProfileManager profileManager;
     private RatingsAdapter.Callback callback;
+    protected ImageButton optionMenuButton;
     private Context context;
 
     public RatingViewHolder(View itemView, final RatingsAdapter.Callback callback) {
@@ -70,32 +73,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
         ratingText = itemView.findViewById(R.id.expandable_text);
         authorNameTextView = itemView.findViewById(R.id.authorNameTextView);
         dateTextView = (TextView) itemView.findViewById(R.id.dateTextView);
-        replyImageView = itemView.findViewById(R.id.replyImageView);
-
-        if (callback != null) {
-            itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    int position = getAdapterPosition();
-                    if (position != RecyclerView.NO_POSITION) {
-                        callback.onLongItemClick(v, position);
-                        return true;
-                    }
-
-                    return false;
-                }
-            });
-
-            replyImageView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int position = getAdapterPosition();
-                    if (position != RecyclerView.NO_POSITION) {
-                        callback.onReplyClick(position);
-                    }
-                }
-            });
-        }
+        optionMenuButton = itemView.findViewById(R.id.optionMenuButton);
     }
 
     public void bindData(final Rating rating, final Post post) {
@@ -115,12 +93,40 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                 callback.onAuthorClick(authorId, v);
             }
         });
+
+        optionMenuButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View view) {
+                //creating a popup menu
+                PopupMenu popup = new PopupMenu(context, optionMenuButton);
+                //inflating menu from xml resource
+                popup.inflate(R.menu.rating_context_menu);
+                if (showReplyOption(post, rating)) {
+                    popup.getMenu().findItem(R.id.messageMenuItem).setVisible(true);
+                }
+                //adding click listener
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        switch (item.getItemId()) {
+                            case R.id.messageMenuItem:
+                                callback.onReplyClick(getAdapterPosition());
+                                break;
+                            case R.id.reportMenuItem:
+                                callback.onReportClick(view, getAdapterPosition());
+                                break;
+                        }
+                        return false;
+                    }
+                });
+                //displaying the popup
+                popup.show();
+            }
+        });
+
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         if (firebaseUser != null) {
             String currentUserId = firebaseUser.getUid();
-            if (currentUserId.equals(post.getAuthorId()) && !currentUserId.equals(rating.getAuthorId())) {
-                replyImageView.setVisibility(View.VISIBLE);
-            }
             if (currentUserId.equals(post.getAuthorId()) && !currentUserId.equals(rating.getAuthorId())
                     &&  !rating.isViewedByPostAuthor()) {
                 questionImageView.setVisibility(View.VISIBLE);
@@ -168,5 +174,12 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                 }
             }
         };
+    }
+
+    private boolean showReplyOption(Post post, Rating rating) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null || post == null || !post.getAuthorId().equals(currentUser.getUid())) return false;
+        if (currentUser.getUid().equals(rating.getAuthorId())) return false;
+        return true;
     }
 }

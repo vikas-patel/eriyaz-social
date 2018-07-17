@@ -28,6 +28,7 @@ import android.widget.Toast;
 import com.eriyaz.social.Constants;
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
+import com.eriyaz.social.activities.BaseAlertDialogBuilder;
 import com.eriyaz.social.activities.CreatePostActivity;
 import com.eriyaz.social.managers.listeners.OnRecordingEndListener;
 import com.eriyaz.social.model.RecordingItem;
@@ -45,7 +46,7 @@ import java.io.File;
  * Use the {@link RecordFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class RecordFragment extends Fragment {
+public class RecordFragment extends BaseFragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     //private static final String ARG_POSITION = "position";
     private static final String LOG_TAG = RecordFragment.class.getSimpleName();
@@ -302,14 +303,14 @@ public class RecordFragment extends Fragment {
     private void openConfirmSwitchDialog() {
         CreatePostActivity rootActivity = (CreatePostActivity) getActivity();
         final int userPoints = (int) rootActivity.getProfile().getPoints();
-        AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
+        AlertDialog.Builder builder = new BaseAlertDialogBuilder(this.getActivity());
         builder.setMessage(Html.fromHtml(getString(R.string.confirm_longer_recording)))
                 .setNegativeButton(R.string.button_title_cancel, null)
                 .setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         if (userPoints < Constants.POINT.LARGE_RECORDING) {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                            AlertDialog.Builder builder = new BaseAlertDialogBuilder(getActivity());
                             builder.setMessage(getResources().getQuantityString(R.plurals.points_needed_longer_recording, userPoints, userPoints));
                             builder.setPositiveButton(R.string.button_ok, null);
                             builder.show();

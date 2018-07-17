@@ -14,6 +14,7 @@ public class Notification {
     private String extraKeyValue;
     private boolean read;
     private boolean openPlayStore;
+    private boolean fromSystem;
 
     public Notification() {
     }
@@ -88,5 +89,13 @@ public class Notification {
 
     public void setOpenPlayStore(boolean openPlayStore) {
         this.openPlayStore = openPlayStore;
+    }
+
+    public boolean isFromSystem() {
+        return fromSystem;
+    }
+
+    public void setFromSystem(boolean fromSystem) {
+        this.fromSystem = fromSystem;
     }
 }

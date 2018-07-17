@@ -33,6 +33,7 @@ public class Analytics {
     public static final String OPEN_NOTIFICATION_ACTIVITY = "OpenNotificationActivity";
     public static final String PLAYED_TIME = "AudioPlayedTime";
     public static final String SHARE_APP = "ShareApp";
+    public static final String OPEN_ALERT_DIALOG = "OpenAlertDialog";
     public static final String SIGNIN = "SignIn";
     public static final String InviteAppInstall = "InviteAppInstall";
 
@@ -40,7 +41,7 @@ public class Analytics {
         firebase = FirebaseAnalytics.getInstance(context);
     }
 
-    public void logActivity(Activity activity) {
+    public void logActivity(Object activity) {
         Bundle bundle = new Bundle();
         bundle.putString(FirebaseAnalytics.Param.ITEM_ID, activity.getClass().getSimpleName());
         firebase.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
@@ -161,6 +162,14 @@ public class Analytics {
             bundle.putString("UserName", "Anonymous");
         }
         firebase.logEvent(SHARE_APP, bundle);
+    }
+
+    public void logAlertDialog(Context context, CharSequence msg) {
+        Bundle bundle = new Bundle();
+        bundle.putString(FirebaseAnalytics.Param.ITEM_ID, context.getClass().getSimpleName());
+        CharSequence upToNCharacters = msg.subSequence(0, Math.min(msg.length(), 15));
+        bundle.putCharSequence("Message", upToNCharacters);
+        firebase.logEvent(OPEN_ALERT_DIALOG, bundle);
     }
 
     public void logInvite(String byUserId) {

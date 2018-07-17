@@ -131,6 +131,7 @@ public class CreatePostActivity extends BaseActivity implements OnRecordingEndLi
     }
 
     public void recordingSaved() {
+        startRecordFragment();
         pager.setCurrentItem(1);
     }
 

@@ -28,7 +28,7 @@ import com.eriyaz.social.model.Post;
  * Use the {@link PostsByUserFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class PostsByUserFragment extends Fragment {
+public class PostsByUserFragment extends BaseFragment {
     private SwipeRefreshLayout swipeContainer;
     private ProgressBar postsProgressBar;
     private RecyclerView recyclerView;

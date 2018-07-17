@@ -31,6 +31,7 @@ import android.view.View;
 import android.widget.EditText;
 
 import com.eriyaz.social.R;
+import com.eriyaz.social.activities.BaseAlertDialogBuilder;
 import com.eriyaz.social.activities.PostDetailsActivity;
 import com.eriyaz.social.managers.CommentManager;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
@@ -62,7 +63,7 @@ public class CommentDialog extends DialogFragment {
         final EditText editCommentEditText = view.findViewById(R.id.editCommentEditText);
         editCommentEditText.setHint(R.string.comment_not_ok_hint);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        AlertDialog.Builder builder = new BaseAlertDialogBuilder(getActivity());
         builder.setView(view)
                 .setTitle(R.string.title_not_ok_comment)
                 .setNegativeButton(R.string.button_title_cancel, new DialogInterface.OnClickListener() {

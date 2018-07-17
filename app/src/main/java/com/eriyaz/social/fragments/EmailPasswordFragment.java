@@ -1,11 +1,10 @@
 package com.eriyaz.social.fragments;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.DialogFragment;
+import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -16,6 +15,7 @@ import android.widget.Toast;
 
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
+import com.eriyaz.social.activities.BaseAlertDialogBuilder;
 import com.eriyaz.social.activities.ResetPasswordActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -27,7 +27,7 @@ import com.google.firebase.auth.FirebaseUser;
  * Created by vikas on 10/7/18.
  */
 
-public class EmailPasswordFragment extends DialogFragment {
+public class EmailPasswordFragment extends BaseDialogFragment {
 
     public static final String TAG = "EmailPassword";
 
@@ -50,7 +50,7 @@ public class EmailPasswordFragment extends DialogFragment {
 
         Dialog dialog = super.onCreateDialog(savedInstanceState);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        AlertDialog.Builder builder = new BaseAlertDialogBuilder(getActivity());
         View v = getActivity().getLayoutInflater().inflate(R.layout.fragment_email_password, null);
 
         // Views
