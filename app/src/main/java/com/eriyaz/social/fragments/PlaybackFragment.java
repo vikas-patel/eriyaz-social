@@ -17,6 +17,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -97,6 +98,8 @@ public class PlaybackFragment extends BaseDialogFragment {
     private CheckBox highPitchView;
     private CheckBox feelView;
     private int intialRatingValue = 0;
+    private TextView rateLabelTextView;
+    private ImageView arrowImageView;
 
     private EditText mistakesTextView;
     private HashTagHelper mistakesTextHashTagHelper;
@@ -239,6 +242,8 @@ public class PlaybackFragment extends BaseDialogFragment {
         dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         componentListener = new ComponentListener();
         playerView = view.findViewById(R.id.exoPlayerView);
+        rateLabelTextView = view.findViewById(R.id.rateMeLabel);
+        arrowImageView = view.findViewById(R.id.upArrowImageView);
         commentManager = CommentManager.getInstance(this.getActivity());
 
         return builder.create();
@@ -520,10 +525,18 @@ public class PlaybackFragment extends BaseDialogFragment {
                 }
                 ratingController.setUpdatingRatingCounter(false);
                 isRatingChanged = true;
+                rateLabelTextView.setVisibility(View.GONE);
+                arrowImageView.setVisibility(View.GONE);
                 if (progress > 5 && progress < 15 && intialRatingValue == 0) {
+                    moreTextView.setVisibility(View.VISIBLE);
                     earnExtraTextView.setVisibility(View.VISIBLE);
+                    earnExtraTextView.setText(R.string.earn_extra_point);
+                } else if (progress >= 15) {
+                    earnExtraTextView.setVisibility(View.VISIBLE);
+                    earnExtraTextView.setText(R.string.rating_received);
                 } else {
                     earnExtraTextView.setVisibility(View.GONE);
+                    moreTextView.setVisibility(View.VISIBLE);
                 }
 
                 if (progress > 0 && progress <= 5) {

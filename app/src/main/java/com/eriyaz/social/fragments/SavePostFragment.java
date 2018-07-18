@@ -320,6 +320,3 @@ public class SavePostFragment extends BaseFragment {
     }
 }
 
-
-
-

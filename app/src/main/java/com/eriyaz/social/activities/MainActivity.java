@@ -35,7 +35,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SimpleItemAnimator;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -103,6 +102,14 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         setSupportActionBar(toolbar);
 
         postManager = PostManager.getInstance(this);
+        ProfileStatus profileStatus = profileManager.checkProfile();
+        if(profileStatus.equals(ProfileStatus.NOT_AUTHORIZED) || profileStatus.equals(ProfileStatus.NO_PROFILE)) {
+            if (!BuildConfig.DEBUG) {
+                UXCam.startWithKey("8e284e93d1b8286");
+            }
+            doAuthorization(profileStatus);
+        }
+
         initContentView();
 
         postCounterWatcher = new PostManager.PostCounterWatcher() {
@@ -113,14 +120,6 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         };
 
         postManager.setPostCounterWatcher(postCounterWatcher);
-
-        if (BuildConfig.DEBUG) {
-            //UXCam.startWithKey("8e284e93d1b8286","dev");
-        } else {
-            if(profileManager.checkProfile().equals(ProfileStatus.NOT_AUTHORIZED) || profileManager.checkProfile().equals(ProfileStatus.NO_PROFILE)) {
-                UXCam.startWithKey("8e284e93d1b8286");
-            }
-        }
 
         getDynamicLink();
         ForceUpdateChecker.with(this).onUpdateNeeded(this).check();
@@ -262,6 +261,7 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
             public void onObjectChanged(Profile profile) {
                 if (profile.getPostCount() == 1) {
                     // show first post popup
+                    analytics.logFirstPost();
                     showPopupDialog(R.string.rating_benchmark);
                 }
             }
@@ -427,7 +427,9 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         int points_post_create = (int) remoteConfig.getLong("points_post_create");
 //        if (userPoints == null) userPoints = 0L;
         if (userPoints < points_post_create) {
-            showPopupDialog(R.string.points_needed_text);
+            int pointsNeeded = points_post_create - (int) userPoints;
+            String pointsNeededMsg = getResources().getQuantityString(R.plurals.points_needed_text, pointsNeeded, pointsNeeded);
+            showWarningDialog(pointsNeededMsg);
             return;
         }
         Intent intent = new Intent(this, CreatePostActivity.class);

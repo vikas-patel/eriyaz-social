@@ -23,6 +23,7 @@ public class Analytics {
     public static final String FEEDBACK = "feedback";
     public static final String MESSAGE = "message";
     public static final String POST = "Post";
+    public static final String FIRST_POST = "FirstPost";
     public static final String OPEN_OTHER_AUDIO = "OpenOtherAudio";
     public static final String OPEN_SELF_AUDIO = "OpenSelfAudio";
     public static final String OPEN_RECORDED_AUDIO = "OpenRecordedAudio";
@@ -122,6 +123,13 @@ public class Analytics {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) bundle.putString("UserName", currentUser.getDisplayName());
         firebase.logEvent(POST, bundle);
+    }
+
+    public void logFirstPost() {
+        Bundle bundle = new Bundle();
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) bundle.putString("UserName", currentUser.getDisplayName());
+        firebase.logEvent(FIRST_POST, bundle);
     }
 
     public void logOpenPostDetailsFromPushNotification() {

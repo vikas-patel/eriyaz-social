@@ -14,7 +14,7 @@ import com.eriyaz.social.fragments.PostsByUserFragment;
 public class ProfileTabAdapter extends FragmentPagerAdapter {
     private PostsByUserFragment postsByUserFragment;
     private PostsByUserFragment ratedPostsByUserFragment;
-    private String title[] = {"Rated", "Posts"};
+    private String title[] = {"Recordings", "Ratings On Others"};
     private String userId;
 
     public ProfileTabAdapter(FragmentManager manager, String userId) {
@@ -26,9 +26,9 @@ public class ProfileTabAdapter extends FragmentPagerAdapter {
     public Fragment getItem(int position) {
         switch (position) {
             case 0:
-                return PostsByUserFragment.newInstance(userId, PostsByUserFragment.RATED_POST_TYPE);
-            case 1:
                 return PostsByUserFragment.newInstance(userId, PostsByUserFragment.POST_TYPE);
+            case 1:
+                return PostsByUserFragment.newInstance(userId, PostsByUserFragment.RATED_POST_TYPE);
             default:
                 return null;
         }
@@ -40,10 +40,10 @@ public class ProfileTabAdapter extends FragmentPagerAdapter {
         // save the appropriate reference depending on position
         switch (position) {
             case 0:
-                ratedPostsByUserFragment = (PostsByUserFragment) createdFragment;
+                postsByUserFragment = (PostsByUserFragment) createdFragment;
                 break;
             case 1:
-                postsByUserFragment = (PostsByUserFragment) createdFragment;
+                ratedPostsByUserFragment = (PostsByUserFragment) createdFragment;
                 break;
         }
         return createdFragment;
@@ -62,9 +62,9 @@ public class ProfileTabAdapter extends FragmentPagerAdapter {
     public PostsByUserFragment getSelectedFragment(int position) {
         switch (position) {
             case 0:
-                return ratedPostsByUserFragment;
-            case 1:
                 return postsByUserFragment;
+            case 1:
+                return ratedPostsByUserFragment;
         }
         return null;
     }

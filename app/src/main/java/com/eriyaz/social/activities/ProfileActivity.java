@@ -57,6 +57,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 
 public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnConnectionFailedListener {
     private static final String TAG = ProfileActivity.class.getSimpleName();
@@ -82,6 +83,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
 
     private TextView pointsCountersTextView;
     private ProfileManager profileManager;
+    final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -159,7 +161,6 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case CreatePostActivity.CREATE_NEW_POST_REQUEST:
-                    profileTabViewPager.setCurrentItem(1);
                     selectedFragment = tabAdapter.getSelectedFragment(profileTabViewPager.getCurrentItem());
                     selectedFragment.getPostsAdapter().loadPosts();
                     showSnackBar(R.string.message_post_was_created);
@@ -296,6 +297,14 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
     }
 
     private void openCreatePostActivity() {
+        int points_post_create = (int) remoteConfig.getLong("points_post_create");
+//        if (userPoints == null) userPoints = 0L;
+        if (userPoints < points_post_create) {
+            int pointsNeeded = points_post_create - (int) userPoints;
+            String pointsNeededMsg = getResources().getQuantityString(R.plurals.points_needed_text, pointsNeeded, pointsNeeded);
+            showWarningDialog(pointsNeededMsg);
+            return;
+        }
         Intent intent = new Intent(this, CreatePostActivity.class);
         startActivityForResult(intent, CreatePostActivity.CREATE_NEW_POST_REQUEST);
     }
