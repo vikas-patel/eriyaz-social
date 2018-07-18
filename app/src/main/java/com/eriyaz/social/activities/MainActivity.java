@@ -26,7 +26,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
@@ -41,6 +40,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -77,7 +77,8 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
 
     private PostsAdapter postsAdapter;
     private RecyclerView recyclerView;
-    private FloatingActionButton floatingActionButton;
+    private Button recordButton;
+
 
     private PostManager postManager;
     private TextView newPostsCounterTextView;
@@ -185,7 +186,7 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
 
     private void showShareAppBanner() {
         int reward_points = (int) remoteConfig.getLong("reward_points");
-        final Snackbar snackbar = Snackbar.make(floatingActionButton, String.format(getString(R.string.app_share_banner), reward_points), Snackbar.LENGTH_LONG)
+        final Snackbar snackbar = Snackbar.make(recordButton, String.format(getString(R.string.app_share_banner), reward_points), Snackbar.LENGTH_LONG)
                 .setActionTextColor(getResources().getColor(R.color.accent))
                 .setAction("SHARE", new View.OnClickListener() {
             @Override
@@ -204,7 +205,7 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
     }
 
     private void showUpdateAppBanner(boolean isPersistent) {
-        final Snackbar snackbar = Snackbar.make(floatingActionButton, getString(R.string.app_update_banner), isPersistent? Snackbar.LENGTH_INDEFINITE : Snackbar.LENGTH_LONG)
+        final Snackbar snackbar = Snackbar.make(recordButton, getString(R.string.app_update_banner), isPersistent? Snackbar.LENGTH_INDEFINITE : Snackbar.LENGTH_LONG)
                 .setActionTextColor(getResources().getColor(R.color.accent))
                 .setAction("UPDATE", new View.OnClickListener() {
                     @Override
@@ -277,10 +278,10 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
 
     private void initContentView() {
         if (recyclerView == null) {
-            floatingActionButton = (FloatingActionButton) findViewById(R.id.addNewPostFab);
-
-            if (floatingActionButton != null) {
-                floatingActionButton.setOnClickListener(new View.OnClickListener() {
+//            recordButton = (FloatingActionButton) findViewById(R.id.addNewPostFab);
+            recordButton = (Button) findViewById(R.id.addNewPostFab);
+            if (recordButton != null) {
+                recordButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         if (hasInternetConnection()) {
@@ -410,7 +411,7 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
     }
 
     public void showFloatButtonRelatedSnackBar(int messageId) {
-        showSnackBar(floatingActionButton, messageId);
+        showSnackBar(recordButton, messageId);
     }
 
     private void addPostClickAction() {
