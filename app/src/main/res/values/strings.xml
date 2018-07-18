@@ -17,6 +17,7 @@
 
 <resources>
     <string name="app_name">RateMySinging</string>
+    <string name="app_subtitle">A Community Of Singers</string>
     <string name="app_share_description">Connect with other singers and get their feedback on your singing. </string>
     <string name="app_share_banner">Earn %1$d points by sharing app.</string>
     <string name="app_update_banner">Please update the app.</string>
@@ -84,6 +85,8 @@
     <string name="mandatory_detailed_feedback_popup">\'Detailed feedback\' below is mandatory for \'Not Ok\' rating.</string>
     <string name="confirm_continue_payment">Get official feedback from Paarth Singh.\nWill be given in 24 hours".\nPrice: Rs %1$d.</string>
     <string name="error_fail_create_complain">Fail to create complain</string>
+    <string name="rating_received">Your rating recieved. You earned 1 point.</string>
+    <string name="earn_extra_point">Your rating recieved. You can earn 1 extra point by giving \'detailed feedback\'.</string>
 
     <string name="comment_text_hint">Enter your comment…</string>
     <string name="message_text_hint">Enter your message…</string>
@@ -158,7 +161,7 @@
     <string name="score_label">contribution score</string>
     <string name="insufficient_points_view_rating">Dear %1$s, this is a rating for rating exchange platform. You need 1 point to view this rating. Please rate others to earn points.</string>
     <string name="point_spent_view_rating">1 point spent to view rating.</string>
-    <string name="points_needed_text">You need 3 points to post your recording. Please rate other people to earn points.</string>
+    <string name="points_needed_text"></string>
     <string name="rating_self_recording">This is your own recording so your rating is not considered. Please wait for others to rate you.</string>
     <string name="min_play_record">Dear user, it is not fair to evaluate someone without listening properly. Please listen for at least 10 seconds before rating.</string>
     <string name="confirm_longer_recording"><![CDATA[Statistics suggests people decide on rating after listening to just 30 secs on an average. So it is best to put shorter recordings to get more accurate evaluation. Shorter recordings also load faster and consume less data. \nIf you still want to proceed with longer recording <font color=\'#17a1d7\'>you will need to spend 10 points.</font>]]></string>
@@ -174,6 +177,11 @@
     <plurals name="likes_counter_format">
         <item quantity="one">like</item>
         <item quantity="other">likes</item>
+    </plurals>
+
+    <plurals name="points_needed_text">
+        <item quantity="one">You need 1 point to post your recording. Please rate other people to earn points.</item>
+        <item quantity="other">You need %1$d points to post your recording. Please rate other people to earn points.</item>
     </plurals>
 
     <plurals name="points_counter_format">
@@ -226,7 +234,7 @@
     <string name="pause_recording_button">Pause</string>
     <string name="resume_recording_button">Resume</string>
     <string name="default_file_name">My Recording</string>
-    <string name="record_prompt">Tap the button to start recording</string>
+    <string name="record_prompt">Tap the mic button below to start recording</string>
     <string name="toggle_longer_recording">Want to upload longer recording?</string>
     <string name="toggle_shorter_recording">Back to shorter recording</string>
     <string name="record_in_progress">Recording</string>

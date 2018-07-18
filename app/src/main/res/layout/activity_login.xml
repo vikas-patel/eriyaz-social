@@ -23,9 +23,15 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/login_screen_title_margin"
+            android:layout_marginBottom="@dimen/intrinsic_padding"
             android:text="@string/app_name"
             style="@style/TextAppearance.MainTitle" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/login_screen_title_margin"
+            android:text="@string/app_subtitle"
+            style="@style/TextAppearance.MainSubTitle" />
 
         <RelativeLayout
             android:id="@+id/facebookSignInButton"

@@ -39,8 +39,9 @@ android {
         minSdkVersion 16
         targetSdkVersion 27
         //Update remote config as well
-        versionCode 39
-        versionName "2.5"
+        versionCode 40
+        versionName "2.6"
+        multiDexEnabled = true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -89,7 +90,6 @@ dependencies {
     compile 'com.github.KatherineDrozhak:HashTagHelper:master-SNAPSHOT'
     compile 'com.uxcam:uxcam:2.6.5@aar'
     compile 'com.amulyakhare:com.amulyakhare.textdrawable:1.0.1'
-    compile 'com.uxcam:uxcam:2.6.5@aar'
 }
 
 apply plugin: 'com.google.gms.google-services'

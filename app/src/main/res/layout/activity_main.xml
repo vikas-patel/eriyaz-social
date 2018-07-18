@@ -66,13 +66,37 @@
 
     </RelativeLayout>
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/addNewPostFab"
+    <!--<android.support.design.widget.FloatingActionButton-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_margin="@dimen/large_intrinsic_padding"-->
+        <!--android:clickable="true"-->
+        <!--app:srcCompat="@drawable/ic_mic_white_48dp"-->
+        <!--android:layout_gravity="bottom|right" />-->
+
+    <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/large_intrinsic_padding"
-        android:clickable="true"
-        app:srcCompat="@drawable/ic_mic_white_48dp"
-        android:layout_gravity="bottom|right" />
+        android:elevation="@dimen/large_intrinsic_padding"
+        android:layout_gravity="bottom|right">
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/addNewPostFab"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:elevation="@dimen/intrinsic_padding"
+            android:layout_margin="@dimen/intrinsic_padding"
+            android:clickable="true"
+            app:backgroundTint="@android:color/holo_red_dark" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="RECORD"
+            android:elevation="@dimen/intrinsic_padding"
+            android:textColor="@android:color/white"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+    </FrameLayout>
 
 </android.support.design.widget.CoordinatorLayout>
