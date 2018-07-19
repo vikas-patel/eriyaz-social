@@ -26,6 +26,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
@@ -50,6 +52,7 @@ import com.eriyaz.social.Constants;
 import com.eriyaz.social.ForceUpdateChecker;
 import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.PostsAdapter;
+import com.eriyaz.social.behaviors.MoveUpwardBehavior;
 import com.eriyaz.social.enums.PostStatus;
 import com.eriyaz.social.enums.ProfileStatus;
 import com.eriyaz.social.managers.DatabaseHelper;
@@ -77,6 +80,7 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
 
     private PostsAdapter postsAdapter;
     private RecyclerView recyclerView;
+//    private Button recordButton;
     private Button recordButton;
 
 
@@ -280,6 +284,10 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         if (recyclerView == null) {
 //            recordButton = (FloatingActionButton) findViewById(R.id.addNewPostFab);
             recordButton = (Button) findViewById(R.id.addNewPostFab);
+            MoveUpwardBehavior fancyBehavior = new MoveUpwardBehavior();
+            CoordinatorLayout.LayoutParams params =
+                    (CoordinatorLayout.LayoutParams) recordButton.getLayoutParams();
+            params.setBehavior(fancyBehavior);
             if (recordButton != null) {
                 recordButton.setOnClickListener(new View.OnClickListener() {
                     @Override

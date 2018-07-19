@@ -54,7 +54,7 @@ public class Application extends android.app.Application {
     }
 
     private void fetchRemoteConfig() {
-        mFirebaseRemoteConfig.fetch()
+        mFirebaseRemoteConfig.fetch(0)
             .addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
