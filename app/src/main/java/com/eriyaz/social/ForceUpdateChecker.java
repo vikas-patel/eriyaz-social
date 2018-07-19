@@ -16,15 +16,18 @@ public class ForceUpdateChecker {
 
     private static final String TAG = ForceUpdateChecker.class.getSimpleName();
 
-    public static final String KEY_UPDATE_COMPULSORY= "is_update_compulsory";
-    public static final String KEY_UPDATE_BANNER_PERSISTENCE= "is_update_banner_persistent";
+    private static final java.lang.String KEY_UPDATE_SKIP_REMINDER = "is_update_skip_reminder";
+    public static final String KEY_UPDATE_COMPULSORY = "is_update_compulsory";
+    public static final String KEY_UPDATE_BANNER_PERSISTENCE = "is_update_banner_persistent";
     public static final String KEY_CURRENT_VERSION = "current_version";
+
 
     private OnUpdateNeededListener onUpdateNeededListener;
     private Context context;
 
     public interface OnUpdateNeededListener {
         void onUpdateCompulsory();
+
         void onUpdateReminder(boolean isPersistent);
     }
 
@@ -44,8 +47,9 @@ public class ForceUpdateChecker {
         int appVersion = getAppVersion(context);
         if (appVersion != 0 && currentVersion > appVersion
                 && onUpdateNeededListener != null) {
-//        if(true) {
-            if (remoteConfig.getBoolean(KEY_UPDATE_COMPULSORY)) {
+            if (remoteConfig.getBoolean(KEY_UPDATE_SKIP_REMINDER)) {
+                //do nothing
+            } else if (remoteConfig.getBoolean(KEY_UPDATE_COMPULSORY)) {
                 onUpdateNeededListener.onUpdateCompulsory();
             } else {
                 onUpdateNeededListener.onUpdateReminder(remoteConfig.getBoolean(KEY_UPDATE_BANNER_PERSISTENCE));

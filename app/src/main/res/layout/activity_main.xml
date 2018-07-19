@@ -66,41 +66,21 @@
 
     </RelativeLayout>
 
-    <!--<android.support.design.widget.FloatingActionButton-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_margin="@dimen/large_intrinsic_padding"-->
-        <!--android:clickable="true"-->
-        <!--app:srcCompat="@drawable/ic_mic_white_48dp"-->
-        <!--android:layout_gravity="bottom|right" />-->
 
-    <FrameLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:elevation="@dimen/large_intrinsic_padding"
-        android:layout_gravity="bottom|right">
-
-        <Button
-            android:id="@+id/addNewPostFab"
-            android:layout_width="120dp"
-            android:layout_height="60dp"
-            android:elevation="8dp"
-            android:translationZ="8dp"
-            android:stateListAnimator="@null"
-            android:background="@drawable/record_button_bg"
-            android:layout_margin="@dimen/intrinsic_padding" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="RECORD"
-            android:elevation="8dp"
-            android:translationZ="8dp"
-            android:textSize="20dp"
-            android:textStyle="bold"
-            android:textColor="@android:color/white"
-            android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
-    </FrameLayout>
+    <Button
+        android:id="@+id/addNewPostFab"
+        android:layout_width="120dp"
+        android:layout_height="60dp"
+        android:text="RECORD"
+        android:textSize="20dp"
+        android:textStyle="bold"
+        android:textColor="@android:color/white"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:elevation="12dp"
+        android:translationZ="12dp"
+        android:stateListAnimator="@null"
+        android:background="@drawable/record_button_bg"
+        android:layout_margin="@dimen/intrinsic_padding"
+        android:layout_gravity="bottom|right" />
 
 </android.support.design.widget.CoordinatorLayout>
