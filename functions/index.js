@@ -427,6 +427,38 @@ exports.detailedFeedbackPoints = functions.database.ref('/post-comments/{postId}
     });
 });
 
+exports.ratingDetailedTextPoints = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}/detailedText').onCreate(event => {
+    console.log("rating detailedText set");
+    const ratingId = event.params.ratingId;
+    const detailedText = event.data.val();
+    const authorId = event.params.authorId;
+    const commentListRef = event.data.ref.parent;
+    const comment_points = 1;
+    if (!detailedText) {
+        console.log("empty detailed text")
+        return;
+    }
+    const ratingRef = event.data.ref.parent;
+    return ratingRef.once('value').then(snapshot => {
+        var rating = snapshot.val();
+        if (rating.rating <= 5 || rating.rating > 15) {
+            console.log("no points for not ok and amazing rating");
+            return;
+        }
+        console.log("reward extra points for detailed rating text");
+        // Get user points ref
+        const userPointsRef = admin.database().ref(`/user-points/${authorId}`);
+        var newPointRef = userPointsRef.push();
+        newPointRef.set({
+            'action': "add",
+            'type': 'detailed feedback',
+            'value': comment_points,
+            'creationDate': admin.database.ServerValue.TIMESTAMP
+        });
+        return addPoints(authorId, comment_points);
+    });
+});
+
 // Two different fuctions for post add and remove, because there were too many post update request
 // and firebase has restriction on frequency of function calls.
 exports.postAddedPoints = functions.database.ref('/posts/{postId}').onCreate(event => {
@@ -501,6 +533,14 @@ exports.ratingPoints = functions.database.ref('/post-ratings/{postId}/{authorId}
 
     const ratingAuthorId = event.params.authorId;
     const postId = event.params.postId;
+    var point = 1;
+    if (!event.data.exists()) {
+        point = -1;
+        const rating = event.data.previous.val();
+        if (rating.detailedText && rating.rating > 5 && rating.rating <= 15) {
+            point = -2;
+        }
+    }
 
     // Get rated post.
     const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
@@ -517,18 +557,14 @@ exports.ratingPoints = functions.database.ref('/post-ratings/{postId}/{authorId}
         newPointRef.set({
             'action': event.data.exists() ? "add":"remove",
             'type': 'rating',
-            'value': event.data.exists() ? 1:-1,
+            'value': point,
             'creationDate': admin.database.ServerValue.TIMESTAMP
         });
 
         // Get rating author.
         const authorProfilePointsRef = admin.database().ref(`/profiles/${ratingAuthorId}/points`);
         return authorProfilePointsRef.transaction(current => {
-            if (event.data.exists()) {
-              return (current || 0) + 1;
-            } else {
-              return (current || 0) - 1;
-            }
+              return (current || 0) + point;
         }).then(() => {
             console.log('User rating points updated.');
         });

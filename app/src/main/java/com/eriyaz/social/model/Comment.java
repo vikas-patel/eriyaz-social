@@ -30,7 +30,6 @@ public class Comment {
     private String text;
     private String authorId;
     private long createdDate;
-    private boolean detailedFeedback;
 
 
     public Comment() {
@@ -73,13 +72,5 @@ public class Comment {
 
     public void setCreatedDate(long createdDate) {
         this.createdDate = createdDate;
-    }
-
-    public boolean isDetailedFeedback() {
-        return detailedFeedback;
-    }
-
-    public void setDetailedFeedback(boolean aDetailedFeedback) {
-        detailedFeedback = aDetailedFeedback;
     }
 }

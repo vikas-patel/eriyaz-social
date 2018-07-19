@@ -327,31 +327,39 @@ public class PlaybackFragment extends BaseDialogFragment {
         if (error) return;
 
         RadioButton selectedVoiceQuality = voiceQualityRadioGroup.findViewById(voiceQualityRadioGroup.getCheckedRadioButtonId());
-        String detailed_feedback_text = String.format(getString(R.string.detailed_feedback_combined),
-                mistakesTextView.getText(),
+        String ratingDetailedText = String.format(getString(R.string.rating_detailed_text),
                 getMelodyText(),
                 selectedVoiceQuality.getText(),
                 getProblems());
-        Comment detailed_comment = new Comment(detailed_feedback_text);
+        String commentText = mistakesTextView.getText().toString();
+        if (commentText.length() > 0) {
+            Comment detailed_comment = new Comment(commentText);
+            detailed_comment.setAuthorId(firebaseAuth.getCurrentUser().getUid());
+            commentManager.createOrUpdateComment(detailed_comment, post.getId(), new OnTaskCompleteListener() {
+                @Override
+                public void onTaskComplete(boolean success) {
+                }
+            });
+        }
+
         if (ratingBar.getProgress() > 0 && ratingBar.getProgress() <= 5) {
+            ratingController.getRating().setDetailedText(ratingDetailedText);
             ratingController.handleRatingClickAction((BaseActivity) getActivity(), post, ratingBar.getProgress());
+            dismiss();
         } else if (ratingBar.getProgress() < 15){
             // extra marks only on rating create
-            detailed_comment.setDetailedFeedback(true);
-        }
-        detailed_comment.setAuthorId(firebaseAuth.getCurrentUser().getUid());
-        ((BaseActivity) getActivity()).showProgress(R.string.message_submit_detailed_feedback);
-        commentManager.createOrUpdateComment(detailed_comment, post.getId(), new OnTaskCompleteListener() {
-            @Override
-            public void onTaskComplete(boolean success) {
-                ((BaseActivity) getActivity()).hideProgress();
-                if (success) {
-                    dismiss();
-                } else {
-                    ((BaseActivity) getActivity()).showSnackBar(R.string.error_fail_create_detailed_feedback);
+            ratingController.updateDetailedText(ratingDetailedText, new OnTaskCompleteListener() {
+                @Override
+                public void onTaskComplete(boolean success) {
+                    ((BaseActivity) getActivity()).hideProgress();
+                    if (success) {
+                        dismiss();
+                    } else {
+                        ((BaseActivity) getActivity()).showSnackBar(R.string.error_fail_create_detailed_feedback);
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     private CharSequence getProblems() {

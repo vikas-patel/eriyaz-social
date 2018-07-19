@@ -13,6 +13,7 @@ public class Rating implements Serializable {
     private String authorId;
     private long createdDate;
     private float rating;
+    private String detailedText;
     // only for rated post
     private String postId;
     private boolean viewedByPostAuthor;
@@ -77,6 +78,14 @@ public class Rating implements Serializable {
 
     public void setViewedByPostAuthor(boolean viewedByPostAuthor) {
         this.viewedByPostAuthor = viewedByPostAuthor;
+    }
+
+    public String getDetailedText() {
+        return detailedText;
+    }
+
+    public void setDetailedText(String detailedText) {
+        this.detailedText = detailedText;
     }
 
     @Override

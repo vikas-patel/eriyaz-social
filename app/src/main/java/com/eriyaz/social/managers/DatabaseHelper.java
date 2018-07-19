@@ -604,7 +604,29 @@ public class DatabaseHelper {
         } catch (Exception e) {
             LogUtil.logError(TAG, "createOrUpdateRating()", e);
         }
+    }
 
+    public void updateRatingDetailedText(final String postId, final String ratingId, String text,
+                                         final OnTaskCompleteListener onTaskCompleteListener) {
+        try {
+            String authorId = firebaseAuth.getCurrentUser().getUid();
+            DatabaseReference mLikesReference = database.getReference().child("post-ratings")
+                                                        .child(postId).child(authorId)
+                                                        .child(ratingId).child("detailedText");
+            mLikesReference.setValue(text, new DatabaseReference.CompletionListener() {
+                @Override
+                public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                    if (databaseError == null) {
+                        onTaskCompleteListener.onTaskComplete(true);
+                    } else {
+                        onTaskCompleteListener.onTaskComplete(false);
+                        LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
+                    }
+                }
+            });
+        } catch (Exception e) {
+            LogUtil.logError(TAG, "updateRatingDetailedText()", e);
+        }
     }
 
     public void markNotificationRead(Notification notification) {

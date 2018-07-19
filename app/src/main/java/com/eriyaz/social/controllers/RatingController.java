@@ -19,6 +19,7 @@ import com.eriyaz.social.enums.ProfileStatus;
 import com.eriyaz.social.managers.PostManager;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectExistListener;
+import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Rating;
 import com.xw.repo.BubbleSeekBar;
@@ -86,6 +87,15 @@ public class RatingController {
             removeLocalPostRatingCounter(post);
         }
         ratingClickAction(ratingValue);
+    }
+
+    public void updateDetailedText(String detailedText, OnTaskCompleteListener onTaskCompleteListener) {
+        rating.setDetailedText(detailedText);
+        if (rating == null || rating.getId() == null) {
+            onTaskCompleteListener.onTaskComplete(false);
+            return;
+        }
+        ApplicationHelper.getDatabaseHelper().updateRatingDetailedText(postId, rating.getId(), detailedText, onTaskCompleteListener);
     }
 
     private void addRating(float ratingValue) {

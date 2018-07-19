@@ -24,15 +24,6 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         android:background="@null"/>
-    <!--<ImageView-->
-        <!--android:id="@+id/replyImageView"-->
-        <!--app:srcCompat="@drawable/ic_message_reply"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:paddingRight="@dimen/intrinsic_padding"-->
-        <!--android:visibility="gone"-->
-        <!--android:layout_alignParentRight="true"-->
-        <!--android:layout_alignParentBottom="true"-->
-        <!--android:layout_height="wrap_content" />-->
 
     <com.eriyaz.social.views.ExpandableTextView
         android:id="@+id/ratingText"
@@ -49,15 +40,15 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal">
-            <TextView
-                android:id="@+id/authorNameTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginRight="@dimen/intrinsic_padding"
-                android:textAppearance="@style/TextAppearance.Highlight" />
+            <!--<TextView-->
+                <!--android:id="@+id/authorNameTextView"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_marginRight="@dimen/intrinsic_padding"-->
+                <!--android:textAppearance="@style/TextAppearance.Highlight" />-->
             <TextView
                 android:id="@+id/expandable_text"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:autoLink="web"
                 android:ellipsize="end"
@@ -68,6 +59,7 @@
                 android:visibility="gone"
                 android:layout_width="wrap_content"
                 android:paddingRight="@dimen/large_intrinsic_padding"
+                android:paddingLeft="@dimen/large_intrinsic_padding"
                 android:layout_height="wrap_content" />
         </LinearLayout>
 

@@ -19,7 +19,11 @@
 package com.eriyaz.social.adapters.holders;
 
 import android.content.Context;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
@@ -51,8 +55,8 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
 
     private final ImageView avatarImageView;
     private final ExpandableTextView ratingExpandedTextView;
-    private final TextView ratingText;
-    private final TextView authorNameTextView;
+    private final TextView ratingTextView;
+//    private final TextView authorNameTextView;
     private final TextView dateTextView;
     private final ImageView questionImageView;
     private final ProfileManager profileManager;
@@ -70,8 +74,8 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
         avatarImageView = (ImageView) itemView.findViewById(R.id.avatarImageView);
         questionImageView = itemView.findViewById(R.id.questionImageView);
         ratingExpandedTextView = (ExpandableTextView) itemView.findViewById(R.id.ratingText);
-        ratingText = itemView.findViewById(R.id.expandable_text);
-        authorNameTextView = itemView.findViewById(R.id.authorNameTextView);
+        ratingTextView = itemView.findViewById(R.id.expandable_text);
+//        authorNameTextView = itemView.findViewById(R.id.authorNameTextView);
         dateTextView = (TextView) itemView.findViewById(R.id.dateTextView);
         optionMenuButton = itemView.findViewById(R.id.optionMenuButton);
     }
@@ -80,9 +84,11 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
         final String authorId = rating.getAuthorId();
 
         questionImageView.setVisibility(View.GONE);
-        ratingText.setVisibility(View.VISIBLE);
-
-        ratingExpandedTextView.setText(String.valueOf(rating.getRating()));
+        ratingTextView.setVisibility(View.VISIBLE);
+        String ratingText = String.valueOf(rating.getRating());
+        if (rating.getDetailedText() != null && !rating.getDetailedText().isEmpty()) {
+            ratingText = ratingText + "\n" + rating.getDetailedText();
+        }
 
         CharSequence date = FormatterUtil.getRelativeTimeSpanString(context, rating.getCreatedDate());
         dateTextView.setText(date);
@@ -123,14 +129,14 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                 popup.show();
             }
         });
-
+        boolean hideRating = false;
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         if (firebaseUser != null) {
             String currentUserId = firebaseUser.getUid();
             if (currentUserId.equals(post.getAuthorId()) && !currentUserId.equals(rating.getAuthorId())
                     &&  !rating.isViewedByPostAuthor()) {
                 questionImageView.setVisibility(View.VISIBLE);
-                ratingText.setVisibility(View.GONE);
+                hideRating = true;
                 questionImageView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(final View v) {
@@ -148,18 +154,21 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                 });
             }
         }
+        if (!hideRating) ratingExpandedTextView.setText(ratingText);
         if (authorId != null)
             profileManager.getProfileSingleValue(authorId, createOnProfileChangeListener(ratingExpandedTextView,
-                    avatarImageView));
+                    avatarImageView, ratingText, hideRating));
     }
 
     private OnObjectChangedListener<Profile> createOnProfileChangeListener(final ExpandableTextView expandableTextView,
-                                                                           final ImageView avatarImageView) {
+                                                                           final ImageView avatarImageView,
+                                                                           final String ratingText,
+                                                                           final boolean hideRating) {
         return new OnObjectChangedListener<Profile>() {
             @Override
             public void onObjectChanged(Profile obj) {
                 if (((BaseActivity)context).isActivityDestroyed()) return;
-                authorNameTextView.setText(obj.getUsername());
+                fillRating(obj.getUsername(), ratingText, expandableTextView, hideRating);
                 if (obj.getPhotoUrl() != null) {
                     Glide.with(context)
                             .load(obj.getPhotoUrl())
@@ -174,6 +183,19 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                 }
             }
         };
+    }
+
+    private void fillRating(String userName, String comment, ExpandableTextView commentTextView, boolean hideRating) {
+        String text = userName + "   ";
+        if (!hideRating) {
+            text = text + comment;
+        }
+        Spannable contentString = new SpannableStringBuilder(text);
+        int usernameLen = userName != null ? userName.length():0;
+        contentString.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.highlight_text)),
+                0, usernameLen, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        commentTextView.setText(contentString);
     }
 
     private boolean showReplyOption(Post post, Rating rating) {
