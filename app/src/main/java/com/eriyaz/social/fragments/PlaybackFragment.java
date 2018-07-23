@@ -478,18 +478,23 @@ public class PlaybackFragment extends BaseDialogFragment {
     private void updateRatingDetails() {
         intialRatingValue = (int) rating.getRating();
         ratingController = new RatingController(ratingBar, post.getId(), rating);
-        ratingBar.setCustomSectionTextArray(new BubbleSeekBar.CustomSectionTextArray() {
-            @NonNull
-            @Override
-            public SparseArray<String> onCustomize(int sectionCount, @NonNull SparseArray<String> array) {
-                array.clear();
-                array.put(1, "not ok");
-                array.put(3, "ok");
-                array.put(5, "good");
-                array.put(7, "amazing");
-                return array;
-            }
-        });
+//        ratingBar.setCustomSectionTextArray(new BubbleSeekBar.CustomSectionTextArray() {
+//            @NonNull
+//            @Override
+//            public SparseArray<String> onCustomize(int sectionCount, @NonNull SparseArray<String> array) {
+//                array.clear();
+////                array.put(0,"0");
+//                array.put(1, "not ok");
+////                array.put(2,"5");
+//                array.put(3, "ok");
+////                array.put(4,"10");
+//                array.put(5, "good");
+////                array.put(6,"15");
+//                array.put(7, "amazing");
+////                array.put(8,"20");
+//                return array;
+//            }
+//        });
         ratingBar.setOnProgressChangedListener(new BubbleSeekBar.OnProgressChangedListenerAdapter() {
             @Override
             public void onProgressChanged(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat, boolean fromUser) {
