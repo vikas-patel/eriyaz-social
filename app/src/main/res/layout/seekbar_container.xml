@@ -4,15 +4,71 @@
     android:layout_width="match_parent"
 
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:clipToPadding="false"
+    android:orientation="vertical"
+    android:paddingTop="10dp">
+
+
+
+    <ImageView
+        android:id="@+id/rightArrow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="15dp"
+        android:layout_marginTop="-15dp"
+        android:background="@drawable/ic_arrow_right"
+        android:paddingTop="0dp"
+        android:scaleType="center"
+        android:scaleY="0.3" />
+
+    <LinearLayout
+        android:id="@+id/seekbarLabelsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="10dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:text="Not Ok"
+            android:textAlignment="center"
+            android:textSize="10dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:text="Ok"
+            android:textAlignment="center"
+            android:textSize="10dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:text="Good"
+            android:textAlignment="center"
+            android:textSize="10dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:text="Amazing"
+            android:textAlignment="center"
+            android:textSize="10dp" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/seekbarContainerLayout"
-        android:layout_marginTop="8dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_marginTop="8dp">
 
         <View
             android:layout_width="wrap_content"
@@ -40,46 +96,47 @@
 
     </LinearLayout>
     <!--<com.xw.repo.BubbleSeekBar-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--app:bsb_bubble_color="@color/primary_dark"-->
-        <!--app:bsb_bubble_text_color="@color/colorPrimaryDark"-->
-        <!--app:bsb_max="20"-->
-        <!--app:bsb_min="0"-->
-        <!--app:bsb_progress="0"-->
-        <!--app:bsb_section_count="20"-->
-        <!--app:bsb_section_text_position="bottom_sides"-->
-        <!--app:bsb_show_progress_in_float="false"-->
-        <!--app:bsb_show_section_mark="true"-->
-        <!--app:bsb_show_section_text="true"-->
-        <!--app:bsb_show_thumb_text="true"/>-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--app:bsb_bubble_color="@color/primary_dark"-->
+    <!--app:bsb_bubble_text_color="@color/colorPrimaryDark"-->
+    <!--app:bsb_max="20"-->
+    <!--app:bsb_min="0"-->
+    <!--app:bsb_progress="0"-->
+    <!--app:bsb_section_count="20"-->
+    <!--app:bsb_section_text_position="bottom_sides"-->
+    <!--app:bsb_show_progress_in_float="false"-->
+    <!--app:bsb_show_section_mark="true"-->
+    <!--app:bsb_show_section_text="true"-->
+    <!--app:bsb_show_thumb_text="true"/>-->
 
     <com.xw.repo.BubbleSeekBar
         android:id="@+id/ratingBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="0dp"
         app:bsb_max="20"
         app:bsb_min="0"
         app:bsb_progress="0"
-        app:bsb_second_track_size="5dp"
-        android:layout_marginTop="0dp"
-        app:bsb_thumb_radius="10dp"
-        app:bsb_show_thumb_text="true"
-        app:bsb_seek_by_section="false"
-        app:bsb_show_section_mark="false"
         app:bsb_second_track_color="@color/primary_light"
-        app:bsb_section_count="8"
-        app:bsb_section_text_position="below_section_mark"
-        app:bsb_track_color="@color/transparentColor"
+        app:bsb_second_track_size="5dp"
+        app:bsb_section_count="4"
         app:bsb_section_text_color="@color/primary_dark"
-        app:bsb_touch_to_seek="true"/>
+        app:bsb_section_text_position="below_section_mark"
+        app:bsb_section_text_size="10dp"
+        app:bsb_seek_by_section="false"
+        app:bsb_show_section_mark="true"
+        app:bsb_show_thumb_text="true"
+        app:bsb_thumb_radius="8dp"
+        app:bsb_touch_to_seek="true"
+        app:bsb_track_color="@color/transparentColor" />
 
     <!--<org.adw.library.widgets.discreteseekbar.DiscreteSeekBar-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--app:dsb_max="20"-->
-        <!--app:dsb_min="0"-->
-        <!--app:dsb_value="0" />-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--app:dsb_max="20"-->
+    <!--app:dsb_min="0"-->
+    <!--app:dsb_value="0" />-->
     <!--<SeekBar-->
     <!--android:layout_width="match_parent"-->
     <!--android:layout_height="wrap_content"-->
