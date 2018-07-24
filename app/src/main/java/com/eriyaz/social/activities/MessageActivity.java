@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -29,6 +30,8 @@ import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
 import com.eriyaz.social.model.ListItem;
 import com.eriyaz.social.model.Message;
 import com.eriyaz.social.model.ReplyTextItem;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,6 +47,7 @@ public class MessageActivity extends BaseActivity {
     private RecyclerView recyclerView;
     private ProgressBar progressBar;
     private EditText messageEditText;
+    private LinearLayout newMessageLinearLayout;
 
     private String userId;
     private ScrollView scrollView;
@@ -67,6 +71,11 @@ public class MessageActivity extends BaseActivity {
 
         messageEditText = (EditText) findViewById(R.id.messageEditText);
         messageEditText.setHint(R.string.message_text_hint);
+        newMessageLinearLayout = findViewById(R.id.newMessageContainer);
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (firebaseUser != null && firebaseUser.getUid().equals(userId)) {
+            newMessageLinearLayout.setVisibility(View.GONE);
+        }
         final Button sendButton = (Button) findViewById(R.id.sendButton);
 
         messageEditText.addTextChangedListener(new TextWatcher() {

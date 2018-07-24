@@ -55,6 +55,7 @@ import com.eriyaz.social.adapters.PostsAdapter;
 import com.eriyaz.social.behaviors.MoveUpwardBehavior;
 import com.eriyaz.social.enums.PostStatus;
 import com.eriyaz.social.enums.ProfileStatus;
+import com.eriyaz.social.fragments.PlaybackFragment;
 import com.eriyaz.social.managers.DatabaseHelper;
 import com.eriyaz.social.managers.PostManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;

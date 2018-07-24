@@ -43,6 +43,7 @@ import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.utils.FormatterUtil;
 import com.eriyaz.social.utils.ImageUtil;
+import com.eriyaz.social.utils.PreferencesUtil;
 import com.eriyaz.social.views.ExpandableTextView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -58,7 +59,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
     private final TextView ratingTextView;
 //    private final TextView authorNameTextView;
     private final TextView dateTextView;
-    private final ImageView questionImageView;
+    private final TextView questionTextView;
     private final ProfileManager profileManager;
     private RatingsAdapter.Callback callback;
     protected ImageButton optionMenuButton;
@@ -72,7 +73,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
         profileManager = ProfileManager.getInstance(itemView.getContext().getApplicationContext());
 
         avatarImageView = (ImageView) itemView.findViewById(R.id.avatarImageView);
-        questionImageView = itemView.findViewById(R.id.questionImageView);
+        questionTextView = itemView.findViewById(R.id.questionTextView);
         ratingExpandedTextView = (ExpandableTextView) itemView.findViewById(R.id.ratingText);
         ratingTextView = itemView.findViewById(R.id.expandable_text);
 //        authorNameTextView = itemView.findViewById(R.id.authorNameTextView);
@@ -83,7 +84,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
     public void bindData(final Rating rating, final Post post) {
         final String authorId = rating.getAuthorId();
 
-        questionImageView.setVisibility(View.GONE);
+        questionTextView.setVisibility(View.GONE);
         ratingTextView.setVisibility(View.VISIBLE);
         String ratingText = String.valueOf(rating.getRating());
         if (rating.getDetailedText() != null && !rating.getDetailedText().isEmpty()) {
@@ -135,11 +136,17 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
             String currentUserId = firebaseUser.getUid();
             if (currentUserId.equals(post.getAuthorId()) && !currentUserId.equals(rating.getAuthorId())
                     &&  !rating.isViewedByPostAuthor()) {
-                questionImageView.setVisibility(View.VISIBLE);
+                questionTextView.setVisibility(View.VISIBLE);
                 hideRating = true;
-                questionImageView.setOnClickListener(new View.OnClickListener() {
+                if (!PreferencesUtil.isUserViewedRatingAtLeastOnce(context)) {
+                    questionTextView.setText("Tap to view");
+                }
+                questionTextView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(final View v) {
+                        if (!PreferencesUtil.isUserViewedRatingAtLeastOnce(context)) {
+                            PreferencesUtil.setUserViewedRatingAtLeastOnce(context, true);
+                        }
                         int position = getAdapterPosition();
                         if (position != RecyclerView.NO_POSITION) {
                             v.setEnabled(false);

@@ -15,7 +15,7 @@
     </entry>
     <entry>
         <key>current_version</key>
-        <value>40</value>
+        <value>41</value>
     </entry>
     <entry>
         <key>is_update_compulsory</key>
@@ -24,6 +24,10 @@
     <entry>
         <key>is_update_banner_persistent</key>
         <value>false</value>
+    </entry>
+    <entry>
+        <key>is_update_skip_reminder</key>
+        <value>true</value>
     </entry>
 </defaultsMap>
     <!-- END xml_defaults -->

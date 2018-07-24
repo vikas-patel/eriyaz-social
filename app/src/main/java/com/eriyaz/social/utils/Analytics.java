@@ -175,7 +175,7 @@ public class Analytics {
     public void logAlertDialog(Context context, CharSequence msg) {
         Bundle bundle = new Bundle();
         bundle.putString(FirebaseAnalytics.Param.ITEM_ID, context.getClass().getSimpleName());
-        CharSequence upToNCharacters = msg.subSequence(0, Math.min(msg.length(), 15));
+        CharSequence upToNCharacters = msg.subSequence(0, Math.min(msg.length(), 25));
         bundle.putCharSequence("Message", upToNCharacters);
         firebase.logEvent(OPEN_ALERT_DIALOG, bundle);
     }

@@ -161,11 +161,11 @@
     <string name="score_label">contribution score</string>
     <string name="insufficient_points_view_rating">Dear %1$s, this is a rating for rating exchange platform. You need 1 point to view this rating. Please rate others to earn points.</string>
     <string name="point_spent_view_rating">1 point spent to view rating.</string>
-    <string name="points_needed_text"></string>
     <string name="rating_self_recording">This is your own recording so your rating is not considered. Please wait for others to rate you.</string>
-    <string name="min_play_record">Dear user, it is not fair to evaluate someone without listening properly. Please listen for at least 10 seconds before rating.</string>
+    <string name="min_play_record"><![CDATA[Dear user, it is not fair to evaluate someone without listening properly. Please <font color=\'#17a1d7\'>listen for at least 10 seconds</font> before rating.]]></string>
     <string name="confirm_longer_recording"><![CDATA[Statistics suggests people decide on rating after listening to just 30 secs on an average. So it is best to put shorter recordings to get more accurate evaluation. Shorter recordings also load faster and consume less data. \nIf you still want to proceed with longer recording <font color=\'#17a1d7\'>you will need to spend 10 points.</font>]]></string>
     <string name="rating_benchmark">Congrats on your first recording. This is a hard to please audience of all singers. So, don\'t lose hope.</string>
+    <string name="first_rating_message">You just rated %1$d/20.\nNote : Be fair and genuine in your ratings, or you might be blacklisted by other members.</string>
     <plurals name="posts_counter_format">
         <item quantity="one">post</item>
         <item quantity="other">posts</item>

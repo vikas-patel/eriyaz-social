@@ -39,8 +39,10 @@ import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
 import com.eriyaz.social.model.Comment;
 import com.eriyaz.social.model.Post;
+import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.model.RecordingItem;
+import com.eriyaz.social.utils.PreferencesUtil;
 import com.eriyaz.social.utils.RatingUtil;
 import com.eriyaz.social.utils.TimestampTagUtil;
 import com.google.android.exoplayer2.DefaultLoadControl;
@@ -531,6 +533,12 @@ public class PlaybackFragment extends BaseDialogFragment {
                         return;
                     }
                 }
+
+                if (!PreferencesUtil.isUserRatedAtLeastOnce(getActivity())) {
+                    PreferencesUtil.setUserRatedAtLeastOnce(getActivity(), true);
+                    showDialog(String.format(getString(R.string.first_rating_message), progress));
+                }
+
                 ratingController.setUpdatingRatingCounter(false);
                 isRatingChanged = true;
                 rateLabelTextView.setVisibility(View.GONE);
@@ -588,7 +596,14 @@ public class PlaybackFragment extends BaseDialogFragment {
 
     private void showDialog(int messageId) {
         AlertDialog.Builder builder = new BaseAlertDialogBuilder(this.getActivity());
-        builder.setMessage(getResources().getString(messageId));
+        builder.setMessage(Html.fromHtml(getString(messageId)));
+        builder.setPositiveButton(R.string.button_ok, null);
+        builder.show();
+    }
+
+    private void showDialog(String msg) {
+        AlertDialog.Builder builder = new BaseAlertDialogBuilder(this.getActivity());
+        builder.setMessage(msg);
         builder.setPositiveButton(R.string.button_ok, null);
         builder.show();
     }
