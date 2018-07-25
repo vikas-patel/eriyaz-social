@@ -52,6 +52,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
     private final TextView dateTextView;
     private final ImageView questionImageView;
     private final ImageView replyImageView;
+    private final TextView trustedTextView;
     private final ProfileManager profileManager;
     private RatingsAdapter.Callback callback;
     private Context context;
@@ -70,6 +71,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
         authorNameTextView = itemView.findViewById(R.id.authorNameTextView);
         dateTextView = (TextView) itemView.findViewById(R.id.dateTextView);
         replyImageView = itemView.findViewById(R.id.replyImageView);
+        trustedTextView = (TextView)itemView.findViewById(R.id.tvTrusted);
 
         if (callback != null) {
             itemView.setOnLongClickListener(new View.OnLongClickListener() {
@@ -142,11 +144,11 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
             }
         }
         if (authorId != null)
-            profileManager.getProfileSingleValue(authorId, createOnProfileChangeListener(ratingExpandedTextView,
+            profileManager.getProfileSingleValue(authorId, createOnProfileChangeListener(trustedTextView, ratingExpandedTextView,
                     avatarImageView));
     }
 
-    private OnObjectChangedListener<Profile> createOnProfileChangeListener(final ExpandableTextView expandableTextView,
+    private OnObjectChangedListener<Profile> createOnProfileChangeListener(final TextView trustedTextView, final ExpandableTextView expandableTextView,
                                                                            final ImageView avatarImageView) {
         return new OnObjectChangedListener<Profile>() {
             @Override
@@ -161,7 +163,18 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                             .error(R.drawable.ic_stub)
                             .into(avatarImageView);
                 }
+                setTrusted(trustedTextView, obj);
             }
         };
+    }
+
+    private void setTrusted(final TextView trustedTextView, Profile obj){
+        if(obj.getFeedbackTrustScore()>0){
+            trustedTextView.setVisibility(View.VISIBLE);
+            trustedTextView.setText(R.string.trust_label);
+        }else{
+            trustedTextView.setVisibility(View.GONE);
+        }
+        //trustedTextView.setVisibility(View.VISIBLE);
     }
 }

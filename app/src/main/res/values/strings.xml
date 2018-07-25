@@ -152,6 +152,9 @@
     <string name="send_comment_button_label">Send</string>
     <string name="posted_by_label">Posted by:</string>
     <string name="score_label">contribution score</string>
+    <string name="trust_label_profile">[ Trusted with Feedback ]</string>
+    <string name="trust_label">Trusted</string>
+    <string name="trust_switch_label">Trusted </string>
     <string name="insufficient_points_view_rating">Dear %1$s, this is a rating for rating exchange platform. You need 1 point to view this rating. Please rate others to earn points.</string>
     <string name="point_spent_view_rating">1 point spent to view rating.</string>
     <string name="points_needed_text">You need 3 points to post your recording. Please rate other people to earn points.</string>

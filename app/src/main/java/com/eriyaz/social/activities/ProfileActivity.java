@@ -32,9 +32,13 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -45,8 +49,10 @@ import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.ProfileTabAdapter;
 import com.eriyaz.social.enums.PostStatus;
 import com.eriyaz.social.fragments.PostsByUserFragment;
+import com.eriyaz.social.managers.DatabaseHelper;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
+import com.eriyaz.social.managers.listeners.OnProfileCreatedListener;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.LogUtil;
 import com.eriyaz.social.utils.LogoutHelper;
@@ -54,8 +60,9 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.iid.FirebaseInstanceId;
 
-public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnConnectionFailedListener {
+public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnConnectionFailedListener, OnProfileCreatedListener {
     private static final String TAG = ProfileActivity.class.getSimpleName();
     public static final int CREATE_POST_FROM_PROFILE_REQUEST = 22;
     public static final String USER_ID_EXTRA_KEY = "ProfileActivity.USER_ID_EXTRA_KEY";
@@ -79,6 +86,11 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
 
     private TextView pointsCountersTextView;
     private ProfileManager profileManager;
+
+    private Switch switchTrust;
+    private LinearLayout switchTrustContainer;
+    private TextView tvTrusted;
+    private Profile profile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,7 +126,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
 
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(profileTabViewPager);
-
+        tvTrusted = (TextView)findViewById(R.id.tvTrusted);
         messageTextLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -177,6 +189,19 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
         }
     }
 
+    @Override
+    public void onProfileCreated(boolean success) {
+        hideProgress();
+        if (success) {
+            //PreferencesUtil.setProfileCreated(this, success);
+            Toast.makeText(getApplicationContext(),"Profile Updated",Toast.LENGTH_SHORT).show();
+            DatabaseHelper.getInstance(ProfileActivity.this.getApplicationContext())
+                    .addRegistrationToken(FirebaseInstanceId.getInstance().getToken(), profile.getId());
+        } else {
+            showSnackBar(R.string.error_fail_create_profile);
+        }
+    }
+
     private Spannable buildCounterSpannable(String label, int value) {
         SpannableStringBuilder contentString = new SpannableStringBuilder();
         contentString.append(String.valueOf(value));
@@ -203,9 +228,64 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
             @Override
             public void onObjectChanged(Profile obj) {
                 if (isActivityDestroyed()) return;
+                profile = obj;
                 fillUIFields(obj);
+
             }
         };
+    }
+
+    private void setViewForRole(final Profile profile){
+        switchTrust = (Switch)findViewById(R.id.switchTrust);
+        switchTrustContainer = (LinearLayout) findViewById(R.id.switchTrustContainer);
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (firebaseUser == null) {
+            switchTrustContainer.setVisibility(View.GONE);
+            return;
+        }
+        profileManager.getProfileSingleValue(firebaseUser.getUid(), new OnObjectChangedListener<Profile>() {
+            @Override
+            public void onObjectChanged(Profile obj) {
+                if(obj != null) {
+                    if (obj.isAdmin()) {
+                        switchTrustContainer.setVisibility(View.VISIBLE);
+                        if(profile.getFeedbackTrustScore() != 0){
+                            switchTrust.setChecked(true);
+                        }else{
+                            switchTrust.setChecked(false);
+                        }
+                        switchTrust.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                            @Override
+                            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                                if(b) {
+                                    profile.setFeedbackTrustScore(1);
+                                    tvTrusted.setVisibility(View.VISIBLE);
+                                }else{
+                                    profile.setFeedbackTrustScore(0);
+                                    tvTrusted.setVisibility(View.GONE);
+                                }
+                                showProgress();
+                                ProfileManager.getInstance(ProfileActivity.this).createOrUpdateProfile(profile, null, ProfileActivity.this);
+                            }
+                        });
+                    }else{
+                        switchTrustContainer.setVisibility(View.GONE); //can be removed
+                    }
+                } else {
+                    LogUtil.logError(TAG, "updateRegistrationToken",
+                            new RuntimeException("Profile is not found"));
+                }
+            }
+        });
+    }
+
+    private void setTrustView(Profile profile){
+        if(profile.getFeedbackTrustScore() != 0){
+            tvTrusted.setVisibility(View.VISIBLE);
+            tvTrusted.setText(R.string.trust_label_profile);
+        }else{
+            tvTrusted.setVisibility(View.GONE); //else can be removed
+        }
     }
 
     private void fillUIFields(Profile profile) {
@@ -242,6 +322,9 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
             userPoints = (int) profile.getPoints();
             String pointsLabel = getResources().getString(R.string.score_label);
             pointsCountersTextView.setText(buildCounterSpannable(pointsLabel, userPoints));
+
+            setTrustView(profile);
+            setViewForRole(profile);
         }
     }
 

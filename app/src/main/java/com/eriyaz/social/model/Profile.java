@@ -35,6 +35,8 @@ public class Profile implements Serializable {
     private String registrationToken;
     private boolean admin;
 
+    private int feedbackTrustScore = 0;
+
     public Profile() {
         // Default constructor required for calls to DataSnapshot.getValue(Profile.class)
     }
@@ -115,12 +117,22 @@ public class Profile implements Serializable {
         this.admin = admin;
     }
 
+    public int getFeedbackTrustScore() {
+        return feedbackTrustScore;
+    }
+
+    public void setFeedbackTrustScore(int feedbackTrustScore) {
+        this.feedbackTrustScore = feedbackTrustScore;
+    }
+
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
         result.put("id", id);
         result.put("username", username);
         result.put("email", email);
         result.put("photoUrl", photoUrl);
+        result.put("feedbackTrustScore", feedbackTrustScore);
+//        result.put("points",points);
         return result;
     }
 

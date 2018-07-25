@@ -24,23 +24,19 @@ import android.support.v7.widget.RecyclerView;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
 import com.eriyaz.social.adapters.CommentsAdapter;
-import com.eriyaz.social.fragments.PlaybackFragment;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.model.Comment;
 import com.eriyaz.social.model.Profile;
-import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.utils.FormatterUtil;
 import com.eriyaz.social.utils.TimestampTagUtil;
 import com.eriyaz.social.views.ExpandableTextView;
@@ -58,6 +54,7 @@ public class CommentViewHolder extends RecyclerView.ViewHolder {
     private final ProfileManager profileManager;
     private CommentsAdapter.Callback callback;
     private Context context;
+    private final TextView trustedTextView;
 
     private HashTagHelper mistakesTextHashTagHelper;
 
@@ -72,6 +69,7 @@ public class CommentViewHolder extends RecyclerView.ViewHolder {
         avatarImageView = (ImageView) itemView.findViewById(R.id.avatarImageView);
         commentTextView = (ExpandableTextView) itemView.findViewById(R.id.commentText);
         dateTextView = (TextView) itemView.findViewById(R.id.dateTextView);
+        trustedTextView = (TextView)itemView.findViewById(R.id.tvTrusted);
 
         if (callback != null) {
             itemView.setOnLongClickListener(new View.OnLongClickListener() {
@@ -105,7 +103,7 @@ public class CommentViewHolder extends RecyclerView.ViewHolder {
     public void bindData(Comment comment) {
         final String authorId = comment.getAuthorId();
         if (authorId != null)
-            profileManager.getProfileSingleValue(authorId, createOnProfileChangeListener(commentTextView,
+            profileManager.getProfileSingleValue(authorId, createOnProfileChangeListener(trustedTextView, commentTextView,
                     avatarImageView, comment.getText()));
 
         commentTextView.setText(comment.getText());
@@ -121,7 +119,7 @@ public class CommentViewHolder extends RecyclerView.ViewHolder {
         });
     }
 
-    private OnObjectChangedListener<Profile> createOnProfileChangeListener(final ExpandableTextView expandableTextView, final ImageView avatarImageView, final String comment) {
+    private OnObjectChangedListener<Profile> createOnProfileChangeListener(final TextView trustedTextView, final ExpandableTextView expandableTextView, final ImageView avatarImageView, final String comment) {
         return new OnObjectChangedListener<Profile>() {
             @Override
             public void onObjectChanged(Profile obj) {
@@ -137,8 +135,20 @@ public class CommentViewHolder extends RecyclerView.ViewHolder {
                             .error(R.drawable.ic_stub)
                             .into(avatarImageView);
                 }
+                setTrusted(trustedTextView, obj);
             }
         };
+    }
+
+    private void setTrusted(final TextView trustedTextView, Profile obj){
+
+        if(obj.getFeedbackTrustScore()>0){
+            trustedTextView.setVisibility(View.VISIBLE);
+            trustedTextView.setText(R.string.trust_label);
+        }else{
+            trustedTextView.setVisibility(View.GONE);
+        }
+        //trustedTextView.setVisibility(View.VISIBLE);
     }
 
     private void fillComment(String userName, String comment, ExpandableTextView commentTextView) {

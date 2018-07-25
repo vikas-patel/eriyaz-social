@@ -96,6 +96,7 @@
                             tools:targetApi="lollipop"/>
 
                     </RelativeLayout>
+
                     <LinearLayout
                         android:id="@+id/messageTextLayout"
                         android:layout_width="wrap_content"
@@ -166,9 +167,56 @@
 
                         </LinearLayout>
 
+                        <TextView
+                            android:id="@+id/tvTrusted"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingTop="@dimen/small_intrinsic_padding"
+                            android:textAppearance="@style/TextAppearance.Highlight"
+                            android:visibility="gone"
+                            android:text="@string/trust_label_profile"
+                            android:textColor="@color/colorPrimary"
+                            />
+
+
                     </LinearLayout>
 
                 </RelativeLayout>
+                <LinearLayout
+                    android:id="@+id/switchTrustContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_gravity="right"
+                    android:layout_marginTop="@dimen/small_intrinsic_padding"
+                    android:layout_marginRight="@dimen/intrinsic_padding"
+                    android:paddingTop="5dp"
+                    android:visibility="gone"
+                    >
+
+                    <TextView
+                        android:id="@+id/tvTrustSwitchLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:text="@string/trust_switch_label"
+                        android:textColor="@color/colorPrimaryDark"
+                        android:layout_marginRight="10dp"
+                        />
+
+                    <Switch
+                        android:id="@+id/switchTrust"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:showText="true"
+                        android:checked="false"
+                        android:trackTint = "@color/colorPrimaryDark"
+                        android:layout_gravity="center_vertical"
+                        />
+                </LinearLayout>
+                <!--android:textOff="N"-->
+                <!--android:textOn="Y"-->
+                <!--android:switchMinWidth = "70dp"-->
 
                 <android.support.design.widget.TabLayout
                     android:id="@+id/tabs"

@@ -15,6 +15,17 @@
         app:shadow="false"
         app:border="true"
         app:border_width="0dp" />
+    <TextView
+        android:id="@+id/tvTrusted"
+        android:layout_below="@+id/avatarImageView"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:textSize="12sp"
+        android:textColor="@color/colorPrimaryDark"
+        android:text="Trusted"
+        android:gravity="center_horizontal"
+        />
 
     <com.eriyaz.social.views.ExpandableTextView
         android:id="@+id/commentText"
