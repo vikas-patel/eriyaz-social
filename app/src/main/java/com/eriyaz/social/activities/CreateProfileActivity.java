@@ -37,6 +37,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.eriyaz.social.Constants;
 import com.eriyaz.social.utils.ImageUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -172,6 +173,8 @@ public class CreateProfileActivity extends PickImageActivity implements OnProfil
             // perform the user login attempt.
             showProgress();
             profile.setUsername(name);
+            // 3 points on joinging
+            profile.setPoints(Constants.Profile.JOINING_POINT);
             ProfileManager.getInstance(this).createOrUpdateProfile(profile, imageUri, this);
         }
     }

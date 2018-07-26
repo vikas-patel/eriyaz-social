@@ -130,6 +130,7 @@ public class Profile implements Serializable {
         result.put("username", username);
         result.put("email", email);
         result.put("photoUrl", photoUrl);
+        result.put("points", points);
         return result;
     }
 

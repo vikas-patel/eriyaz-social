@@ -84,7 +84,6 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
 //    private Button recordButton;
     private Button recordButton;
 
-
     private PostManager postManager;
     private TextView newPostsCounterTextView;
     private PostManager.PostCounterWatcher postCounterWatcher;
@@ -427,21 +426,40 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         ProfileStatus profileStatus = profileManager.checkProfile();
 
         if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
-            openCreatePostActivity();
+            attemptCreatePostActivity();
         } else {
             doAuthorization(profileStatus);
         }
     }
 
-    private void openCreatePostActivity() {
-        int points_post_create = (int) remoteConfig.getLong("points_post_create");
-//        if (userPoints == null) userPoints = 0L;
-        if (userPoints < points_post_create) {
-            int pointsNeeded = points_post_create - (int) userPoints;
-            String pointsNeededMsg = getResources().getQuantityString(R.plurals.points_needed_text, pointsNeeded, pointsNeeded);
-            showWarningDialog(pointsNeededMsg);
+    private void attemptCreatePostActivity() {
+        final int points_post_create = (int) remoteConfig.getLong("points_post_create");
+        if (userPoints >= points_post_create) {
+            openCreatePostActivity();
             return;
         }
+        LogUtil.logInfo(TAG, "load profile points");
+        showProgress(R.string.loading_record);
+        profileManager.getProfileSingleValue(FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                new OnObjectChangedListener<Profile>() {
+                    @Override
+                    public void onObjectChanged(Profile aProfile) {
+                        hideProgress();
+                        profile = aProfile;
+                        LogUtil.logInfo(TAG, "fetched profile points " + profile.getPoints());
+                        userPoints = profile.getPoints();
+                        if (userPoints >= points_post_create) {
+                            openCreatePostActivity();
+                        } else {
+                            int pointsNeeded = points_post_create - (int) userPoints;
+                            String pointsNeededMsg = getResources().getQuantityString(R.plurals.points_needed_text, pointsNeeded, pointsNeeded);
+                            showWarningDialog(pointsNeededMsg);
+                        }
+                    }
+                });
+    }
+
+    private void openCreatePostActivity() {
         Intent intent = new Intent(this, CreatePostActivity.class);
         startActivityForResult(intent, CreatePostActivity.CREATE_NEW_POST_REQUEST);
     }

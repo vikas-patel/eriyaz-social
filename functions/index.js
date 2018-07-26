@@ -562,9 +562,19 @@ exports.ratingPoints = functions.database.ref('/post-ratings/{postId}/{authorId}
         });
 
         // Get rating author.
-        const authorProfilePointsRef = admin.database().ref(`/profiles/${ratingAuthorId}/points`);
-        return authorProfilePointsRef.transaction(current => {
-              return (current || 0) + point;
+        const authorProfileRef = admin.database().ref(`/profiles/${ratingAuthorId}`);
+        return authorProfileRef.transaction(current => {
+            if (current == null) {
+                console.log("ignore: null object returned from cache, expect another event with fresh server value.");
+                return false;
+            }
+            current.points = (current.points || 0) + point;
+            if (point > 0) {
+                current.ratingCount = (current.ratingCount || 0) + 1;
+            } else {
+                current.ratingCount = (current.ratingCount || 0) - 1;
+            }
+            return current;
         }).then(() => {
             console.log('User rating points updated.');
         });
@@ -709,6 +719,7 @@ exports.appNotificationFlag = functions.database.ref('/flags/{flaggedUser}/{flag
     const flagId = event.params.flagId;
     const flag = event.data.val();
     const flaggedUser = event.params.flaggedUser;
+    const flaggedBy = flag.flaggedBy;
     const reason = flag.reason;
 
     const userNotificationsRef = admin.database().ref(`/user-notifications/${flaggedUser}`);
@@ -719,11 +730,18 @@ exports.appNotificationFlag = functions.database.ref('/flags/{flaggedUser}/{flag
         'message': msg,
         'createdDate': admin.database.ServerValue.TIMESTAMP
     });
-    const emailTask = sendEmail("RateMySinging: New user complain", reason);
-
-    return Promise.all([notificationTask, emailTask]).then(results => {
-                console.log("all flag tasks completed.");
-            });
+    const getFlaggedProfileTask = admin.database().ref(`/profiles/${flaggedUser}`).once('value');
+    const getFlaggedByProfileTask = admin.database().ref(`/profiles/${flaggedBy}`).once('value');
+    
+    return Promise.all([getFlaggedProfileTask, getFlaggedByProfileTask, notificationTask]).then(results => {
+        const flaggedSnap = results[0];
+        const flaggedBySnap = results[1];
+        const flaggedName = flaggedSnap.val().username;
+        const flaggedByName = flaggedBySnap.val().username;
+        var emailMsg = `To ${flaggedName},\n${reason} \n From ${flaggedByName}`;
+        const emailTask = sendEmail("RateMySinging: New user complaint", emailMsg);
+        console.log("all flag tasks completed.");
+    });
 });
 
 exports.appNotificationCommentConversation = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
@@ -884,6 +902,18 @@ function sendAppRewardsNotification(authorId, fromUserId, msg) {
         'message': msg,
         'extraKey' : 'ProfileActivity.USER_ID_EXTRA_KEY',
         'extraKeyValue' : authorId,
+        'createdDate': admin.database.ServerValue.TIMESTAMP
+    });
+}
+
+function sendAppNotificationNoAction(authorId, fromUserId, msg) {
+    console.log("sending app notification:", msg);
+    // Get user notification ref
+    const userNotificationsRef = admin.database().ref(`/user-notifications/${authorId}`);
+    var newNotificationRef = userNotificationsRef.push();
+    return newNotificationRef.set({
+        'fromUserId' : fromUserId,
+        'message': msg,
         'createdDate': admin.database.ServerValue.TIMESTAMP
     });
 }
@@ -1133,19 +1163,23 @@ exports.grantSignupReward = functions.database.ref('/profiles/{uid}/id').onCreat
         .once('value').then(function(profileSnap) {
           var profile = profileSnap.val();
           console.log("referred_by", profile.referred_by);
-          const WELCOME_MSG = `Hi ${profile.username}. Welcome to ${notificationTitle} community. I am the Developer and a Moderator here. Feel free to reach out to me for any questions/help. \nRemember this motto : Be Genuine, Encouraging & Respectful, and you should get along well with everyone here.`;
+          const WELCOME_MSG = `Hi ${profile.username}. Welcome to ${notificationTitle} community. I am the Developer and a Moderator here. Feel free to reach out to me for any questions/help. \nImportant : Be fair and genuine in your ratings, or you might be blacklisted by other members.`;
+          const GIFT_JOINING_MSG = 'Vikas Patel gifted you 3 points.';
+          const taskList = [];
           const welcomeMsgTask = sendUserMessage(uid, WELCOME_ADMIN, WELCOME_MSG);
+          // const addPointsTask =  addPoints(uid, 3);
+          const giftJoiningMsgTask = sendAppNotificationNoAction(uid, WELCOME_ADMIN, GIFT_JOINING_MSG);
+          taskList = [welcomeMsgTask, giftJoiningMsgTask];
           if (profile.referred_by) {
             // add reward points
             // const addPointsTask =  addPoints(profile.referred_by, REWARD_POINTS);
             const msg = "Congrats your friend " +  profile.username + " joined.";
             const notificationTask = sendAppRewardsNotification(profile.referred_by, uid, msg);
-            return Promise.all([addPointsTask, notificationTask, welcomeMsgTask]).then(results => {
+            taskList.push(notificationTask);
+          }
+          return Promise.all(taskList).then(results => {
                 console.log("all reward tasks completed.");
             });
-          } else {
-            return welcomeMsgTask;
-          }
         });
     });
 

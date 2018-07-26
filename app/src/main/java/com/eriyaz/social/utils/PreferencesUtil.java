@@ -28,6 +28,7 @@ public class PreferencesUtil {
     private static final String PREF_PARAM_IS_POSTS_WAS_LOADED_AT_LEAST_ONCE = "isPostsWasLoadedAtLeastOnce";
     private static final String PREF_PARAM_IS_USER_RATED_AT_LEAST_ONCE = "isUserRatedAtLeastOnce";
     private static final String PREF_PARAM_IS_USER_VIEWED_RATING_AT_LEAST_ONCE = "isUserViewedRatingAtLeastOnce";
+    private static final String PREF_PARAM_USER_RATING_COUNT = "userRatedCount";
 
     private static SharedPreferences getSharedPreferences(Context context) {
         return context.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE);
@@ -63,6 +64,18 @@ public class PreferencesUtil {
 
     public static void setUserViewedRatingAtLeastOnce(Context context, Boolean isUserViewedRatingAtLeastOnce) {
         getSharedPreferences(context).edit().putBoolean(PREF_PARAM_IS_USER_VIEWED_RATING_AT_LEAST_ONCE, isUserViewedRatingAtLeastOnce).commit();
+    }
+
+    // many -> 3
+    public static Boolean isUserRatedMany(Context context) {
+        int ratingCount =  getSharedPreferences(context).getInt(PREF_PARAM_USER_RATING_COUNT, 0);
+        if (ratingCount >= 3) return true;
+        return false;
+    }
+
+    public static void incrementUserRatingCount(Context context) {
+        int ratingCount =  getSharedPreferences(context).getInt(PREF_PARAM_USER_RATING_COUNT, 0);
+        getSharedPreferences(context).edit().putInt(PREF_PARAM_USER_RATING_COUNT, ratingCount + 1).commit();
     }
 
     public static void clearPreferences(Context context){

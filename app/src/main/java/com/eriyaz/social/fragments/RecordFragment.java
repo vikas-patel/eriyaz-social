@@ -274,7 +274,9 @@ public class RecordFragment extends BaseFragment {
 //                    .disallowAddToBackStack()
 //                    .commit();
 //        }
-        ((OnRecordingEndListener)getActivity()).onRecordEnd(item);
+        if (getActivity() != null) {
+            ((OnRecordingEndListener)getActivity()).onRecordEnd(item);
+        }
     }
 
     @Override

@@ -212,28 +212,6 @@
                             android:text="Feel Missing" />
                         </LinearLayout>
                 </LinearLayout>
-                <TextView
-                    android:id="@+id/rateMeLabel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/detailedFeedbackLayout"
-                    android:layout_toLeftOf="@id/upArrowImageView"
-                    android:layout_marginTop="@dimen/intrinsic_padding"
-                    android:text="Rate"
-                    android:textSize="21sp"
-                    android:textColor="@color/highlight_text"
-                    android:gravity="end"
-                    android:layout_toStartOf="@id/upArrowImageView" />
-
-                <ImageView
-                    android:id="@+id/upArrowImageView"
-                    app:srcCompat="@drawable/ic_arrow_upward_24dp"
-                    android:layout_alignParentRight="true"
-                    android:layout_above="@id/closeButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginRight="@dimen/large_intrinsic_padding"
-                    android:layout_alignParentEnd="true" />
                 <Button
                     android:id="@+id/moreTextView"
                     style="@style/Widget.AppCompat.Button.Borderless.Colored"
@@ -243,7 +221,7 @@
                     android:layout_height="wrap_content"
                     android:layout_centerHorizontal="true"
                     android:layout_alignBaseline="@id/closeButton"
-                    android:visibility="gone"
+                    android:visibility="visible"
                     android:text="Detailed Feedback" />
                 <Button android:id="@+id/submitButton"
                     android:layout_below="@id/detailedFeedbackLayout"
@@ -255,7 +233,7 @@
                     android:layout_height="wrap_content"
                     android:layout_width="wrap_content" />
                 <Button android:id="@+id/closeButton"
-                    android:layout_below="@id/rateMeLabel"
+                    android:layout_below="@id/detailedFeedbackLayout"
                     android:text="close"
                     android:minHeight="0dp"
                     android:minWidth="0dp"

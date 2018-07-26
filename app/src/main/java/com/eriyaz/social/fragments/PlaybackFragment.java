@@ -100,8 +100,6 @@ public class PlaybackFragment extends BaseDialogFragment {
     private CheckBox highPitchView;
     private CheckBox feelView;
     private int intialRatingValue = 0;
-    private TextView rateLabelTextView;
-    private ImageView arrowImageView;
 
     private EditText mistakesTextView;
     private HashTagHelper mistakesTextHashTagHelper;
@@ -189,6 +187,9 @@ public class PlaybackFragment extends BaseDialogFragment {
                 openDetailedFeedback();
             }
         });
+        if (!PreferencesUtil.isUserRatedMany(getActivity())) {
+            moreTextView.setVisibility(View.GONE);
+        }
         submitButton = view.findViewById(R.id.submitButton);
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -244,8 +245,6 @@ public class PlaybackFragment extends BaseDialogFragment {
         dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         componentListener = new ComponentListener();
         playerView = view.findViewById(R.id.exoPlayerView);
-        rateLabelTextView = view.findViewById(R.id.rateMeLabel);
-        arrowImageView = view.findViewById(R.id.upArrowImageView);
         commentManager = CommentManager.getInstance(this.getActivity());
 
         return builder.create();
@@ -348,12 +347,12 @@ public class PlaybackFragment extends BaseDialogFragment {
             ratingController.getRating().setDetailedText(ratingDetailedText);
             ratingController.handleRatingClickAction((BaseActivity) getActivity(), post, ratingBar.getProgress());
             dismiss();
-        } else if (ratingBar.getProgress() < 15){
+        } else {
             // extra marks only on rating create
             ratingController.updateDetailedText(ratingDetailedText, new OnTaskCompleteListener() {
                 @Override
                 public void onTaskComplete(boolean success) {
-                    ((BaseActivity) getActivity()).hideProgress();
+                    if (getActivity() != null) ((BaseActivity) getActivity()).hideProgress();
                     if (success) {
                         dismiss();
                     } else {
@@ -537,22 +536,22 @@ public class PlaybackFragment extends BaseDialogFragment {
                         ratingBar.setProgress(rating.getRating());
                         return;
                     }
-                }
-
-                if (!PreferencesUtil.isUserRatedAtLeastOnce(getActivity())) {
-                    PreferencesUtil.setUserRatedAtLeastOnce(getActivity(), true);
-                    showDialog(String.format(getString(R.string.first_rating_message), progress));
+                    if (!PreferencesUtil.isUserRatedAtLeastOnce(getActivity())) {
+                        PreferencesUtil.setUserRatedAtLeastOnce(getActivity(), true);
+                        showDialog(String.format(getString(R.string.first_rating_message), progress));
+                    }
+                    if (!PreferencesUtil.isUserRatedMany(getActivity())) {
+                        PreferencesUtil.incrementUserRatingCount(getActivity());
+                    }
                 }
 
                 ratingController.setUpdatingRatingCounter(false);
                 isRatingChanged = true;
-                rateLabelTextView.setVisibility(View.GONE);
-                arrowImageView.setVisibility(View.GONE);
-                if (progress > 5 && progress < 15 && intialRatingValue == 0) {
+                if (progress > 5 && progress <= 15 && intialRatingValue == 0) {
                     moreTextView.setVisibility(View.VISIBLE);
                     earnExtraTextView.setVisibility(View.VISIBLE);
                     earnExtraTextView.setText(R.string.earn_extra_point);
-                } else if (progress >= 15) {
+                } else if (progress > 15) {
                     earnExtraTextView.setVisibility(View.VISIBLE);
                     earnExtraTextView.setText(R.string.rating_received);
                 } else {
