@@ -231,7 +231,9 @@ public class PlaybackFragment extends BaseDialogFragment {
         mistakeTapButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mistakesTextView.append(String.format(" #%s,", TimestampTagUtil.millisToTimestamp(player.getContentPosition())));
+                mistakesTextView.getText().insert(mistakesTextView.getSelectionStart(), String.format(" #%s ",
+                        TimestampTagUtil.millisToTimestamp(Math.max(0,player.getContentPosition()-1000))));
+                mistakesTextView.requestFocus();
             }
         });
 
