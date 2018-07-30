@@ -148,7 +148,7 @@ public class PostManager extends FirebaseListenersManager {
         }
 
         final String imageTitle = ImageUtil.generateImageTitle(UploadImagePrefix.POST, post.getId());
-        UploadTask uploadTask = databaseHelper.uploadAudio(audioUri, imageTitle);
+        UploadTask uploadTask = databaseHelper.uploadAudio(audioUri, imageTitle, "audios");
 
         if (uploadTask != null) {
             uploadTask.addOnFailureListener(new OnFailureListener() {
@@ -180,7 +180,7 @@ public class PostManager extends FirebaseListenersManager {
 
     public Task<Void> removeAudio(String audioTitle) {
         final DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
-        return databaseHelper.removeAudio(audioTitle);
+        return databaseHelper.removeAudio("audios", audioTitle);
     }
 
     public void removePost(final Post post, final OnTaskCompleteListener onTaskCompleteListener) {

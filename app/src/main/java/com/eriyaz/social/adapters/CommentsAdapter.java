@@ -80,6 +80,8 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentViewHolder> {
 
         void onEditClick(View view, int position);
 
+        void onPlayClick(View view, int position, String authorName);
+
         void onReportClick(View view, int position);
 
         void onAuthorClick(String authorId, View view);

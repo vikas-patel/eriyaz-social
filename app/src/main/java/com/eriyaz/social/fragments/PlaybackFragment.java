@@ -1,5 +1,7 @@
 package com.eriyaz.social.fragments;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -7,17 +9,15 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.text.Html;
-import android.util.SparseArray;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.ImageView;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -32,19 +32,19 @@ import com.eriyaz.social.activities.MainActivity;
 import com.eriyaz.social.activities.PostDetailsActivity;
 import com.eriyaz.social.activities.ProfileActivity;
 import com.eriyaz.social.controllers.RatingController;
-import com.eriyaz.social.dialogs.CommentDialog;
 import com.eriyaz.social.enums.ProfileStatus;
 import com.eriyaz.social.managers.CommentManager;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
 import com.eriyaz.social.model.Comment;
 import com.eriyaz.social.model.Post;
-import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.model.RecordingItem;
+import com.eriyaz.social.utils.PermissionsUtil;
 import com.eriyaz.social.utils.PreferencesUtil;
 import com.eriyaz.social.utils.RatingUtil;
 import com.eriyaz.social.utils.TimestampTagUtil;
+import com.eriyaz.social.views.RecordLayout;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -60,6 +60,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.volokh.danylo.hashtaghelper.HashTagHelper;
 import com.xw.repo.BubbleSeekBar;
 
+import java.io.File;
 import java.util.Date;
 
 /**
@@ -85,6 +86,7 @@ public class PlaybackFragment extends BaseDialogFragment {
     private ComponentListener componentListener;
     private TextView moreTextView;
     private LinearLayout detailedFeedbackLayout;
+    private LinearLayout commentLayout;
     private Button submitButton;
     private RadioGroup melodyRadioGroup;
     private RadioGroup voiceQualityRadioGroup;
@@ -104,6 +106,10 @@ public class PlaybackFragment extends BaseDialogFragment {
     private EditText mistakesTextView;
     private HashTagHelper mistakesTextHashTagHelper;
     private Button mistakeTapButton;
+    // Recorder
+    private boolean mStartRecording = true;
+    private ImageButton mRecordButton;
+    private RecordLayout commentRecordLayout;
 
     public PlaybackFragment newInstance(RecordingItem item) {
         PlaybackFragment f = new PlaybackFragment();
@@ -180,10 +186,12 @@ public class PlaybackFragment extends BaseDialogFragment {
             }
         });
         detailedFeedbackLayout = view.findViewById(R.id.detailedFeedbackLayout);
+        commentLayout = view.findViewById(R.id.commentLayout);
         moreTextView = view.findViewById(R.id.moreTextView);
         moreTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                openRecordLayout();
                 openDetailedFeedback();
             }
         });
@@ -246,6 +254,14 @@ public class PlaybackFragment extends BaseDialogFragment {
         componentListener = new ComponentListener();
         playerView = view.findViewById(R.id.exoPlayerView);
         commentManager = CommentManager.getInstance(this.getActivity());
+        commentRecordLayout = view.findViewById(R.id.recordLayout);
+        mRecordButton = view.findViewById(R.id.recordButton);
+        mRecordButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onRecord();
+            }
+        });
 
         return builder.create();
     }
@@ -284,6 +300,12 @@ public class PlaybackFragment extends BaseDialogFragment {
 
     private void openDetailedFeedback() {
         detailedFeedbackLayout.setVisibility(View.VISIBLE);
+        mistakesTextView.setVisibility(View.VISIBLE);
+    }
+
+    private void openRecordLayout() {
+        commentLayout.setVisibility(View.VISIBLE);
+        mistakesTextView.setVisibility(View.GONE);
         submitButton.setVisibility(View.VISIBLE);
         moreTextView.setVisibility(View.GONE);
         earnExtraTextView.setVisibility(View.GONE);
@@ -303,8 +325,44 @@ public class PlaybackFragment extends BaseDialogFragment {
         return true;
     }
 
+    private void submitCommentFeedback() {
+        String commentText = mistakesTextView.getText().toString();
+        ratingController.handleRatingClickAction((BaseActivity) getActivity(), post, ratingBar.getProgress());
+        Comment detailed_comment = new Comment(commentText);
+        detailed_comment.setAuthorId(firebaseAuth.getCurrentUser().getUid());
+
+        OnTaskCompleteListener listener = new OnTaskCompleteListener() {
+            @Override
+            public void onTaskComplete(boolean success) {
+                if (getActivity() != null) ((BaseActivity) getActivity()).hideProgress();
+                if (success) {
+                    dismiss();
+                } else {
+                    ((BaseActivity) getActivity()).showSnackBar(R.string.error_fail_create_detailed_feedback);
+                }
+            }
+        };
+        ((BaseActivity) getActivity()).showProgress(R.string.message_submit_detailed_feedback);
+        if (commentRecordLayout.getRecordItem() != null) {
+            Uri audioUri = Uri.fromFile(new File(commentRecordLayout.getRecordItem().getFilePath()));
+            commentManager.createOrUpdateCommentWithAudio(audioUri, detailed_comment, post.getId(), listener);
+        } else {
+            commentManager.createOrUpdateComment(detailed_comment, post.getId(), listener);
+        }
+    }
+
     private void submitDetailedFeedback() {
         if (!isAuthorized()) return;
+        if (ratingBar.getProgress() > 0 && ratingBar.getProgress() <= 5) {
+            if (commentRecordLayout.getRecordItem() == null) {
+                ((BaseActivity) getActivity()).showSnackBar(R.string.mandatory_voice_feedback_error);
+                showDialog(R.string.mandatory_voice_feedback_error);
+                return;
+            }
+            submitCommentFeedback();
+            return;
+        }
+        mistakesTextView.setError(null);
         boolean error = false;
         if (ratingBar.getProgress() == 0) {
             ratingTextView.setError("Rating is not set.");
@@ -332,21 +390,15 @@ public class PlaybackFragment extends BaseDialogFragment {
                 getMelodyText(),
                 selectedVoiceQuality.getText(),
                 getProblems());
-        String commentText = mistakesTextView.getText().toString();
-        if (commentText.length() > 0) {
-            Comment detailed_comment = new Comment(commentText);
-            detailed_comment.setAuthorId(firebaseAuth.getCurrentUser().getUid());
-            commentManager.createOrUpdateComment(detailed_comment, post.getId(), new OnTaskCompleteListener() {
-                @Override
-                public void onTaskComplete(boolean success) {
-                }
-            });
-        }
 
-        if (ratingBar.getProgress() > 0 && ratingBar.getProgress() <= 5) {
-            ratingController.getRating().setDetailedText(ratingDetailedText);
-            ratingController.handleRatingClickAction((BaseActivity) getActivity(), post, ratingBar.getProgress());
-            dismiss();
+        String commentText = mistakesTextView.getText().toString();
+        if (!commentText.isEmpty() || commentRecordLayout.getRecordItem() != null) {
+            submitCommentFeedback();
+            // extra marks only on rating create
+            ratingController.updateDetailedText(ratingDetailedText, new OnTaskCompleteListener() {
+                @Override
+                public void onTaskComplete(boolean success) {}
+            });
         } else {
             // extra marks only on rating create
             ratingController.updateDetailedText(ratingDetailedText, new OnTaskCompleteListener() {
@@ -414,6 +466,7 @@ public class PlaybackFragment extends BaseDialogFragment {
         alertDialog.getButton(Dialog.BUTTON_NEUTRAL).setEnabled(false);
         if (Util.SDK_INT > 23) {
             initializePlayer();
+            commentRecordLayout.initializePlayer();
         }
     }
 
@@ -423,6 +476,9 @@ public class PlaybackFragment extends BaseDialogFragment {
         if ((Util.SDK_INT <= 23 || player == null)) {
             initializePlayer();
         }
+        if ((Util.SDK_INT <= 23 || commentRecordLayout.getPlayer() == null)) {
+            commentRecordLayout.initializePlayer();
+        }
     }
 
     @Override
@@ -430,14 +486,8 @@ public class PlaybackFragment extends BaseDialogFragment {
         super.onPause();
         if (Util.SDK_INT <= 23) {
             releasePlayer();
+            commentRecordLayout.releasePlayer();
         }
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        releasePlayer();
     }
 
     @Override
@@ -445,7 +495,15 @@ public class PlaybackFragment extends BaseDialogFragment {
         super.onStop();
         if (Util.SDK_INT > 23) {
             releasePlayer();
+            commentRecordLayout.releasePlayer();
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        commentRecordLayout.deleteCommentAudioFile();
     }
 
     private void initializePlayer() {
@@ -565,7 +623,7 @@ public class PlaybackFragment extends BaseDialogFragment {
                     builder.setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-                            openDetailedFeedback();
+                            openRecordLayout();
                         }
                     });
                     builder.show();
@@ -612,16 +670,6 @@ public class PlaybackFragment extends BaseDialogFragment {
         builder.show();
     }
 
-
-    private void openCommentDialog() {
-        CommentDialog commentDialog = new CommentDialog();
-        Bundle args = new Bundle();
-        args.putString(PostDetailsActivity.POST_ID_EXTRA_KEY, post.getId());
-        commentDialog.setArguments(args);
-        commentDialog.setTargetFragment(this,CommentDialog.NEW_COMMENT_REQUEST);
-        commentDialog.show(getFragmentManager(), CommentDialog.TAG);
-    }
-
     private long startPosition = 0;
     private long endPosition = 0;
     private long totalPlayed = 0;
@@ -654,5 +702,22 @@ public class PlaybackFragment extends BaseDialogFragment {
         endPosition = System.currentTimeMillis();
         totalPlayed = totalPlayed + endPosition - startPosition;
         startPosition = endPosition;
+    }
+
+    // Recording Start/Stop
+    @SuppressLint("NewApi")
+    public void onRecord(){
+        if (PermissionsUtil.isExplicitPermissionRequired(getActivity())) {
+            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE}, PermissionsUtil.MY_PERMISSIONS_RECORD_AUDIO);
+        } else {
+            if (mStartRecording) {
+                mRecordButton.setImageResource(R.drawable.ic_media_stop);
+                commentRecordLayout.startRecording();
+            } else {
+                mRecordButton.setImageResource(R.drawable.ic_mic_white_36dp);
+                commentRecordLayout.stopRecording();
+            }
+            mStartRecording = !mStartRecording;
+        }
     }
 }

@@ -15,9 +15,7 @@ import android.util.Log;
 
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.CreatePostActivity;
-import com.eriyaz.social.fragments.RecordFragment;
 import com.eriyaz.social.model.RecordingItem;
-import com.eriyaz.social.utils.MySharedPreferences;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,6 +31,7 @@ import java.util.TimerTask;
 public class RecordingService extends Service {
 
     private static final String LOG_TAG = "RecordingService";
+    public static final String LOW_QUALITY_EXTRA_KEY = "RecordingService.LOW_QUALITY_EXTRA_KEY";
 
     private String mFileName = null;
     private String mFilePath = null;
@@ -50,7 +49,7 @@ public class RecordingService extends Service {
     private Timer mTimer = null;
     private TimerTask mIncrementTimerTask = null;
     private final IBinder binder = (IBinder) new LocalBinder();
-    private RecordFragment listener;
+    private RecordListener listener;
 
 
     @Override
@@ -64,7 +63,7 @@ public class RecordingService extends Service {
         }
     }
     //Here Activity register to the service as Callbacks client
-    public void registerClient(RecordFragment activity){
+    public void registerClient(RecordListener activity){
         this.listener = activity;
     }
 
@@ -80,7 +79,8 @@ public class RecordingService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        startRecording();
+        boolean isLowQuality = intent.getBooleanExtra(LOW_QUALITY_EXTRA_KEY, false);
+        startRecording(isLowQuality);
         return START_STICKY;
     }
 
@@ -93,7 +93,7 @@ public class RecordingService extends Service {
         super.onDestroy();
     }
 
-    public void startRecording() {
+    public void startRecording(boolean isLowQuality) {
         setFileNameAndPath();
 
         mRecorder = new MediaRecorder();
@@ -103,7 +103,11 @@ public class RecordingService extends Service {
         mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
         mRecorder.setAudioChannels(1);
         mRecorder.setAudioSamplingRate(44100);
-        mRecorder.setAudioEncodingBitRate(128000);
+        if (isLowQuality) {
+            mRecorder.setAudioEncodingBitRate(32000);
+        } else {
+            mRecorder.setAudioEncodingBitRate(128000);
+        }
 
         try {
             mRecorder.prepare();
@@ -186,5 +190,9 @@ public class RecordingService extends Service {
                 new Intent[]{new Intent(getApplicationContext(), CreatePostActivity.class)}, 0));
 
         return mBuilder.build();
+    }
+
+    public interface RecordListener {
+        void onIntentResult(RecordingItem recordingItem);
     }
 }

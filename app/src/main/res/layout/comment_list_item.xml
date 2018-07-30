@@ -16,12 +16,21 @@
         app:border="true"
         app:border_width="0dp" />
 
+    <ImageView
+        android:id="@+id/playimageView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/avatarImageView"
+        app:srcCompat="@drawable/ic_play_circle_filled"
+        android:layout_alignParentTop="true"
+        android:layout_gravity="center_vertical"/>
+
     <com.eriyaz.social.views.ExpandableTextView
         android:id="@+id/commentText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
         android:layout_toRightOf="@+id/avatarImageView"
+        android:layout_below="@id/playimageView"
         android:paddingLeft="@dimen/large_intrinsic_padding"
         expandableTextView:animDuration="200"
         expandableTextView:collapseText="@string/collapse_text_label"

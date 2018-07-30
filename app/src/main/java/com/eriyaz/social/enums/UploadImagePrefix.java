@@ -22,7 +22,7 @@ package com.eriyaz.social.enums;
 
 public enum UploadImagePrefix {
 
-    PROFILE("profile_"), POST("post_");
+    PROFILE("profile_"), POST("post_"), COMMENT("comment_");
 
     String prefix;
 

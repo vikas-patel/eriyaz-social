@@ -16,6 +16,7 @@ public class RecordingItem implements Parcelable, Serializable {
     private String mFilePath; //file path
     private long mLength; // length of recording in seconds
     private long time;
+    private boolean isServer;
 
     public RecordingItem()
     {
@@ -74,6 +75,14 @@ public class RecordingItem implements Parcelable, Serializable {
 
     public void setTime(long time) {
         this.time = time;
+    }
+
+    public boolean isServer() {
+        return isServer;
+    }
+
+    public void setServer(boolean server) {
+        isServer = server;
     }
 
     public static final Parcelable.Creator<RecordingItem> CREATOR = new Parcelable.Creator<RecordingItem>() {

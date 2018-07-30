@@ -62,8 +62,11 @@ CommentViewHolder extends RecyclerView.ViewHolder {
 
     private final ImageView avatarImageView;
     private final ExpandableTextView commentTextView;
+    private final TextView expandableTextView;
     private final TextView dateTextView;
     protected ImageButton optionMenuButton;
+    private ImageView playImageView;
+    private String mUserName = "";
     private final ProfileManager profileManager;
     private CommentsAdapter.Callback callback;
     private Context context;
@@ -80,8 +83,10 @@ CommentViewHolder extends RecyclerView.ViewHolder {
 
         avatarImageView = (ImageView) itemView.findViewById(R.id.avatarImageView);
         commentTextView = (ExpandableTextView) itemView.findViewById(R.id.commentText);
+        expandableTextView = itemView.findViewById(R.id.expandable_text);
         dateTextView = (TextView) itemView.findViewById(R.id.dateTextView);
         optionMenuButton = itemView.findViewById(R.id.optionMenuButton);
+        playImageView = itemView.findViewById(R.id.playimageView);
 
         mistakesTextHashTagHelper = HashTagHelper.Creator.create(itemView.getResources().getColor(R.color.red), new HashTagHelper.OnHashTagClickListener() {
             @Override
@@ -103,7 +108,12 @@ CommentViewHolder extends RecyclerView.ViewHolder {
             profileManager.getProfileSingleValue(authorId, createOnProfileChangeListener(commentTextView,
                     avatarImageView, comment.getText()));
 
-        commentTextView.setText(comment.getText());
+        if (comment.getText() == null || comment.getText().isEmpty()) {
+            expandableTextView.setVisibility(View.GONE);
+        } else {
+            expandableTextView.setVisibility(View.VISIBLE);
+            commentTextView.setText(comment.getText());
+        }
 
         CharSequence date = FormatterUtil.getRelativeTimeSpanString(context, comment.getCreatedDate());
         dateTextView.setText(date);
@@ -114,6 +124,18 @@ CommentViewHolder extends RecyclerView.ViewHolder {
                 callback.onAuthorClick(authorId, v);
             }
         });
+
+        if (comment.getAudioPath() != null && !comment.getAudioPath().isEmpty()) {
+            playImageView.setVisibility(View.VISIBLE);
+            playImageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    callback.onPlayClick(v, getAdapterPosition(), mUserName);
+                }
+            });
+        } else {
+            playImageView.setVisibility(View.GONE);
+        }
 
         optionMenuButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -157,8 +179,8 @@ CommentViewHolder extends RecyclerView.ViewHolder {
             @Override
             public void onObjectChanged(Profile obj) {
                 if (((BaseActivity)context).isActivityDestroyed()) return;
-                String userName = obj.getUsername();
-                fillComment(userName, comment, expandableTextView);
+                mUserName = obj.getUsername();
+                fillComment(mUserName, comment, expandableTextView);
 
                 if (obj.getPhotoUrl() != null) {
                     Glide.with(context)
@@ -168,7 +190,7 @@ CommentViewHolder extends RecyclerView.ViewHolder {
                             .error(R.drawable.ic_stub)
                             .into(avatarImageView);
                 } else {
-                    avatarImageView.setImageDrawable(ImageUtil.getTextDrawable(userName,
+                    avatarImageView.setImageDrawable(ImageUtil.getTextDrawable(mUserName,
                             context.getResources().getDimensionPixelSize(R.dimen.comment_list_avatar_height),
                             context.getResources().getDimensionPixelSize(R.dimen.comment_list_avatar_height)));
                 }

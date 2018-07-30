@@ -46,7 +46,7 @@ import java.io.File;
  * Use the {@link RecordFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class RecordFragment extends BaseFragment {
+public class RecordFragment extends BaseFragment implements RecordingService.RecordListener{
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     //private static final String ARG_POSITION = "position";
     private static final String LOG_TAG = RecordFragment.class.getSimpleName();
@@ -259,21 +259,6 @@ public class RecordFragment extends BaseFragment {
     }
 
     public void onIntentResult(RecordingItem item) {
-//        try {
-//            PlaybackFragment playbackFragment =
-//                    new PlaybackFragment().newInstance(item);
-//            FragmentTransaction transaction = getActivity().getFragmentManager()
-//                    .beginTransaction();
-//            playbackFragment.show(transaction, "dialog_playback");
-//        } catch (Exception e) {
-//            Log.e(LOG_TAG, "exception", e);
-//        }
-//        if (getFragmentManager() != null) {
-//            FileViewerFragment fileViewerFragment = FileViewerFragment.newInstance(item);
-//            getFragmentManager().beginTransaction().replace(R.id.record_fragment, fileViewerFragment)
-//                    .disallowAddToBackStack()
-//                    .commit();
-//        }
         if (getActivity() != null) {
             ((OnRecordingEndListener)getActivity()).onRecordEnd(item);
         }
@@ -291,7 +276,6 @@ public class RecordFragment extends BaseFragment {
     }
 
     // Recording Start/Stop
-    //TODO: recording pause
     @SuppressLint("NewApi")
     private void onRecord(){
         if (PermissionsUtil.isExplicitPermissionRequired(getActivity())) {

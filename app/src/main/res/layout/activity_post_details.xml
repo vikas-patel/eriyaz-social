@@ -272,6 +272,14 @@
 
         </RelativeLayout>
     </ScrollView>
+    <com.eriyaz.social.views.RecordLayout
+        android:id="@+id/recordLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="?android:colorBackground"
+        android:layout_above="@id/shadow"
+        android:gravity="center"/>
 
     <View
         android:id="@+id/shadow"
@@ -299,6 +307,17 @@
             android:maxHeight="@dimen/new_comment_max_height"
             android:minHeight="@dimen/new_comment_min_height"
             android:padding="@dimen/intrinsic_padding" />
+        <ImageButton
+            android:id="@+id/recordButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_margin="@dimen/intrinsic_padding"
+            app:srcCompat="@drawable/ic_mic_white_30dp_vector"
+            android:background="@drawable/send_comment_button_bg"
+            android:padding="@dimen/intrinsic_padding"
+            android:text="@string/send_comment_button_label"
+            android:textColor="@android:color/white" />
 
         <Button
             android:id="@+id/sendButton"
@@ -307,7 +326,7 @@
             android:layout_gravity="center_vertical"
             android:layout_margin="@dimen/intrinsic_padding"
             android:background="@drawable/send_comment_button_bg"
-            android:enabled="false"
+            android:visibility="gone"
             android:minWidth="0dp"
             android:paddingLeft="@dimen/large_intrinsic_padding"
             android:paddingRight="@dimen/large_intrinsic_padding"

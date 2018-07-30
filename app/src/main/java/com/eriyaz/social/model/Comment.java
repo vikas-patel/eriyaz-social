@@ -29,6 +29,8 @@ public class Comment {
     private String id;
     private String text;
     private String authorId;
+    private String audioPath;
+    private String audioTitle;
     private long createdDate;
 
 
@@ -64,6 +66,22 @@ public class Comment {
 
     public void setAuthorId(String authorId) {
         this.authorId = authorId;
+    }
+
+    public String getAudioPath() {
+        return audioPath;
+    }
+
+    public void setAudioPath(String audioPath) {
+        this.audioPath = audioPath;
+    }
+
+    public String getAudioTitle() {
+        return audioTitle;
+    }
+
+    public void setAudioTitle(String audioTitle) {
+        this.audioTitle = audioTitle;
     }
 
     public long getCreatedDate() {

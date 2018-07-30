@@ -237,6 +237,11 @@ public class DatabaseHelper {
         return databaseReference.child("posts").push().getKey();
     }
 
+    public String generateCommentId() {
+        DatabaseReference databaseReference = database.getReference();
+        return databaseReference.child("post-comments").push().getKey();
+    }
+
     public void createOrUpdatePost(final Post post, final OnPostCreatedListener onPostCreatedListener) {
         try {
             DatabaseReference databaseReference = database.getReference();
@@ -321,10 +326,10 @@ public class DatabaseHelper {
         return desertRef.delete();
     }
 
-    public Task<Void> removeAudio(String audioTitle) {
+    public Task<Void> removeAudio(String path, String audioTitle) {
 //        StorageReference storageRef = storage.getReferenceFromUrl(context.getResources().getString(R.string.storage_link));
         StorageReference storageRef = storage.getReference();
-        StorageReference desertRef = storageRef.child("audios/" + audioTitle);
+        StorageReference desertRef = storageRef.child(path + "/" + audioTitle);
 
         return desertRef.delete();
     }
@@ -802,17 +807,16 @@ public class DatabaseHelper {
         return riversRef.putFile(uri, metadata);
     }
 
-    public UploadTask uploadAudio(Uri uri, String audioTitle) {
-//        StorageReference storageRef = storage.getReferenceFromUrl(context.getResources().getString(R.string.storage_link));
+    public UploadTask uploadAudio(Uri uri, String audioTitle, String path) {
         StorageReference storageRef = storage.getReference();
-        StorageReference riversRef = storageRef.child("audios/" + audioTitle);
+        StorageReference audioRef = storageRef.child(path + "/" + audioTitle);
         // Create file metadata including the content type
         StorageMetadata metadata = new StorageMetadata.Builder()
                 .setCacheControl("max-age=7776000, Expires=7776000, public, must-revalidate")
                 .setContentType("audio/mpeg")
                 .build();
 
-        return riversRef.putFile(uri, metadata);
+        return audioRef.putFile(uri, metadata);
     }
 
     public void getFilteredPostList(String userId, final OnPostListChangedListener<Post> onDataChangedListener, final long date) {

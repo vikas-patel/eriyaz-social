@@ -56,23 +56,63 @@
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
-                <LinearLayout android:id="@+id/detailedFeedbackLayout"
+                <LinearLayout android:id="@+id/commentLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     android:paddingTop="@dimen/intrinsic_padding"
                     android:orientation="vertical">
-                    <EditText
-                        android:id="@+id/mistakesTextView"
+                    <com.eriyaz.social.views.RecordLayout
+                        android:id="@+id/recordLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Comment..."
-                        android:lines="2"
-                        android:gravity="start"
-                        android:focusable="true"
-                        android:focusableInTouchMode="true"
-                        android:inputType="textMultiLine" />
+                        android:orientation="vertical"
+                        android:background="?android:colorBackground"
+                        android:gravity="center"/>
+                    <View
+                        android:id="@+id/shadow"
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp"
+                        android:layout_above="@+id/newCommentContainer"
+                        android:background="@drawable/top_shadow" />
+                    <LinearLayout
+                        android:id="@+id/newCommentContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
 
+                        <EditText
+                            android:id="@+id/mistakesTextView"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="1"
+                            android:background="@android:color/transparent"
+                            android:hint="@string/comment_text_hint"
+                            android:inputType="textMultiLine"
+                            android:maxHeight="@dimen/new_comment_max_height"
+                            android:minHeight="@dimen/new_comment_min_height"
+                            android:padding="@dimen/intrinsic_padding" />
+
+                        <ImageButton
+                            android:id="@+id/recordButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_margin="@dimen/intrinsic_padding"
+                            app:srcCompat="@drawable/ic_mic_white_30dp_vector"
+                            android:background="@drawable/send_comment_button_bg"
+                            android:padding="@dimen/intrinsic_padding"
+                            android:text="@string/send_comment_button_label"
+                            android:textColor="@android:color/white" />
+                    </LinearLayout>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/detailedFeedbackLayout"
+                    android:layout_width="match_parent"
+                    android:layout_below="@id/commentLayout"
+                    android:visibility="gone"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
                     <Button
                         android:id="@+id/mistakeTapButton"
                         android:layout_width="match_parent"

@@ -32,6 +32,7 @@ import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DataSpec;
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.upstream.FileDataSource;
 import com.google.android.exoplayer2.util.Util;
 
@@ -51,7 +52,7 @@ public class RecordPlayFragment extends BaseDialogFragment {
     private SimpleExoPlayer player;
     private int currentWindow = 0;
     private long playbackPosition = 0;
-    private boolean playWhenReady = false;
+    private boolean playWhenReady = true;
     private ComponentListener componentListener;
 
     public static RecordPlayFragment newInstance(RecordingItem item) {
@@ -194,7 +195,12 @@ public class RecordPlayFragment extends BaseDialogFragment {
         player.seekTo(currentWindow, playbackPosition);
         Uri uri = Uri.parse(item.getFilePath());
         // play from fileSystem
-        MediaSource mediaSource = buildMediaSourceFromFileUrl(uri);
+        MediaSource mediaSource;
+        if (item.isServer()) {
+            mediaSource = buildMediaSource(uri);
+        } else {
+            mediaSource = buildMediaSourceFromFileUrl(uri);
+        }
         player.prepare(mediaSource, true, false);
     }
 
@@ -214,6 +220,12 @@ public class RecordPlayFragment extends BaseDialogFragment {
             }
         };
         return new ExtractorMediaSource.Factory(factory).createMediaSource(uri);
+    }
+
+    private MediaSource buildMediaSource(Uri uri) {
+        return new ExtractorMediaSource.Factory(
+                new DefaultHttpDataSourceFactory("eriyaz.social-exoplayer")).
+                createMediaSource(uri);
     }
 
     private void releasePlayer() {

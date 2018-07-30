@@ -67,6 +67,7 @@
     <string name="error_bigger_file">File size is bigger than 10Mb</string>
     <string name="message_creating_post">Creating post ..</string>
     <string name="message_submit_detailed_feedback">Submitting detailed feedback ..</string>
+    <string name="message_submit_comment">Submitting comment ..</string>
     <string name="message_saving">Saving ..</string>
     <string name="warning_empty_image">Image is required</string>
     <string name="warning_empty_title">Title is required</string>
@@ -82,7 +83,8 @@
     <string name="confirm_deletion_message">Delete this message?</string>
     <string name="confirm_close_play_popup">Your inputs will be lost. Are you sure want to close?</string>
     <string name="rating_lost_popup">Your rating will also be removed on close and no points will be earned.\nAre you sure you want to close?</string>
-    <string name="mandatory_detailed_feedback_popup">\'Detailed feedback\' below is mandatory for \'Not Ok\' rating.</string>
+    <string name="mandatory_detailed_feedback_popup">\'Voice feedback\' is mandatory for \'Not Ok\' rating.</string>
+    <string name="mandatory_voice_feedback_error">\'Voice feedback\' is mandatory for \'Not Ok\' rating.\nPress \'mic icon\' to record.</string>
     <string name="confirm_continue_payment">Get official feedback from Paarth Singh.\nWill be given in 24 hours".\nPrice: Rs %1$d.</string>
     <string name="error_fail_create_complain">Fail to create complain</string>
     <string name="rating_received">Your rating recieved. You earned 1 point.</string>

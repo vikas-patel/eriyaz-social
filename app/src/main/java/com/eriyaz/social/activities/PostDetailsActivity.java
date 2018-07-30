@@ -17,12 +17,15 @@
 
 package com.eriyaz.social.activities;
 
+import android.Manifest;
 import android.animation.Animator;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Rect;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -34,7 +37,6 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
-import android.text.Layout;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.transition.Transition;
@@ -44,12 +46,12 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewPropertyAnimator;
 import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -71,6 +73,7 @@ import com.eriyaz.social.enums.PostStatus;
 import com.eriyaz.social.enums.ProfileStatus;
 import com.eriyaz.social.fragments.MistakesPlayFragment;
 import com.eriyaz.social.fragments.PlaybackFragment;
+import com.eriyaz.social.fragments.RecordPlayFragment;
 import com.eriyaz.social.listeners.CustomTransitionListener;
 import com.eriyaz.social.managers.BoughtFeedbackManager;
 import com.eriyaz.social.managers.CommentManager;
@@ -89,15 +92,20 @@ import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.utils.FormatterUtil;
 import com.eriyaz.social.utils.OfficialFeedbackRequest;
+import com.eriyaz.social.utils.PermissionsUtil;
+import com.eriyaz.social.views.RecordLayout;
+import com.google.android.exoplayer2.util.Util;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class PostDetailsActivity extends BaseActivity implements EditCommentDialog.CommentDialogCallback, ComplainDialog.ComplainCallback {
+    private static final String TAG = PostDetailsActivity.class.getSimpleName();
 
     public static final String POST_ID_EXTRA_KEY = "PostDetailsActivity.POST_ID_EXTRA_KEY";
     public static final String AUTHOR_ANIMATION_NEEDED_EXTRA_KEY = "PostDetailsActivity.AUTHOR_ANIMATION_NEEDED_EXTRA_KEY";
@@ -168,6 +176,10 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private Button buyFeedbackButton;
     final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
     private int paymentAmount = (int) remoteConfig.getLong("payment_amount");
+    private RecordLayout commentRecordLayout;
+    private ImageButton mRecordButton;
+    private boolean mStartRecording = true;
+    private Button sendButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -220,6 +232,15 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         dateTextView = (TextView) findViewById(R.id.dateTextView);
         commentsProgressBar = (ProgressBar) findViewById(R.id.commentsProgressBar);
         warningCommentsTextView = (TextView) findViewById(R.id.warningCommentsTextView);
+        commentRecordLayout = findViewById(R.id.recordLayout);
+        mRecordButton = findViewById(R.id.recordButton);
+        mRecordButton.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("NewApi")
+            @Override
+            public void onClick(View v) {
+                onRecord();
+            }
+        });
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && isAuthorAnimationRequired) {
             authorImageView.setScaleX(0);
@@ -242,7 +263,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             });
         }
 
-        final Button sendButton = (Button) findViewById(R.id.sendButton);
+        sendButton = (Button) findViewById(R.id.sendButton);
 
         postManager.getPost(this, postId, createOnPostChangeListener());
 
@@ -282,7 +303,9 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                sendButton.setEnabled(charSequence.toString().trim().length() > 0);
+                if (charSequence.toString().trim().length() > 0) {
+                    sendButton.setVisibility(View.VISIBLE);
+                }
             }
 
             @Override
@@ -374,9 +397,42 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        if (Util.SDK_INT > 23) {
+            commentRecordLayout.initializePlayer();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if ((Util.SDK_INT <= 23 || commentRecordLayout.getPlayer() == null)) {
+            commentRecordLayout.initializePlayer();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (Util.SDK_INT <= 23) {
+            commentRecordLayout.releasePlayer();
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (Util.SDK_INT > 23) {
+            commentRecordLayout.releasePlayer();
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         postManager.closeListeners(this);
+        commentRecordLayout.deleteCommentAudioFile();
     }
 
     @Override
@@ -420,13 +476,29 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             @Override
             public void onDeleteClick(View view, int position) {
                 Comment comment = commentsAdapter.getItemByPosition(position);
-                removeComment(comment.getId());
+                removeComment(comment);
             }
 
             @Override
             public void onEditClick(View view, int position) {
                 Comment comment = commentsAdapter.getItemByPosition(position);
                 openEditCommentDialog(comment);
+            }
+
+            @Override
+            public void onPlayClick(View view, int position, String authorName) {
+                Comment comment = commentsAdapter.getItemByPosition(position);
+                try {
+                    RecordingItem item = new RecordingItem(authorName, comment.getAudioPath(), 0);
+                    item.setServer(true);
+                    RecordPlayFragment playbackFragment =
+                            RecordPlayFragment.newInstance(item);
+                    FragmentTransaction transaction = getSupportFragmentManager()
+                            .beginTransaction();
+                    playbackFragment.show(transaction, "dialog_playback");
+                } catch (Exception e) {
+                    Log.e(TAG, "exception", e);
+                }
             }
 
             @Override
@@ -1037,25 +1109,36 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 //    }
 
     private void sendComment() {
-        if (post == null) {
+        if (post == null || !isPostExist) {
             return;
         }
 
         String commentText = commentEditText.getText().toString();
-
-        if (commentText.length() > 0 && isPostExist) {
-            commentManager.createOrUpdateComment(commentText, post.getId(), new OnTaskCompleteListener() {
-                @Override
-                public void onTaskComplete(boolean success) {
-                    if (success) {
-                        scrollToFirstComment();
-                    }
+        if (commentText.length() == 0 && commentRecordLayout.getRecordItem() == null) return;
+        OnTaskCompleteListener listener = new OnTaskCompleteListener() {
+            @Override
+            public void onTaskComplete(boolean success) {
+                hideProgress();
+                if (success) {
+                    scrollToFirstComment();
+                    commentRecordLayout.reset();
+                    sendButton.setVisibility(View.GONE);
                 }
-            });
-            commentEditText.setText(null);
-            commentEditText.clearFocus();
-            hideKeyBoard();
+            }
+        };
+        showProgress(R.string.message_submit_comment);
+        if (commentRecordLayout.getRecordItem() != null) {
+            Uri audioUri = Uri.fromFile(new File(commentRecordLayout.getRecordItem().getFilePath()));
+            Comment comment = new Comment(commentText);
+            String authorId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            comment.setAuthorId(authorId);
+            commentManager.createOrUpdateCommentWithAudio(audioUri, comment, post.getId(), listener);
+        } else {
+            commentManager.createOrUpdateComment(commentText, post.getId(), listener);
         }
+        commentEditText.setText(null);
+        commentEditText.clearFocus();
+        hideKeyBoard();
     }
 
     private void hideKeyBoard() {
@@ -1065,11 +1148,6 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
-    }
-
-    private boolean hasAccessToEditComment(String commentAuthorId) {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        return currentUser != null && commentAuthorId.equals(currentUser.getUid());
     }
 
     private boolean hasAccessToModifyPost() {
@@ -1277,9 +1355,9 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         showSnackBar(R.string.make_public_success);
     }
 
-    private void removeComment(String commentId) {
+    private void removeComment(Comment comment) {
         showProgress();
-        commentManager.removeComment(commentId, postId, new OnTaskCompleteListener() {
+        commentManager.removeComment(comment, postId, new OnTaskCompleteListener() {
             @Override
             public void onTaskComplete(boolean success) {
                 hideProgress();
@@ -1404,5 +1482,23 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
                 }
             }
         });
+    }
+
+    // Recording Start/Stop
+    @SuppressLint("NewApi")
+    public void onRecord(){
+        if (PermissionsUtil.isExplicitPermissionRequired(PostDetailsActivity.this)) {
+            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE}, PermissionsUtil.MY_PERMISSIONS_RECORD_AUDIO);
+        } else {
+            if (mStartRecording) {
+                mRecordButton.setImageResource(R.drawable.ic_media_stop);
+                commentRecordLayout.startRecording();
+            } else {
+                sendButton.setVisibility(View.VISIBLE);
+                mRecordButton.setImageResource(R.drawable.ic_mic_white_36dp);
+                commentRecordLayout.stopRecording();
+            }
+            mStartRecording = !mStartRecording;
+        }
     }
 }
