@@ -50,7 +50,7 @@ public class NotificationHolder extends RecyclerView.ViewHolder {
         final String authorId = notification.getFromUserId();
         if (authorId != null) {
             profileManager.getProfileSingleValue(authorId, createOnProfileChangeListener(avatarImageView));
-        } else if (notification.isFromSystem()) {
+        } else {
             avatarImageView.setImageResource(R.drawable.ratemysinging);
         }
 

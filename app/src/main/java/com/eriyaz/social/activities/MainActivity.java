@@ -27,7 +27,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
@@ -47,6 +46,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.eriyaz.social.Application;
 import com.eriyaz.social.BuildConfig;
 import com.eriyaz.social.Constants;
 import com.eriyaz.social.ForceUpdateChecker;
@@ -55,9 +55,10 @@ import com.eriyaz.social.adapters.PostsAdapter;
 import com.eriyaz.social.behaviors.MoveUpwardBehavior;
 import com.eriyaz.social.enums.PostStatus;
 import com.eriyaz.social.enums.ProfileStatus;
-import com.eriyaz.social.fragments.PlaybackFragment;
+import com.eriyaz.social.managers.BlockUserManager;
 import com.eriyaz.social.managers.DatabaseHelper;
 import com.eriyaz.social.managers.PostManager;
+import com.eriyaz.social.managers.listeners.OnDataChangedListener;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.managers.listeners.OnObjectExistListener;
 import com.eriyaz.social.model.Post;
@@ -73,6 +74,8 @@ import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
 import com.google.firebase.dynamiclinks.PendingDynamicLinkData;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.uxcam.UXCam;
+
+import java.util.List;
 
 import static com.eriyaz.social.utils.ImageUtil.setBadgeCount;
 
@@ -92,6 +95,7 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
     private long userPoints = 0;
     final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
     private Profile profile;
+    protected BlockUserManager blockUserManager;
 
     // private Snackbar karmaSnackbar;
     static {
@@ -107,12 +111,14 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         setSupportActionBar(toolbar);
 
         postManager = PostManager.getInstance(this);
+        blockUserManager = BlockUserManager.getInstance(this);
         ProfileStatus profileStatus = profileManager.checkProfile();
         if(profileStatus.equals(ProfileStatus.NOT_AUTHORIZED) || profileStatus.equals(ProfileStatus.NO_PROFILE)) {
-            if (!BuildConfig.DEBUG) {
-                UXCam.startWithKey("8e284e93d1b8286");
-            }
             doAuthorization(profileStatus);
+        } else {
+            blockUserManager.getBlockedByList(MainActivity.this,
+                    FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                    createOnBlockedByChangedDataListener());
         }
 
         initContentView();
@@ -128,6 +134,12 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
 
         getDynamicLink();
         ForceUpdateChecker.with(this).onUpdateNeeded(this).check();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        blockUserManager.closeListeners(this);
     }
 
     @Override
@@ -176,6 +188,12 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         super.onResume();
         updateNewPostCounter();
         if (profileManager.checkProfile().equals(ProfileStatus.PROFILE_CREATED)) {
+            if (!blockUserManager.hasActiveListeners(MainActivity.this)) {
+                LogUtil.logInfo(TAG, "onResume: getBlockedByList");
+                blockUserManager.getBlockedByList(MainActivity.this,
+                        FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                        createOnBlockedByChangedDataListener());
+            }
             profileManager.getProfileValue(MainActivity.this,
                     FirebaseAuth.getInstance().getCurrentUser().getUid(),
                     createOnProfileChangedListener());
@@ -265,6 +283,9 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
             @Override
             public void onObjectChanged(Profile profile) {
                 if (profile.getPostCount() == 1) {
+                    if (!BuildConfig.DEBUG) {
+                        UXCam.startWithKey("8e284e93d1b8286");
+                    }
                     // show first post popup
                     analytics.logFirstPost();
                     showPopupDialog(R.string.rating_benchmark);
@@ -668,5 +689,17 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
 
     private void createAnonymousAccountWithReferrerInfo(String referrerUid) {
         DatabaseHelper.getInstance(MainActivity.this).setReferrerInfo(referrerUid);
+    }
+
+    private OnDataChangedListener<String> createOnBlockedByChangedDataListener() {
+        return new OnDataChangedListener<String>() {
+            @Override
+            public void onListChanged(List<String> list) {
+                Application application = (Application) getApplication();
+
+                Toast.makeText(MainActivity.this, ""+list.size(), Toast.LENGTH_LONG);
+                application.setBlockedByList(list);
+            }
+        };
     }
 }

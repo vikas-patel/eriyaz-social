@@ -111,6 +111,9 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                 if (showReplyOption(post, rating)) {
                     popup.getMenu().findItem(R.id.messageMenuItem).setVisible(true);
                 }
+                if (hasAccessToModifyPost(post)) {
+                    popup.getMenu().findItem(R.id.blockMenuItem).setVisible(true);
+                }
                 //adding click listener
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
@@ -121,6 +124,9 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                                 break;
                             case R.id.reportMenuItem:
                                 callback.onReportClick(view, getAdapterPosition());
+                                break;
+                            case R.id.blockMenuItem:
+                                callback.onBlockClick(view, getAdapterPosition());
                                 break;
                         }
                         return false;
@@ -210,5 +216,10 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
         if (currentUser == null || post == null || !post.getAuthorId().equals(currentUser.getUid())) return false;
         if (currentUser.getUid().equals(rating.getAuthorId())) return false;
         return true;
+    }
+
+    private boolean hasAccessToModifyPost(Post post) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        return currentUser != null && post != null && post.getAuthorId().equals(currentUser.getUid());
     }
 }

@@ -149,6 +149,7 @@ CommentViewHolder extends RecyclerView.ViewHolder {
                     popup.getMenu().findItem(R.id.deleteMenuItem).setVisible(true);
                 } else if (hasAccessToModifyPost(post)) {
                     popup.getMenu().findItem(R.id.deleteMenuItem).setVisible(true);
+                    popup.getMenu().findItem(R.id.blockMenuItem).setVisible(true);
                 }
                 //adding click listener
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -160,6 +161,9 @@ CommentViewHolder extends RecyclerView.ViewHolder {
                                 break;
                             case R.id.editMenuItem:
                                 callback.onEditClick(view, getAdapterPosition());
+                                break;
+                            case R.id.blockMenuItem:
+                                callback.onBlockClick(view, getAdapterPosition());
                                 break;
                             case R.id.reportMenuItem:
                                 callback.onReportClick(view, getAdapterPosition());

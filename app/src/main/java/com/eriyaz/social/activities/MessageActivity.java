@@ -21,6 +21,7 @@ import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.eriyaz.social.Application;
 import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.MessagesAdapter;
 import com.eriyaz.social.enums.ProfileStatus;
@@ -98,16 +99,7 @@ public class MessageActivity extends BaseActivity {
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (hasInternetConnection()) {
-                    ProfileStatus profileStatus = ProfileManager.getInstance(MessageActivity.this).checkProfile();
-                    if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
-                        sendMessage();
-                    } else {
-                        doAuthorization(profileStatus);
-                    }
-                } else {
-                    showSnackBar(R.string.internet_connection_failed);
-                }
+                sendMessage();
             }
         });
 
@@ -134,16 +126,12 @@ public class MessageActivity extends BaseActivity {
 
                 @Override
                 public void sendReply(String messageText, String parentId) {
-                    ProfileStatus profileStatus = ProfileManager.getInstance(MessageActivity.this).checkProfile();
-                    if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
-                        Message message = new Message(messageText);
-                        message.setParentId(parentId);
-                        message.setReceiverId(userId);
-                        saveMessage(message);
-                        hideKeyBoard();
-                    } else {
-                        doAuthorization(profileStatus);
-                    }
+                    if (!isAuthorized()) return;
+                    Message message = new Message(messageText);
+                    message.setParentId(parentId);
+                    message.setReceiverId(userId);
+                    saveMessage(message);
+                    hideKeyBoard();
                 }
 
                 @Override
@@ -277,6 +265,7 @@ public class MessageActivity extends BaseActivity {
         String messageText = messageEditText.getText().toString();
 
         if (messageText.length() > 0) {
+            if (!isAuthorized()) return;
             Message message = new Message(messageText);
             message.setReceiverId(userId);
             saveMessage(message);
@@ -295,6 +284,24 @@ public class MessageActivity extends BaseActivity {
                 }
             }
         });
+    }
+
+    public boolean isAuthorized() {
+        if (!hasInternetConnection()) {
+            showSnackBar(R.string.internet_connection_failed);
+            return false;
+        }
+        ProfileStatus status = ProfileManager.getInstance(MessageActivity.this).checkProfile();
+        if (status.equals(ProfileStatus.NOT_AUTHORIZED) || status.equals(ProfileStatus.NO_PROFILE)) {
+            doAuthorization(status);
+            return false;
+        }
+        Application application = (Application) getApplication();
+        if (application.isBlocked(userId)) {
+            showWarningDialog(String.format(getResources().getString(R.string.blocked_msg), "message"));
+            return false;
+        }
+        return true;
     }
 
     private void hideKeyBoard() {

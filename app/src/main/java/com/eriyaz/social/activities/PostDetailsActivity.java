@@ -61,9 +61,11 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.eriyaz.social.Application;
 import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.CommentsAdapter;
 import com.eriyaz.social.adapters.RatingsAdapter;
+import com.eriyaz.social.dialogs.BlockDialog;
 import com.eriyaz.social.dialogs.ComplainDialog;
 import com.eriyaz.social.dialogs.EditCommentDialog;
 import com.eriyaz.social.enums.BoughtFeedbackStatus;
@@ -104,7 +106,8 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class PostDetailsActivity extends BaseActivity implements EditCommentDialog.CommentDialogCallback, ComplainDialog.ComplainCallback {
+public class PostDetailsActivity extends BaseActivity implements EditCommentDialog.CommentDialogCallback,
+        ComplainDialog.ComplainCallback, BlockDialog.BlockCallback {
     private static final String TAG = PostDetailsActivity.class.getSimpleName();
 
     public static final String POST_ID_EXTRA_KEY = "PostDetailsActivity.POST_ID_EXTRA_KEY";
@@ -317,17 +320,8 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (hasInternetConnection()) {
-                    ProfileStatus profileStatus = ProfileManager.getInstance(PostDetailsActivity.this).checkProfile();
-
-                    if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
-                        sendComment();
-                    } else {
-                        doAuthorization(profileStatus);
-                    }
-                } else {
-                    showSnackBar(R.string.internet_connection_failed);
-                }
+                if (!isAuthorized()) return;
+                sendComment();
             }
         });
 
@@ -380,6 +374,24 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         });
     }
 
+    public boolean isAuthorized() {
+        if (!hasInternetConnection()) {
+            showSnackBar(R.string.internet_connection_failed);
+            return false;
+        }
+        ProfileStatus status = ProfileManager.getInstance(PostDetailsActivity.this).checkProfile();
+        if (status.equals(ProfileStatus.NOT_AUTHORIZED) || status.equals(ProfileStatus.NO_PROFILE)) {
+            doAuthorization(status);
+            return false;
+        }
+        Application application = (Application) getApplication();
+        if (application.isBlocked(post.getAuthorId())) {
+            showWarningDialog(String.format(getResources().getString(R.string.blocked_msg), "comment"));
+            return false;
+        }
+        return true;
+    }
+
     private void createOfficialFeedbackRequest() {
         OfficialFeedbackRequest request = new OfficialFeedbackRequest(post.getAuthorId(), post.getId(), paymentAmount, PostDetailsActivity.this);
         request.create(new OnPaymentCompleteListener() {
@@ -388,9 +400,9 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
                 if (status.equals(PaymentStatus.SUCCESS)) {
                     showSnackBar("Payment Successful.");
                 } else if (status.equals(PaymentStatus.PENDING)) {
-                    showPaymentDialog("Payment Status Pending");
+                    showDialog("Payment Status Pending");
                 } else {
-                    showPaymentDialog("Payment Failed");
+                    showDialog("Payment Failed");
                 }
             }
         });
@@ -489,7 +501,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             public void onPlayClick(View view, int position, String authorName) {
                 Comment comment = commentsAdapter.getItemByPosition(position);
                 try {
-                    RecordingItem item = new RecordingItem(authorName, comment.getAudioPath(), 0);
+                    RecordingItem item = new RecordingItem(authorName + "'s voice comment", comment.getAudioPath(), 0);
                     item.setServer(true);
                     RecordPlayFragment playbackFragment =
                             RecordPlayFragment.newInstance(item);
@@ -499,6 +511,17 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
                 } catch (Exception e) {
                     Log.e(TAG, "exception", e);
                 }
+            }
+
+            @Override
+            public void onBlockClick(View view, int position) {
+                Comment comment = commentsAdapter.getItemByPosition(position);
+                if (!hasInternetConnection()) {
+                    showSnackBar(R.string.internet_connection_failed);
+                    return;
+                }
+                String blockUser = comment.getAuthorId();
+                openUserBlockDialog(blockUser);
             }
 
             @Override
@@ -571,6 +594,17 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             }
 
             @Override
+            public void onBlockClick(View view, int position) {
+                Rating rating = ratingsAdapter.getItemByPosition(position);
+                if (!hasInternetConnection()) {
+                    showSnackBar(R.string.internet_connection_failed);
+                    return;
+                }
+                String blockUser = rating.getAuthorId();
+                openUserBlockDialog(blockUser);
+            }
+
+            @Override
             public void onAuthorClick(String authorId, View view) {
                 openProfileActivity(authorId, view);
             }
@@ -628,7 +662,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         toast.show();
     }
 
-    private void showPaymentDialog(String msg) {
+    private void showDialog(String msg) {
         AlertDialog.Builder builder = new BaseAlertDialogBuilder(this);
         builder.setMessage(msg);
         builder.setPositiveButton(R.string.button_ok, null);
@@ -638,13 +672,6 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private void showPointsNeededDialog() {
         AlertDialog.Builder builder = new BaseAlertDialogBuilder(this);
         builder.setMessage(String.format(getResources().getString(R.string.insufficient_points_view_rating), profile.getUsername()));
-        builder.setPositiveButton(R.string.button_ok, null);
-        builder.show();
-    }
-
-    private void showRatingSelfRecordingDialog() {
-        AlertDialog.Builder builder = new BaseAlertDialogBuilder(this);
-        builder.setMessage(getResources().getString(R.string.rating_self_recording));
         builder.setPositiveButton(R.string.button_ok, null);
         builder.show();
     }
@@ -1470,15 +1497,37 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         complainDialog.show(getFragmentManager(), ComplainDialog.TAG);
     }
 
+    private void openUserBlockDialog(String blockUser) {
+        BlockDialog blockDialog = new BlockDialog();
+        Bundle args = new Bundle();
+        args.putString(BlockDialog.BLOCKED_USER_KEY, blockUser);
+        blockDialog.setArguments(args);
+        blockDialog.show(getFragmentManager(), ComplainDialog.TAG);
+    }
+
     @Override
     public void onFlagReason(Flag flag) {
         postManager.flagUser(flag, new OnTaskCompleteListener() {
             @Override
             public void onTaskComplete(boolean success) {
                 if (success) {
-                    showPaymentDialog("Received your complaint. Will review and send a warning to user.");
+                    showDialog("Received your complaint. Will review and send a warning to user.");
                 } else {
                     showSnackBar(R.string.error_fail_create_complain);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onBlock(String blockedUser, String reason) {
+        profileManager.blockUser(blockedUser, reason, new OnTaskCompleteListener() {
+            @Override
+            public void onTaskComplete(boolean success) {
+                if (success) {
+                    showSnackBar(R.string.block_success);
+                } else {
+                    showSnackBar(R.string.error_fail_block);
                 }
             }
         });

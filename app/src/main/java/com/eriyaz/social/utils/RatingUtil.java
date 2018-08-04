@@ -45,6 +45,52 @@ public class RatingUtil {
         return color;
     }
 
+    public static String getRatingPercentile(int rating) {
+        switch (rating) {
+            case 1:
+                return "Bottom 5%";
+            case 2:
+                return "Bottom 20%";
+            case 3:
+                return "Bottom 30%";
+            case 4:
+                return "Bottom 40%";
+            case 5:
+                return "Bottom 50%";
+            case 6:
+                return "Top 50%";
+            case 7:
+                return "Top 40%";
+            case 8:
+                return "Top 35%";
+            case 9:
+                return "Top 20%";
+            case 10:
+                return "Top 15%";
+            case 11:
+                return "Top 10%";
+            case 12:
+                return "Top 8%";
+            case 13:
+                return "Top 6%";
+            case 14:
+                return "Top 4%";
+            case 15:
+                return "Top 2%";
+            case 16:
+                return "Top 1%";
+            case 17:
+                return "Top 0.5%";
+            case 18:
+                return "Top 0.2%";
+            case 19:
+                return "Top 0.1%";
+            case 20:
+                return "Top 0.05%";
+        }
+        return null;
+    }
+
     public static boolean viewedByAuthor(Post post) {
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         if (firebaseUser != null) {

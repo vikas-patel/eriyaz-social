@@ -6,7 +6,6 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
-import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 
 /**
  * Created by vikas on 15/4/18.
@@ -44,7 +43,7 @@ public class ForceUpdateChecker {
     public void check() {
         final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
         int currentVersion = (int) remoteConfig.getLong(KEY_CURRENT_VERSION);
-        int appVersion = getAppVersion(context);
+        int appVersion = getAppVersionCode(context);
         if (appVersion != 0 && currentVersion > appVersion
                 && onUpdateNeededListener != null) {
             if (remoteConfig.getBoolean(KEY_UPDATE_SKIP_REMINDER)) {
@@ -57,7 +56,7 @@ public class ForceUpdateChecker {
         }
     }
 
-    private int getAppVersion(Context context) {
+    private int getAppVersionCode(Context context) {
         int result = 0;
 
         try {

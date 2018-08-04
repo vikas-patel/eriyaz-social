@@ -33,6 +33,7 @@ public class Application extends android.app.Application {
     public static final String TAG = Application.class.getSimpleName();
     private FirebaseRemoteConfig mFirebaseRemoteConfig;
     private List<String> playPostList = new ArrayList<>();
+    private List<String> blockedByList = new ArrayList<>();
 
     @Override
     public void onCreate() {
@@ -43,6 +44,15 @@ public class Application extends android.app.Application {
         mFirebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
         mFirebaseRemoteConfig.setDefaults(R.xml.remote_config_defaults);
         fetchRemoteConfig();
+    }
+
+    public void setBlockedByList(List aBlockedList) {
+        blockedByList = aBlockedList;
+    }
+
+    public boolean isBlocked(String authorId) {
+        if (blockedByList != null && blockedByList.contains(authorId)) return true;
+        return false;
     }
 
     public void addPlayedPost(String postId) {

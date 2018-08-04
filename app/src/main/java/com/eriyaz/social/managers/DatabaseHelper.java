@@ -427,6 +427,24 @@ public class DatabaseHelper {
             }});
     }
 
+    public void blockUser(String blockUserId, String reason, final OnTaskCompleteListener onTaskCompleteListener) {
+        String authorId = firebaseAuth.getCurrentUser().getUid();
+        if (blockUserId.equals(authorId)) {
+            onTaskCompleteListener.onTaskComplete(false);
+            return;
+        }
+        DatabaseReference blockReference = database.getReference().child("block-users/"+blockUserId+"/"+authorId);
+        Map children = new HashMap();
+        children.put("reason", reason);
+        blockReference.updateChildren(children, new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                if (onTaskCompleteListener != null) {
+                    onTaskCompleteListener.onTaskComplete(true);
+                }
+            }});
+    }
+
     public void createComment(Comment comment, final String postId, final OnTaskCompleteListener onTaskCompleteListener) {
         try {
             DatabaseReference mCommentsReference = database.getReference().child("post-comments/" + postId);
@@ -1179,6 +1197,29 @@ public class DatabaseHelper {
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 LogUtil.logError(TAG, "getCommentsList(), onCancelled", new Exception(databaseError.getMessage()));
+            }
+        });
+
+        activeListeners.put(valueEventListener, databaseReference);
+        return valueEventListener;
+    }
+
+    public ValueEventListener getBlockedByList(String userId, final OnDataChangedListener<String> onDataChangedListener) {
+        DatabaseReference databaseReference = database.getReference("block-users").child(userId);
+        ValueEventListener valueEventListener = databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                List<String> list = new ArrayList<>();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    String blockedBy = snapshot.getKey();
+                    list.add(blockedBy);
+                }
+                onDataChangedListener.onListChanged(list);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                LogUtil.logError(TAG, "getBlockedByList(), onCancelled", new Exception(databaseError.getMessage()));
             }
         });
 

@@ -74,4 +74,11 @@ public class FirebaseListenersManager {
             activeChildListeners.remove(context);
         }
     }
+
+    public boolean hasActiveListeners(Context context) {
+        if (activeListeners.containsKey(context)) {
+            return true;
+        }
+        return false;
+    }
 }

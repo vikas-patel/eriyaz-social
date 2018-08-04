@@ -1,7 +1,9 @@
 package com.eriyaz.social.utils;
 
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.graphics.Point;
+import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
 
@@ -22,5 +24,18 @@ public class Utils {
         Point size = new Point();
         display.getSize(size);
         return size;
+    }
+
+    public static String getAppVersionName(Context context) {
+        String result = "";
+        try {
+            result = context.getPackageManager()
+                    .getPackageInfo(context.getPackageName(), 0)
+                    .versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.e("Utils", e.getMessage());
+        }
+
+        return result;
     }
 }

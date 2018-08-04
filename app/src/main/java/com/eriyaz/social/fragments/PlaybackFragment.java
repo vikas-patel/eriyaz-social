@@ -324,6 +324,10 @@ public class PlaybackFragment extends BaseDialogFragment {
             baseActivity.doAuthorization(status);
             return false;
         }
+        if (application.isBlocked(post.getAuthorId())) {
+            baseActivity.showWarningDialog(String.format(getResources().getString(R.string.blocked_msg), "rate"));
+            return false;
+        }
         return true;
     }
 
