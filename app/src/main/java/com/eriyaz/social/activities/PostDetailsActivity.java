@@ -37,6 +37,7 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
+import android.text.Html;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.transition.Transition;
@@ -95,6 +96,7 @@ import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.utils.FormatterUtil;
 import com.eriyaz.social.utils.OfficialFeedbackRequest;
 import com.eriyaz.social.utils.PermissionsUtil;
+import com.eriyaz.social.utils.RatingUtil;
 import com.eriyaz.social.views.RecordLayout;
 import com.google.android.exoplayer2.util.Util;
 import com.google.firebase.auth.FirebaseAuth;
@@ -126,12 +128,11 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private TextView ratingCounterTextView;
     private TextView averageRatingTextView;
     private TextView ratingLabelTextView;
+    private TextView aggregatePercentileTextView;
 
     private TextView commentsLabel;
 //    private TextView likeCounterTextView;
     private TextView commentsCountTextView;
-    private TextView watcherCounterTextView;
-    private LinearLayout watcherContainerLayout;
     private TextView authorTextView;
     private TextView dateTextView;
     private ImageView authorImageView;
@@ -201,7 +202,6 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         isAuthorAnimationRequired = getIntent().getBooleanExtra(AUTHOR_ANIMATION_NEEDED_EXTRA_KEY, false);
         postId = getIntent().getStringExtra(POST_ID_EXTRA_KEY);
 
-        incrementWatchersCount();
 
         fileName = (TextView) findViewById(R.id.file_name_text);
         descriptionEditText = findViewById(R.id.descriptionEditText);
@@ -224,14 +224,13 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         ratingCounterTextView = (TextView) findViewById(R.id.ratingCounterTextView);
         averageRatingTextView = (TextView) findViewById(R.id.averageRatingTextView);
         ratingLabelTextView = findViewById(R.id.ratingLabelTextView);
+        aggregatePercentileTextView = findViewById(R.id.aggregatePercentileTextView);
 //        ratingBar = (BubbleSeekBar) findViewById(R.id.ratingBar);
 
         authorImageView = (ImageView) findViewById(R.id.authorImageView);
         authorTextView = (TextView) findViewById(R.id.authorTextView);
 //        likeCounterTextView = (TextView) findViewById(R.id.likeCounterTextView);
         commentsCountTextView = (TextView) findViewById(R.id.commentsCountTextView);
-        watcherCounterTextView = (TextView) findViewById(R.id.watcherCounterTextView);
-        watcherContainerLayout = findViewById(R.id.watchersContainer);
         dateTextView = (TextView) findViewById(R.id.dateTextView);
         commentsProgressBar = (ProgressBar) findViewById(R.id.commentsProgressBar);
         warningCommentsTextView = (TextView) findViewById(R.id.warningCommentsTextView);
@@ -731,12 +730,6 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         progressBar.setVisibility(View.GONE);
     }
 
-    private void incrementWatchersCount() {
-        postManager.incrementWatchersCount(postId);
-        Intent intent = getIntent();
-        setResult(RESULT_OK, intent.putExtra(POST_STATUS_EXTRA_KEY, PostStatus.UPDATED));
-    }
-
     private void showPostWasRemovedDialog() {
         AlertDialog.Builder builder = new BaseAlertDialogBuilder(PostDetailsActivity.this);
         builder.setMessage(R.string.error_post_was_removed);
@@ -858,26 +851,37 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             avgRatingText = String.format( "%.1f", post.getAverageRating());
         }
         averageRatingTextView.setText(avgRatingText);
-        if (post.getAverageRating() > 15) {
-            ratingLabelTextView.setText("AMAZING");
-            ratingLabelTextView.setTextColor(getResources().getColor(R.color.dark_green));
-        } else if (post.getAverageRating() > 10) {
-            ratingLabelTextView.setText("GOOD");
-            ratingLabelTextView.setTextColor(getResources().getColor(R.color.light_green));
-        } else if (post.getAverageRating() > 5) {
-            ratingLabelTextView.setText("AVERAGE");
-            ratingLabelTextView.setTextColor(getResources().getColor(R.color.accent));
-        } else if (post.getAverageRating() > 0){
-            ratingLabelTextView.setText("NOT OK");
-            ratingLabelTextView.setTextColor(getResources().getColor(R.color.red));
+        if (hasAccessToModifyPost()) {
+            String percentileStr = RatingUtil.getRatingPercentile(Math.round(post.getAverageRating()));
+            aggregatePercentileTextView.setText(Html.fromHtml(String.format(getString(R.string.aggregate_post_percentile), percentileStr)));
+            aggregatePercentileTextView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    // open rating chart
+                    Intent intent = new Intent(PostDetailsActivity.this, RatingsChartActivity.class);
+                    startActivity(intent);
+                }
+            });
         } else {
-            ratingLabelTextView.setText("");
+            if (post.getAverageRating() > 15) {
+                ratingLabelTextView.setText("AMAZING");
+                ratingLabelTextView.setTextColor(getResources().getColor(R.color.dark_green));
+            } else if (post.getAverageRating() > 10) {
+                ratingLabelTextView.setText("GOOD");
+                ratingLabelTextView.setTextColor(getResources().getColor(R.color.light_green));
+            } else if (post.getAverageRating() > 5) {
+                ratingLabelTextView.setText("AVERAGE");
+                ratingLabelTextView.setTextColor(getResources().getColor(R.color.accent));
+            } else if (post.getAverageRating() > 0){
+                ratingLabelTextView.setText("NOT OK");
+                ratingLabelTextView.setTextColor(getResources().getColor(R.color.red));
+            } else {
+                ratingLabelTextView.setText("");
+            }
         }
 
 //        likeController.setUpdatingLikeCounter(false);
 //        ratingController.setUpdatingRatingCounter(false);
-        watcherContainerLayout.setVisibility(View.VISIBLE);
-        watcherCounterTextView.setText(String.valueOf(post.getWatchersCount()));
 
         CharSequence date = FormatterUtil.getRelativeTimeSpanStringShort(this, post.getCreatedDate());
         dateTextView.setText(date);

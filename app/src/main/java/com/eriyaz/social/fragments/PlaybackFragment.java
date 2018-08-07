@@ -61,6 +61,7 @@ import com.volokh.danylo.hashtaghelper.HashTagHelper;
 import com.xw.repo.BubbleSeekBar;
 
 import java.io.File;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -93,6 +94,7 @@ public class PlaybackFragment extends BaseDialogFragment {
     private CommentManager commentManager;
     private TextView ratingTextView;
     private TextView earnExtraTextView;
+    private TextView recordErrorTextView;
     private TextView melodyPercentageLabel;
     private TextView voiceQualityLabel;
     private FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
@@ -192,7 +194,7 @@ public class PlaybackFragment extends BaseDialogFragment {
             @Override
             public void onClick(View v) {
                 openRecordLayout();
-                openDetailedFeedback();
+//                openDetailedFeedback();
             }
         });
         if (!PreferencesUtil.isUserRatedMany(getActivity())) {
@@ -242,6 +244,7 @@ public class PlaybackFragment extends BaseDialogFragment {
         melodyPercentageLabel = view.findViewById(R.id.melodyPercentageLabel);
         ratingTextView = view.findViewById(R.id.ratingTextView);
         earnExtraTextView = view.findViewById(R.id.earnExtraTextView);
+        recordErrorTextView = view.findViewById(R.id.recordErrorTextView);
         voiceQualityLabel = view.findViewById(R.id.voiceQualityLabel);
         harkateView = view.findViewById(R.id.harkateCheckboxId);
         pronounciationView = view.findViewById(R.id.pronounciationCheckboxId);
@@ -269,7 +272,7 @@ public class PlaybackFragment extends BaseDialogFragment {
     }
 
     private void onCloseButton() {
-        if (ratingBar.getProgress() > 0 && ratingBar.getProgress() <= 5 && melodyRadioGroup.getCheckedRadioButtonId() == -1) {
+        if (ratingBar.getProgress() > 0 && ratingBar.getProgress() <= 5) {
             AlertDialog.Builder builder = new BaseAlertDialogBuilder(getActivity());
             builder.setMessage(Html.fromHtml(getString(R.string.rating_lost_popup)))
                     .setNegativeButton(R.string.button_title_cancel, null)
@@ -282,9 +285,7 @@ public class PlaybackFragment extends BaseDialogFragment {
             builder.create().show();
             return;
         }
-        if (melodyRadioGroup.getCheckedRadioButtonId() != -1 ||
-                voiceQualityRadioGroup.getCheckedRadioButtonId() != -1 ||
-                mistakesTextView.getText().length() > 0) {
+        if (commentRecordLayout.getRecordItem() != null) {
             AlertDialog.Builder builder = new BaseAlertDialogBuilder(getActivity());
             builder.setMessage(R.string.confirm_close_play_popup)
                     .setNegativeButton(R.string.button_title_cancel, null)
@@ -307,7 +308,8 @@ public class PlaybackFragment extends BaseDialogFragment {
 
     private void openRecordLayout() {
         commentLayout.setVisibility(View.VISIBLE);
-        mistakesTextView.setVisibility(View.GONE);
+        recordErrorTextView.setVisibility(View.VISIBLE);
+//        mistakesTextView.setVisibility(View.GONE);
         submitButton.setVisibility(View.VISIBLE);
         moreTextView.setVisibility(View.GONE);
         earnExtraTextView.setVisibility(View.GONE);
@@ -331,10 +333,7 @@ public class PlaybackFragment extends BaseDialogFragment {
         return true;
     }
 
-    private void submitCommentFeedback() {
-        String commentText = mistakesTextView.getText().toString();
-        ratingController.handleRatingClickAction((BaseActivity) getActivity(), post, ratingBar.getProgress());
-        Comment detailed_comment = new Comment(commentText);
+    private void submitCommentFeedback(Comment detailed_comment) {
         detailed_comment.setAuthorId(firebaseAuth.getCurrentUser().getUid());
 
         OnTaskCompleteListener listener = new OnTaskCompleteListener() {
@@ -359,16 +358,6 @@ public class PlaybackFragment extends BaseDialogFragment {
 
     private void submitDetailedFeedback() {
         if (!isAuthorized()) return;
-        if (ratingBar.getProgress() > 0 && ratingBar.getProgress() <= 5) {
-            if (commentRecordLayout.getRecordItem() == null) {
-                ((BaseActivity) getActivity()).showSnackBar(R.string.mandatory_voice_feedback_error);
-                showDialog(R.string.mandatory_voice_feedback_error);
-                return;
-            }
-            submitCommentFeedback();
-            return;
-        }
-        mistakesTextView.setError(null);
         boolean error = false;
         if (ratingBar.getProgress() == 0) {
             ratingTextView.setError("Rating is not set.");
@@ -376,49 +365,69 @@ public class PlaybackFragment extends BaseDialogFragment {
         } else {
             ratingTextView.setError(null);
         }
-        if (melodyRadioGroup.getCheckedRadioButtonId() == -1) {
-            melodyPercentageLabel.setError("'Tone Match %' is not set.");
+        if (commentRecordLayout.getRecordItem() == null) {
+            recordErrorTextView.setText(R.string.mandatory_voice_feedback_error);
             error = true;
-        } else {
-            melodyPercentageLabel.setError(null);
-        }
-
-        if (voiceQualityRadioGroup.getCheckedRadioButtonId() == -1) {
-            voiceQualityLabel.setError("'Voice Quality is not set.");
-            error = true;
-        } else {
-            voiceQualityLabel.setError(null);
         }
         if (error) return;
-
-        RadioButton selectedVoiceQuality = voiceQualityRadioGroup.findViewById(voiceQualityRadioGroup.getCheckedRadioButtonId());
-        String ratingDetailedText = String.format(getString(R.string.rating_detailed_text),
-                getMelodyText(),
-                selectedVoiceQuality.getText(),
-                getProblems());
-
-        String commentText = mistakesTextView.getText().toString();
-        if (!commentText.isEmpty() || commentRecordLayout.getRecordItem() != null) {
-            submitCommentFeedback();
-            // extra marks only on rating create
-            ratingController.updateDetailedText(ratingDetailedText, new OnTaskCompleteListener() {
-                @Override
-                public void onTaskComplete(boolean success) {}
-            });
-        } else {
-            // extra marks only on rating create
-            ratingController.updateDetailedText(ratingDetailedText, new OnTaskCompleteListener() {
-                @Override
-                public void onTaskComplete(boolean success) {
-                    if (getActivity() != null) ((BaseActivity) getActivity()).hideProgress();
-                    if (success) {
-                        dismiss();
-                    } else {
-                        ((BaseActivity) getActivity()).showSnackBar(R.string.error_fail_create_detailed_feedback);
-                    }
-                }
-            });
+        Comment comment = new Comment();
+        comment.setCreatedDate(Calendar.getInstance().getTimeInMillis());
+        if (ratingBar.getProgress() > 0 && ratingBar.getProgress() <= 5) {
+            ratingController.handleRatingClickAction((BaseActivity) getActivity(), post, ratingBar.getProgress());
+        } else if (ratingBar.getProgress() <= 15) {
+            comment.setDetailedFeedback(true);
         }
+        submitCommentFeedback(comment);
+        return;
+//        mistakesTextView.setError(null);
+//        if (ratingBar.getProgress() == 0) {
+//            ratingTextView.setError("Rating is not set.");
+//            error = true;
+//        } else {
+//            ratingTextView.setError(null);
+//        }
+//        if (melodyRadioGroup.getCheckedRadioButtonId() == -1) {
+//            melodyPercentageLabel.setError("'Tone Match %' is not set.");
+//            error = true;
+//        } else {
+//            melodyPercentageLabel.setError(null);
+//        }
+//
+//        if (voiceQualityRadioGroup.getCheckedRadioButtonId() == -1) {
+//            voiceQualityLabel.setError("'Voice Quality is not set.");
+//            error = true;
+//        } else {
+//            voiceQualityLabel.setError(null);
+//        }
+//
+//        RadioButton selectedVoiceQuality = voiceQualityRadioGroup.findViewById(voiceQualityRadioGroup.getCheckedRadioButtonId());
+//        String ratingDetailedText = String.format(getString(R.string.rating_detailed_text),
+//                getMelodyText(),
+//                selectedVoiceQuality.getText(),
+//                getProblems());
+//
+//        String commentText = mistakesTextView.getText().toString();
+//        if (!commentText.isEmpty() || commentRecordLayout.getRecordItem() != null) {
+//            submitCommentFeedback();
+//            // extra marks only on rating create
+//            ratingController.updateDetailedText(ratingDetailedText, new OnTaskCompleteListener() {
+//                @Override
+//                public void onTaskComplete(boolean success) {}
+//            });
+//        } else {
+//            // extra marks only on rating create
+//            ratingController.updateDetailedText(ratingDetailedText, new OnTaskCompleteListener() {
+//                @Override
+//                public void onTaskComplete(boolean success) {
+//                    if (getActivity() != null) ((BaseActivity) getActivity()).hideProgress();
+//                    if (success) {
+//                        dismiss();
+//                    } else {
+//                        ((BaseActivity) getActivity()).showSnackBar(R.string.error_fail_create_detailed_feedback);
+//                    }
+//                }
+//            });
+//        }
     }
 
     private CharSequence getProblems() {

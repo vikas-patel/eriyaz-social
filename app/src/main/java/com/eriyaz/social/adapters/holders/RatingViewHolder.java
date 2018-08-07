@@ -19,23 +19,30 @@
 package com.eriyaz.social.adapters.holders;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.text.Spannable;
+import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
+import android.text.style.URLSpan;
+import android.text.util.Linkify;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
 import com.eriyaz.social.adapters.RatingsAdapter;
+import com.eriyaz.social.dialogs.EditCommentDialog;
+import com.eriyaz.social.dialogs.RatingPercentileDialog;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.model.Post;
@@ -44,9 +51,12 @@ import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.utils.FormatterUtil;
 import com.eriyaz.social.utils.ImageUtil;
 import com.eriyaz.social.utils.PreferencesUtil;
+import com.eriyaz.social.utils.RatingUtil;
 import com.eriyaz.social.views.ExpandableTextView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+
+import java.util.regex.Pattern;
 
 /**
  * Created by alexey on 10.05.17.
@@ -63,6 +73,8 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
     private final ProfileManager profileManager;
     private RatingsAdapter.Callback callback;
     protected ImageButton optionMenuButton;
+    private String mUserName = "";
+    private Post mPost;
     private Context context;
 
     public RatingViewHolder(View itemView, final RatingsAdapter.Callback callback) {
@@ -83,13 +95,10 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
 
     public void bindData(final Rating rating, final Post post) {
         final String authorId = rating.getAuthorId();
+        mPost = post;
 
         questionTextView.setVisibility(View.GONE);
         ratingTextView.setVisibility(View.VISIBLE);
-        String ratingText = String.valueOf(rating.getRating());
-        if (rating.getDetailedText() != null && !rating.getDetailedText().isEmpty()) {
-            ratingText = ratingText + "\n" + rating.getDetailedText();
-        }
 
         CharSequence date = FormatterUtil.getRelativeTimeSpanString(context, rating.getCreatedDate());
         dateTextView.setText(date);
@@ -136,14 +145,9 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                 popup.show();
             }
         });
-        boolean hideRating = false;
-        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (firebaseUser != null) {
-            String currentUserId = firebaseUser.getUid();
-            if (currentUserId.equals(post.getAuthorId()) && !currentUserId.equals(rating.getAuthorId())
-                    &&  !rating.isViewedByPostAuthor()) {
+        if (hasAccessToModifyPost(post)) {
+            if (!rating.isViewedByPostAuthor()) {
                 questionTextView.setVisibility(View.VISIBLE);
-                hideRating = true;
                 if (!PreferencesUtil.isUserViewedRatingAtLeastOnce(context)) {
                     questionTextView.setText("Tap to view");
                 }
@@ -165,23 +169,36 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                         }
                     }
                 });
+            } else {
+                int normalizedRating = rating.getNormalizedRating();
+                if (normalizedRating == 0) normalizedRating = (int) rating.getRating();
+                String ratingText = RatingUtil.getRatingPercentile(normalizedRating);
+                if (rating.getDetailedText() != null && !rating.getDetailedText().isEmpty()) {
+                    ratingText = ratingText + "\n" + rating.getDetailedText();
+                }
+                ratingExpandedTextView.setText(ratingText);
             }
+        } else {
+            String ratingText = String.valueOf(rating.getRating());
+            if (rating.getDetailedText() != null && !rating.getDetailedText().isEmpty()) {
+                ratingText = ratingText + "\n" + rating.getDetailedText();
+            }
+            ratingExpandedTextView.setText(ratingText);
         }
-        if (!hideRating) ratingExpandedTextView.setText(ratingText);
         if (authorId != null)
             profileManager.getProfileSingleValue(authorId, createOnProfileChangeListener(ratingExpandedTextView,
-                    avatarImageView, ratingText, hideRating));
+                    avatarImageView, rating));
     }
 
     private OnObjectChangedListener<Profile> createOnProfileChangeListener(final ExpandableTextView expandableTextView,
                                                                            final ImageView avatarImageView,
-                                                                           final String ratingText,
-                                                                           final boolean hideRating) {
+                                                                           final Rating rating) {
         return new OnObjectChangedListener<Profile>() {
             @Override
             public void onObjectChanged(Profile obj) {
                 if (((BaseActivity)context).isActivityDestroyed()) return;
-                fillRating(obj.getUsername(), ratingText, expandableTextView, hideRating);
+                mUserName = obj.getUsername();
+                fillRating(rating, expandableTextView);
                 if (obj.getPhotoUrl() != null) {
                     Glide.with(context)
                             .load(obj.getPhotoUrl())
@@ -198,17 +215,59 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
         };
     }
 
-    private void fillRating(String userName, String comment, ExpandableTextView commentTextView, boolean hideRating) {
-        String text = userName + "   ";
-        if (!hideRating) {
-            text = text + comment;
+    private void fillRating(final Rating rating, ExpandableTextView commentTextView) {
+        int usernameLen = mUserName != null ? mUserName.length():0;
+        String text = mUserName + "   ";
+        if (!hasAccessToModifyPost(mPost)) {
+            String ratingText = String.valueOf(rating.getRating());
+            if (rating.getDetailedText() != null && !rating.getDetailedText().isEmpty()) {
+                ratingText = ratingText + "\n" + rating.getDetailedText();
+            }
+            Spannable contentString = new SpannableStringBuilder(text + ratingText);
+            contentString.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.highlight_text)),
+                    0, usernameLen, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            commentTextView.setText(contentString);
+            return;
         }
-        Spannable contentString = new SpannableStringBuilder(text);
-        int usernameLen = userName != null ? userName.length():0;
+        if (!rating.isViewedByPostAuthor()) {
+            Spannable contentString = new SpannableStringBuilder(mUserName);
+            contentString.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.highlight_text)),
+                    0, usernameLen, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            commentTextView.setText(contentString);
+            return;
+        }
+        // post author view
+        final int actualRating = (int) rating.getRating();
+        final int normalizedRating = rating.getNormalizedRating() == 0 ? actualRating : rating.getNormalizedRating();
+        String ratingText = RatingUtil.getRatingPercentile(normalizedRating);
+        int ratingLen = ratingText.length();
+        if (rating.getDetailedText() != null && !rating.getDetailedText().isEmpty()) {
+            ratingText = ratingText + "\n" + rating.getDetailedText();
+        }
+        text = text + ratingText;
+        SpannableString contentString = new SpannableString(text);
+        URLSpan urlSpan = new URLSpan("")
+        {
+            @Override
+            public void onClick( View widget )
+            {
+                RatingPercentileDialog ratingPercentileDialogDialog = new RatingPercentileDialog();
+                Bundle args = new Bundle();
+                args.putInt(RatingPercentileDialog.NORMALIZED_RATING_KEY, normalizedRating);
+                args.putInt(RatingPercentileDialog.ACTUAL_RATING_KEY, actualRating);
+                args.putString(RatingPercentileDialog.RATER_ID_KEY, rating.getAuthorId());
+                args.putString(RatingPercentileDialog.RATER_NAME_KEY, mUserName);
+                ratingPercentileDialogDialog.setArguments(args);
+                ratingPercentileDialogDialog.show(((BaseActivity)context).getFragmentManager(), RatingPercentileDialog.TAG);
+            }
+        };
+        contentString.setSpan(urlSpan,
+                usernameLen + 3, usernameLen+3+ratingLen, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         contentString.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.highlight_text)),
                 0, usernameLen, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-        commentTextView.setText(contentString);
+        ratingTextView.setText(contentString);
+        Pattern pattern = Pattern.compile("(Top|Bottom).*%");
+        Linkify.addLinks(ratingTextView, pattern, "");
     }
 
     private boolean showReplyOption(Post post, Rating rating) {

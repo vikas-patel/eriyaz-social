@@ -13,6 +13,7 @@ public class Rating implements Serializable {
     private String authorId;
     private long createdDate;
     private float rating;
+    private int normalizedRating;
     private String detailedText;
     // only for rated post
     private String postId;
@@ -54,6 +55,14 @@ public class Rating implements Serializable {
 
     public void setRating(float rating) {
         this.rating = rating;
+    }
+
+    public int getNormalizedRating() {
+        return normalizedRating;
+    }
+
+    public void setNormalizedRating(int normalizedRating) {
+        this.normalizedRating = normalizedRating;
     }
 
     public String getAuthorId() {
