@@ -189,6 +189,7 @@ public class RecordPlayFragment extends BaseDialogFragment {
                 new DefaultTrackSelector(), new DefaultLoadControl());
 
         playerView.setPlayer(player);
+        playerView.setControllerHideOnTouch(false);
         player.addListener(componentListener);
 
         player.setPlayWhenReady(playWhenReady);

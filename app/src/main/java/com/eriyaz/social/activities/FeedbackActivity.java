@@ -153,8 +153,8 @@ public class FeedbackActivity extends BaseActivity {
             recyclerView.setNestedScrollingEnabled(false);
             ((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
             recyclerView.setAdapter(adapter);
-            recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(),
-                    ((LinearLayoutManager) recyclerView.getLayoutManager()).getOrientation()));
+//            recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(),
+//                    ((LinearLayoutManager) recyclerView.getLayoutManager()).getOrientation()));
             feedbackManager.getFeedbackList(this, createOnFeedbackChangedDataListener());
         }
     }
@@ -252,8 +252,8 @@ public class FeedbackActivity extends BaseActivity {
             public int compare(Message lhs, Message rhs) {
                 List<Message> lChildren = parentFeedbacks.get(lhs);
                 List<Message> rChildren = parentFeedbacks.get(rhs);
-                long latestL = lChildren.isEmpty()?lhs.getCreatedDate():lChildren.get(0).getCreatedDate();
-                long latestR = rChildren.isEmpty()?rhs.getCreatedDate():rChildren.get(0).getCreatedDate();
+                long latestL = lChildren.isEmpty()?lhs.getCreatedDate():lChildren.get(lChildren.size()-1).getCreatedDate();
+                long latestR = rChildren.isEmpty()?rhs.getCreatedDate():rChildren.get(rChildren.size()-1).getCreatedDate();
                 return ((Long) latestR).compareTo((Long) latestL);
             }
         });
@@ -262,8 +262,8 @@ public class FeedbackActivity extends BaseActivity {
             List<Message> children = parentFeedbacks.get(key);
             ReplyTextItem replyItem = new ReplyTextItem(key.getId());
             resultList.add(key);
-            resultList.add(replyItem);
             resultList.addAll(children);
+            resultList.add(replyItem);
         }
         return resultList;
     }

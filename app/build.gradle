@@ -41,7 +41,7 @@ android {
         //Update remote config as well
         versionCode 43
         versionName "2.9"
-        multiDexEnabled = true
+        multiDexEnabled true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }

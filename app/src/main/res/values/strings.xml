@@ -85,7 +85,7 @@
     <string name="confirm_close_play_popup">Your recording will be lost. Are you sure want to close?</string>
     <string name="rating_lost_popup">Your rating will also be removed on close and no points will be earned.\nAre you sure you want to close?</string>
     <string name="mandatory_detailed_feedback_popup">\'Voice feedback\' is mandatory for \'Not Ok\' rating.</string>
-    <string name="voice_feedback_hint">Don\'t just sing but talk.</string>
+    <string name="voice_feedback_hint">Don\'t simply sing, talk.</string>
     <string name="mandatory_voice_feedback_error">Press \'mic icon\' to record.</string>
     <string name="confirm_continue_payment">Get official feedback from Paarth Singh.\nWill be given in 24 hours".\nPrice: Rs %1$d.</string>
     <string name="error_fail_create_complain">Fail to create complain</string>
@@ -94,7 +94,7 @@
     <string name="earn_extra_point">Your rating recieved. You can earn 1 extra point by giving \'detailed feedback\'.</string>
 
     <string name="comment_text_hint">Enter your comment…</string>
-    <string name="message_text_hint">Enter your message…</string>
+    <string name="message_text_hint">Start a new conversation…</string>
     <string name="smaller_reply_text_hint"><font size='12'>Enter your reply...</font></string>
     <string name="button_post_comment">Post comment</string>
     <string name="comment_not_ok_hint">Please give feedback on what can be improved. It is mandatory for \'Not Ok\' rating.</string>
@@ -150,6 +150,7 @@
     <string name="feedback_menu_item">Contact Us</string>
     <string name="admin_menu_item">Admin</string>
     <string name="notification_menu_item">Notification</string>
+    <string name="message_notification_menu_item">Message Notifications</string>
     <string name="share_app_menu_item">Share App</string>
     <string name="point_rule_menu_item">Points Rule</string>
     <string name="collapse_text_label">show less</string>
@@ -165,10 +166,11 @@
     <!--<string name="karma_text">Dear %1$s, this community can only function if everybody contributes. To get out of karma debt please rate and give feedback on other people\'s recordings.</string>-->
     <string name="normalized_rating_calculation_link"><u>How Normalized Rating and percentile is calculated?</u></string>
     <string name="rating_chart_link_text"><u>Rating Chart</u></string>
+    <string name="average_all_recordings_text">Average rating of all recordings in the app : <font color='#17a1d7'>10</font></string>
     <string name="normalized_rating_text"><![CDATA[Normalized Rating : <font color=\'#17a1d7\'>%1$d/20</font>]]></string>
     <string name="normalized_rating_calculation_text"><![CDATA[Normalized Rating = <font color=\'#17a1d7\'>(%1$d/%2$d)*10</font> = <font color=\'#17a1d7\'>%3$d/20</font>]]></string>
     <string name="actual_rating_text"><![CDATA[Actual Rating : <font color=\'#17a1d7\'>%1$d</font>]]></string>
-    <string name="average_rating_text"><![CDATA[<font color=\'#17a1d7\'>%1$s</font>\'s Average Rating : ]]></string>
+    <string name="average_rating_text"><![CDATA[<font color=\'#019B86\'><u>%1$s</u></font>\'s Average Rating : <font color=\'#17a1d7\'>%2$d</font>]]></string>
     <string name="average_rating_link"><![CDATA[<u>%1$d</u>]]></string>
     <string name="aggregate_post_percentile"><![CDATA[<u>%1$s</u>]]></string>
     <string name="percentile_text"><![CDATA[Percentile : <font color=\'#17a1d7\'>%1$s</font>]]></string>

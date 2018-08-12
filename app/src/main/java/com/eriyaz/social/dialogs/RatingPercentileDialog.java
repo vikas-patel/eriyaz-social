@@ -36,6 +36,8 @@ import com.eriyaz.social.activities.ProfileActivity;
 import com.eriyaz.social.activities.RatingsChartActivity;
 import com.eriyaz.social.utils.RatingUtil;
 
+import org.w3c.dom.Text;
+
 /**
  * Created by alexey on 12.05.17.
  */
@@ -77,13 +79,13 @@ public class RatingPercentileDialog extends DialogFragment {
         TextView actualRatingTextView = view.findViewById(R.id.actualRatingTextView);
         actualRatingTextView.setText(Html.fromHtml(String.format(getString(R.string.actual_rating_text), actualRating)));
 
-        TextView averageRatingTextView = view.findViewById(R.id.avgRatingTextView);
-        averageRatingTextView.setText(Html.fromHtml(String.format(getString(R.string.average_rating_text), raterName)));
+        final TextView averageRatingTextView = view.findViewById(R.id.avgRatingTextView);
+        averageRatingTextView.setText(Html.fromHtml(String.format(getString(R.string.average_rating_text), raterName, averageRating)));
 
-        TextView averageRatingValueTextView = view.findViewById(R.id.avgRatingValueTextView);
-        averageRatingValueTextView.setText(Html.fromHtml(String.format(getString(R.string.average_rating_link), averageRating)));
+//        final TextView averageRatingValueTextView = view.findViewById(R.id.avgRatingValueTextView);
+//        averageRatingValueTextView.setText(Html.fromHtml(String.format(getString(R.string.average_rating_link), averageRating)));
 
-        averageRatingValueTextView.setOnClickListener(new View.OnClickListener() {
+        averageRatingTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // open profile activity
@@ -94,7 +96,9 @@ public class RatingPercentileDialog extends DialogFragment {
             }
         });
 
-        TextView normalizedRatingCalculationTextView = view.findViewById(R.id.normalizedRatingCalculationTextView);
+        final TextView avgAllRecordingsTextView = view.findViewById(R.id.avgAllRecordingsTextView);
+
+        final TextView normalizedRatingCalculationTextView = view.findViewById(R.id.normalizedRatingCalculationTextView);
         normalizedRatingCalculationTextView.setText(Html.fromHtml(String.format(getString(R.string.normalized_rating_calculation_text), actualRating, averageRating, normalizedRating)));
 
         String percentile = RatingUtil.getRatingPercentile(normalizedRating);
@@ -114,11 +118,17 @@ public class RatingPercentileDialog extends DialogFragment {
         final LinearLayout calculationLayout = view.findViewById(R.id.calculationLayout);
 
         final TextView calculationLinkTextView = view.findViewById(R.id.calculationLinkTextView);
+        if (actualRating == normalizedRating) {
+            averageRatingTextView.setVisibility(View.GONE);
+            normalizedRatingCalculationTextView.setVisibility(View.GONE);
+            avgAllRecordingsTextView.setVisibility(View.GONE);
+        }
         calculationLinkTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 calculationLayout.setVisibility(View.VISIBLE);
                 calculationLinkTextView.setVisibility(View.GONE);
+                // don't show calculation
             }
         });
 

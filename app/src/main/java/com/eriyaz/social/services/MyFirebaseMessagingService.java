@@ -180,7 +180,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 .setContentIntent(pendingIntent)
                 .setContentTitle(notificationTitle)
                 .setContentText(notificationBody)
-                //.setLargeIcon(bitmap)
+                .setLargeIcon(bitmap)
                 .setSound(defaultSoundUri);
 
 

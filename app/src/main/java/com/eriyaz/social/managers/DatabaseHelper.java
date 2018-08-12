@@ -1282,7 +1282,7 @@ public class DatabaseHelper {
                 Collections.sort(list, new Comparator<Message>() {
                     @Override
                     public int compare(Message lhs, Message rhs) {
-                        return ((Long) rhs.getCreatedDate()).compareTo((Long) lhs.getCreatedDate());
+                        return ((Long) lhs.getCreatedDate()).compareTo((Long) rhs.getCreatedDate());
                     }
                 });
 
@@ -1313,7 +1313,7 @@ public class DatabaseHelper {
                 Collections.sort(list, new Comparator<Message>() {
                     @Override
                     public int compare(Message lhs, Message rhs) {
-                        return ((Long) rhs.getCreatedDate()).compareTo((Long) lhs.getCreatedDate());
+                        return ((Long) lhs.getCreatedDate()).compareTo((Long) rhs.getCreatedDate());
                     }
                 });
 

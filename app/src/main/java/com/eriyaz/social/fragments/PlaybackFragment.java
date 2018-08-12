@@ -308,7 +308,6 @@ public class PlaybackFragment extends BaseDialogFragment {
 
     private void openRecordLayout() {
         commentLayout.setVisibility(View.VISIBLE);
-        recordErrorTextView.setVisibility(View.VISIBLE);
 //        mistakesTextView.setVisibility(View.GONE);
         submitButton.setVisibility(View.VISIBLE);
         moreTextView.setVisibility(View.GONE);
@@ -528,6 +527,7 @@ public class PlaybackFragment extends BaseDialogFragment {
                 new DefaultTrackSelector(), new DefaultLoadControl());
 
         playerView.setPlayer(player);
+        playerView.setControllerHideOnTouch(false);
         player.addListener(componentListener);
 
         player.setPlayWhenReady(playWhenReady);

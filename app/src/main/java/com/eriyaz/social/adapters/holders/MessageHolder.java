@@ -24,8 +24,11 @@ import android.support.v7.widget.RecyclerView;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -51,9 +54,9 @@ import com.google.firebase.auth.FirebaseUser;
 public class MessageHolder extends ViewHolder {
 
     private final ImageView avatarImageView;
-    private final ImageView deleteImageView;
-    private final ImageView replyImageView;
+//    private final ImageView deleteImageView;
     private final ExpandableTextView messageTextView;
+    protected ImageButton optionMenuButton;
     private final TextView dateTextView;
     private final ProfileManager profileManager;
     private MessagesAdapter.Callback callback;
@@ -66,21 +69,21 @@ public class MessageHolder extends ViewHolder {
         profileManager = ProfileManager.getInstance(itemView.getContext().getApplicationContext());
 
         avatarImageView = (ImageView) itemView.findViewById(R.id.avatarImageView);
-        deleteImageView = itemView.findViewById(R.id.deleteImageView);
-        replyImageView = itemView.findViewById(R.id.replyImageView);
+//        deleteImageView = itemView.findViewById(R.id.deleteImageView);
         messageTextView = (ExpandableTextView) itemView.findViewById(R.id.messageText);
         dateTextView = (TextView) itemView.findViewById(R.id.dateTextView);
+        optionMenuButton = itemView.findViewById(R.id.optionMenuButton);
 
         if (callback != null) {
-            deleteImageView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int position = getAdapterPosition();
-                    if (position != RecyclerView.NO_POSITION) {
-                        callback.onDeleteClick(position);
-                    }
-                }
-            });
+//            deleteImageView.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    int position = getAdapterPosition();
+//                    if (position != RecyclerView.NO_POSITION) {
+//                        callback.onDeleteClick(position);
+//                    }
+//                }
+//            });
         }
     }
 
@@ -105,15 +108,14 @@ public class MessageHolder extends ViewHolder {
 
         CharSequence date = FormatterUtil.getRelativeTimeSpanString(context, message.getCreatedDate());
         dateTextView.setText(date);
-        deleteImageView.setVisibility(View.GONE);
-        if (replyImageView != null) replyImageView.setVisibility(View.GONE);
-        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (firebaseUser != null) {
-            String currentUserId = firebaseUser.getUid();
-            if (currentUserId.equals(senderId) || currentUserId.equals(message.getReceiverId())) {
-                deleteImageView.setVisibility(View.VISIBLE);
-            }
-        }
+//        deleteImageView.setVisibility(View.GONE);
+//        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+//        if (firebaseUser != null) {
+//            String currentUserId = firebaseUser.getUid();
+//            if (currentUserId.equals(senderId) || currentUserId.equals(message.getReceiverId())) {
+//                deleteImageView.setVisibility(View.VISIBLE);
+//            }
+//        }
 
         avatarImageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -121,6 +123,35 @@ public class MessageHolder extends ViewHolder {
                 callback.onAuthorClick(senderId);
             }
         });
+
+        if (hasAccessToEditMessage(message.getSenderId(), message.getReceiverId()) && !message.isRemoved()) {
+            optionMenuButton.setVisibility(View.VISIBLE);
+            optionMenuButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(final View view) {
+                    //creating a popup menu
+                    PopupMenu popup = new PopupMenu(context, optionMenuButton);
+                    //inflating menu from xml resource
+                    popup.inflate(R.menu.message_context_menu);
+                    //adding click listener
+                    popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                        @Override
+                        public boolean onMenuItemClick(MenuItem item) {
+                            switch (item.getItemId()) {
+                                case R.id.deleteMenuItem:
+                                    callback.onDeleteClick(getAdapterPosition());
+                                    break;
+                            }
+                            return false;
+                        }
+                    });
+                    //displaying the popup
+                    popup.show();
+                }
+            });
+        } else {
+            optionMenuButton.setVisibility(View.GONE);
+        }
     }
 
     private OnObjectChangedListener<Profile> createOnProfileChangeListener(final ExpandableTextView expandableTextView, final ImageView avatarImageView, final String message) {
@@ -153,5 +184,13 @@ public class MessageHolder extends ViewHolder {
                 0, userName.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
         messageTextView.setText(contentString);
+    }
+
+    private boolean hasAccessToEditMessage(String messageAuthorId, String messageReceiverId) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) return false;
+        if (messageAuthorId != null && messageAuthorId.equals(currentUser.getUid())) return true;
+        if (messageReceiverId != null && messageReceiverId.equals(currentUser.getUid())) return true;
+        return false;
     }
 }

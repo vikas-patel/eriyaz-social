@@ -18,6 +18,9 @@
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/facebook_app_id" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_push_notification_small" />
 
         <activity
             android:name=".activities.MainActivity"
@@ -73,7 +76,12 @@
         <activity
             android:name=".activities.MessageActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/title_activity_messages" />
+            android:label="@string/title_activity_messages">
+            <intent-filter>
+                <action android:name="MESSAGE_ACTIVITY" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".activities.FeedbackActivity"
             android:configChanges="orientation|screenSize"

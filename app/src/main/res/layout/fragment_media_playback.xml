@@ -52,17 +52,6 @@
                 android:text="You can earn 1 extra point by giving 'detailed feedback'."
                 android:textAppearance="@style/TextAppearance.Subhead"
                 android:textColor="@color/google_button_color"/>
-            <TextView
-                android:id="@+id/recordErrorTextView"
-                android:paddingTop="@dimen/intrinsic_padding"
-                android:paddingBottom="@dimen/intrinsic_padding"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:textAlignment="center"
-                android:text="@string/voice_feedback_hint"
-                android:textAppearance="@style/TextAppearance.Subhead"
-                android:textColor="@color/google_button_color"/>
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -90,6 +79,7 @@
                         android:id="@+id/newCommentContainer"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
                         android:orientation="horizontal">
 
                         <EditText
@@ -117,6 +107,16 @@
                             android:padding="@dimen/intrinsic_padding"
                             android:text="@string/send_comment_button_label"
                             android:textColor="@android:color/white" />
+                        <TextView
+                            android:id="@+id/recordErrorTextView"
+                            android:paddingTop="@dimen/intrinsic_padding"
+                            android:paddingBottom="@dimen/intrinsic_padding"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAlignment="center"
+                            android:text="@string/voice_feedback_hint"
+                            android:textAppearance="@style/TextAppearance.Subhead"
+                            android:textColor="@color/google_button_color"/>
                     </LinearLayout>
                 </LinearLayout>
                 <LinearLayout android:id="@+id/detailedFeedbackLayout"

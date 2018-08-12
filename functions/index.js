@@ -80,7 +80,7 @@ exports.pushNotificationRatings = functions.database.ref('/post-ratings/{postId}
                     actionType: actionTypeNewRating,
                     title: notificationTitle,
                     body: `${ratingAuthorProfile.username} rated your post`,
-                    icon: ratingAuthorProfile.photoUrl,
+                    icon: ratingAuthorProfile.photoUrl ? ratingAuthorProfile.photoUrl : "",
                     postId: postId,
                     postTitle: post.val().title,
                     authorName: ratingAuthorProfile.username
@@ -139,8 +139,65 @@ function sendPushNotification(senderId, receiverId, postId, body) {
                 actionType: actionTypeOfficialFeedback,
                 title: notificationTitle,
                 body: `${ratingAuthorProfile.username} ${body}`,
-                icon: ratingAuthorProfile.photoUrl,
+                icon: ratingAuthorProfile.photoUrl ? ratingAuthorProfile.photoUrl: "",
                 postId: postId,
+            },
+        };
+
+        // Listing all tokens.
+        const tokens = Object.keys(tokensSnapshot.val());
+        console.log('tokens:', tokens[0]);
+
+        // Send notifications to all tokens.
+        return admin.messaging().sendToDevice(tokens, payload).then(response => {
+                    // For each message check if there was an error.
+                    const tokensToRemove = [];
+            response.results.forEach((result, index) => {
+                const error = result.error;
+                if (error) {
+                    console.error('Failure sending notification to', tokens[index], error);
+                    // Cleanup the tokens who are not registered anymore.
+                    if (error.code === 'messaging/invalid-registration-token' ||
+                        error.code === 'messaging/registration-token-not-registered') {
+                        tokensToRemove.push(tokensSnapshot.ref.child(tokens[index]).remove());
+                    }
+                }
+            });
+            return Promise.all(tokensToRemove);
+        });
+    });
+}
+
+function sendChatPushNotification(senderId, receiverId, body, extraKeyValue) {
+    // Get the list of device notification tokens.
+    const getDeviceTokensTask = admin.database().ref(`/profiles/${receiverId}/notificationTokens`).once('value');
+    console.log('getDeviceTokensTask path: ', `/profiles/${receiverId}/notificationTokens`)
+
+    // Get rating author.
+    const getReceiverProfileTask = admin.database().ref(`/profiles/${senderId}`).once('value');
+
+    Promise.all([getDeviceTokensTask, getReceiverProfileTask]).then(results => {
+        const tokensSnapshot = results[0];
+        const senderProfile = results[1].val();
+
+        // Check if there are any device tokens.
+        if (!tokensSnapshot.hasChildren()) {
+            return console.log('There are no notification tokens to send to.');
+        }
+
+        console.log('There are', tokensSnapshot.numChildren(), 'tokens to send notifications to.');
+        console.log('Fetched rating Author profile', senderProfile);
+
+        // Create a notification
+        const payload = {
+            notification : {
+                title: notificationTitle,
+                body: body,
+                sound: "default",
+                click_action:"MESSAGE_ACTIVITY"
+            },
+            data : {
+                'ProfileActivity.USER_ID_EXTRA_KEY' : extraKeyValue
             },
         };
 
@@ -211,7 +268,7 @@ exports.pushNotificationComments = functions.database.ref('/post-comments/{postI
                     title: notificationTitle,
                     postTitle: post.val().title,
                     body: `${commentAuthorProfile.username} commented your post`,
-                    icon: commentAuthorProfile.photoUrl,
+                    icon: commentAuthorProfile.photoUrl ? commentAuthorProfile.photoUrl : "",
                     authorName: commentAuthorProfile.username,
                     postId: postId
                 },
@@ -311,6 +368,9 @@ function sendEmail(subject, body) {
 
 // Keeps track of the length of the 'likes' child list in a separate property.
 exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}/normalizedRating').onWrite(event => {
+    if (event.data.exists() && !event.data.previous.exists() && event.data.val() == 0) {
+        return console.log("ignore: normalizedRating hasn't set yet.");
+    }
     const postRatingRef = event.data.ref.parent.parent.parent;
     const postId = event.params.postId;
     console.log('updating post counters ', postId);
@@ -637,7 +697,7 @@ exports.normalizeRating = functions.database.ref('/post-ratings/{postId}/{author
     const rating = event.data.val();
     const ratingId = event.params.ratingId;
     const benchmarkRating = 10;
-    avgRatingLastX(raterId, rating).then(avgRating => {
+    return avgRatingLastX(raterId, rating).then(avgRating => {
         console.log("avgRating", avgRating);
         let normalRating;
         if (avgRating < benchmarkRating) {
@@ -648,17 +708,20 @@ exports.normalizeRating = functions.database.ref('/post-ratings/{postId}/{author
         }
         return admin.database().ref(`/post-ratings/${postId}/${raterId}/${ratingId}`).transaction(current => {
             if (current == null) {
+                console.log("ignore: null object returned from cache, expect another event with fresh server value.");
                 return null;
             }
             current.normalizedRating = normalRating;
             return current;
+        }).then(() => {
+            console.log('normalized rating updated.');
         });
     });
 });
 
 function avgRatingLastX(raterId, rating) {
     console.log("calculate avgRating", rating, raterId);
-    const maxRatingNum = 3;
+    const maxRatingNum = 10;
     return admin.database().ref(`/user-ratings/${raterId}`).orderByChild("createdDate").limitToLast(maxRatingNum).once('value').then(ratingListSnap => {
         let totalRatingVal = 0;
         let count = 0;
@@ -924,10 +987,9 @@ exports.appNotificationMessages = functions.database.ref('/user-messages/{userId
         }
          // Get message author.
         const getMessageAuthorProfileTask = admin.database().ref(`/profiles/${messageAuthorId}`).once('value');
-
         return getMessageAuthorProfileTask.then(profile => {
             var msg = profile.val().username + " left a message on your profile page.";
-            return sendAppMessageNotification(userId, messageAuthorId, msg, userId);
+            return sendChatPushAppNotification(userId, messageAuthorId, msg, userId);
         });
     }
     // Get parent feedback.
@@ -961,7 +1023,7 @@ exports.appNotificationMessages = functions.database.ref('/user-messages/{userId
                     if (sentParentAuthorNotification) {
                         sentParentAuthorNotification = false;
                         var msg = profile.val().username + " replied on your message.";
-                        return sendAppMessageNotification(parentMessageAuthorId, messageAuthorId, msg, userId);
+                        return sendChatPushAppNotification(parentMessageAuthorId, messageAuthorId, msg, userId);
                     }
                   if (authorToNotify.length > 0) {
                     const authorId = authorToNotify.pop();
@@ -978,6 +1040,15 @@ exports.appNotificationMessages = functions.database.ref('/user-messages/{userId
         });
     });
 });
+
+function sendChatPushAppNotification(authorId, fromUserId, msg, extraKeyValue) {
+    var promises = [];
+    promises.push(sendChatPushNotification(fromUserId, authorId, msg, extraKeyValue));
+    promises.push(sendAppMessageNotification(authorId, fromUserId, msg, extraKeyValue));
+    return Promise.all(promises).then(results => {
+        console.log("task completed");
+    });
+}
 
 function sendAppMessageNotification(authorId, fromUserId, msg, extraKeyValue) {
     console.log("sending msg:", msg);
@@ -1280,7 +1351,7 @@ exports.grantSignupReward = functions.database.ref('/profiles/{uid}/id').onCreat
           var profile = profileSnap.val();
           console.log("referred_by", profile.referred_by);
           const WELCOME_MSG = `Hi ${profile.username}. Welcome to ${notificationTitle} community. I am the Developer and a Moderator here. Feel free to reach out to me for any questions/help. \nImportant : Be fair and genuine in your ratings, or you might be blacklisted by other members.`;
-          const GIFT_JOINING_MSG = 'Vikas Patel gifted you 3 points.';
+          const GIFT_JOINING_MSG = 'Vikas Patel gifted you 4 points.';
           const taskList = [];
           const welcomeMsgTask = sendUserMessage(uid, WELCOME_ADMIN, WELCOME_MSG);
           // const addPointsTask =  addPoints(uid, 3);

@@ -88,7 +88,7 @@ public class RatingUtil {
             case 20:
                 return "Top 0.05%";
         }
-        return null;
+        return "";
     }
 
     public static boolean viewedByAuthor(Post post) {
