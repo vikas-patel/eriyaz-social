@@ -19,7 +19,10 @@
 package com.eriyaz.social.adapters.holders;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
+import android.media.Image;
 import android.os.Bundle;
+import android.support.graphics.drawable.VectorDrawableCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.text.Spannable;
@@ -69,7 +72,8 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
     private final TextView ratingTextView;
 //    private final TextView authorNameTextView;
     private final TextView dateTextView;
-    private final TextView questionTextView;
+    private final ImageView questionTextView;
+    private TextView tapToTextView;
     private final ProfileManager profileManager;
     private RatingsAdapter.Callback callback;
     protected ImageButton optionMenuButton;
@@ -86,6 +90,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
 
         avatarImageView = (ImageView) itemView.findViewById(R.id.avatarImageView);
         questionTextView = itemView.findViewById(R.id.questionTextView);
+        tapToTextView = itemView.findViewById(R.id.tapToTextView);
         ratingExpandedTextView = (ExpandableTextView) itemView.findViewById(R.id.ratingText);
         ratingTextView = itemView.findViewById(R.id.expandable_text);
 //        authorNameTextView = itemView.findViewById(R.id.authorNameTextView);
@@ -149,24 +154,19 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
             if (!rating.isViewedByPostAuthor()) {
                 questionTextView.setVisibility(View.VISIBLE);
                 if (!PreferencesUtil.isUserViewedRatingAtLeastOnce(context)) {
-                    questionTextView.setText("Tap to view");
+                    tapToTextView.setVisibility(View.VISIBLE);
+                    tapToTextView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(final View v) {
+                            showRating(v);
+                        }
+                    });
+
                 }
                 questionTextView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(final View v) {
-                        if (!PreferencesUtil.isUserViewedRatingAtLeastOnce(context)) {
-                            PreferencesUtil.setUserViewedRatingAtLeastOnce(context, true);
-                        }
-                        int position = getAdapterPosition();
-                        if (position != RecyclerView.NO_POSITION) {
-                            v.setEnabled(false);
-                            v.postDelayed(new Runnable() {
-                                public void run() {
-                                    v.setEnabled(true);
-                                }
-                            }, 500);
-                            callback.makeRatingVisible(position);
-                        }
+                        showRating(v);
                     }
                 });
             } else {
@@ -188,6 +188,22 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
         if (authorId != null)
             profileManager.getProfileSingleValue(authorId, createOnProfileChangeListener(ratingExpandedTextView,
                     avatarImageView, rating));
+    }
+
+    private void showRating(final View v) {
+        if (!PreferencesUtil.isUserViewedRatingAtLeastOnce(context)) {
+            PreferencesUtil.setUserViewedRatingAtLeastOnce(context, true);
+        }
+        int position = getAdapterPosition();
+        if (position != RecyclerView.NO_POSITION) {
+            v.setEnabled(false);
+            v.postDelayed(new Runnable() {
+                public void run() {
+                    v.setEnabled(true);
+                }
+            }, 500);
+            callback.makeRatingVisible(position);
+        }
     }
 
     private OnObjectChangedListener<Profile> createOnProfileChangeListener(final ExpandableTextView expandableTextView,

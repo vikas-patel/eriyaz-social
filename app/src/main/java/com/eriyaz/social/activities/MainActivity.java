@@ -283,9 +283,6 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
             @Override
             public void onObjectChanged(Profile profile) {
                 if (profile.getPostCount() == 1) {
-                    if (!BuildConfig.DEBUG) {
-                        UXCam.startWithKey("8e284e93d1b8286");
-                    }
                     // show first post popup
                     analytics.logFirstPost();
                     showPopupDialog(R.string.rating_benchmark);
