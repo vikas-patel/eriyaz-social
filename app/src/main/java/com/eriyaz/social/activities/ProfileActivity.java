@@ -62,6 +62,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
     public static final int CREATE_POST_FROM_PROFILE_REQUEST = 22;
     public static final String USER_ID_EXTRA_KEY = "ProfileActivity.USER_ID_EXTRA_KEY";
     public static final String USER_POINTS_EXTRA_KEY = "ProfileActivity.USER_POINTS_EXTRA_KEY";
+    public static final String RATING_TAB_DEFAULT_EXTRA_KEY = "ProfileActivity.RATING_TAB_DEFAULT_EXTRA_KEY";
 
     // UI references.
     private TextView nameEditText;
@@ -75,6 +76,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
     private String currentUserId;
     private String userID;
     private int userPoints;
+    private boolean isRatingTabDefault;
 
     private TabLayout tabLayout;
     private ViewPager profileTabViewPager;
@@ -96,6 +98,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
         }
 
         userID = getIntent().getStringExtra(USER_ID_EXTRA_KEY);
+        isRatingTabDefault = getIntent().getBooleanExtra(RATING_TAB_DEFAULT_EXTRA_KEY, false);
 
         mAuth = FirebaseAuth.getInstance();
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -117,6 +120,9 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
 
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(profileTabViewPager);
+        if (isRatingTabDefault) {
+            profileTabViewPager.setCurrentItem(1);
+        }
 
         messageTextLayout.setOnClickListener(new View.OnClickListener() {
             @Override

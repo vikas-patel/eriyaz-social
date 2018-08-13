@@ -11,11 +11,11 @@
     </entry>
     <entry>
         <key>payment_amount</key>
-        <value>25</value>
+        <value>50</value>
     </entry>
     <entry>
         <key>current_version</key>
-        <value>42</value>
+        <value>43</value>
     </entry>
     <entry>
         <key>is_update_compulsory</key>

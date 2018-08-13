@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -21,6 +22,7 @@ import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.eriyaz.social.Application;
 import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.MessagesAdapter;
 import com.eriyaz.social.enums.ProfileStatus;
@@ -47,7 +49,7 @@ public class MessageActivity extends BaseActivity {
     private RecyclerView recyclerView;
     private ProgressBar progressBar;
     private EditText messageEditText;
-    private LinearLayout newMessageLinearLayout;
+    private CardView newMessageLinearLayout;
 
     private String userId;
     private ScrollView scrollView;
@@ -98,16 +100,7 @@ public class MessageActivity extends BaseActivity {
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (hasInternetConnection()) {
-                    ProfileStatus profileStatus = ProfileManager.getInstance(MessageActivity.this).checkProfile();
-                    if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
-                        sendMessage();
-                    } else {
-                        doAuthorization(profileStatus);
-                    }
-                } else {
-                    showSnackBar(R.string.internet_connection_failed);
-                }
+                sendMessage();
             }
         });
 
@@ -134,16 +127,12 @@ public class MessageActivity extends BaseActivity {
 
                 @Override
                 public void sendReply(String messageText, String parentId) {
-                    ProfileStatus profileStatus = ProfileManager.getInstance(MessageActivity.this).checkProfile();
-                    if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
-                        Message message = new Message(messageText);
-                        message.setParentId(parentId);
-                        message.setReceiverId(userId);
-                        saveMessage(message);
-                        hideKeyBoard();
-                    } else {
-                        doAuthorization(profileStatus);
-                    }
+                    if (!isAuthorized()) return;
+                    Message message = new Message(messageText);
+                    message.setParentId(parentId);
+                    message.setReceiverId(userId);
+                    saveMessage(message);
+                    hideKeyBoard();
                 }
 
                 @Override
@@ -154,8 +143,9 @@ public class MessageActivity extends BaseActivity {
             recyclerView.setNestedScrollingEnabled(false);
             ((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
             recyclerView.setAdapter(adapter);
-            recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(),
-                    ((LinearLayoutManager) recyclerView.getLayoutManager()).getOrientation()));
+
+//            recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(),
+//                    ((LinearLayoutManager) recyclerView.getLayoutManager()).getOrientation()));
             profileManager.getMessagesList(this, userId, createOnMessageChangedDataListener());
         }
     }
@@ -254,18 +244,22 @@ public class MessageActivity extends BaseActivity {
             public int compare(Message lhs, Message rhs) {
                 List<Message> lChildren = parentMessages.get(lhs);
                 List<Message> rChildren = parentMessages.get(rhs);
-                long latestL = lChildren.isEmpty()?lhs.getCreatedDate():lChildren.get(0).getCreatedDate();
-                long latestR = rChildren.isEmpty()?rhs.getCreatedDate():rChildren.get(0).getCreatedDate();
+                long latestL = lChildren.isEmpty()?lhs.getCreatedDate():lChildren.get(lChildren.size()-1).getCreatedDate();
+                long latestR = rChildren.isEmpty()?rhs.getCreatedDate():rChildren.get(rChildren.size()-1).getCreatedDate();
                 return ((Long) latestR).compareTo((Long) latestL);
             }
         });
+
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
 
         for (Message key: keyList) {
             List<Message> children = parentMessages.get(key);
             ReplyTextItem replyItem = new ReplyTextItem(key.getId());
             resultList.add(key);
-            resultList.add(replyItem);
             resultList.addAll(children);
+            if (firebaseUser != null && (firebaseUser.getUid().equals(userId) || firebaseUser.getUid().equals(key.getSenderId()))) {
+                resultList.add(replyItem);
+            }
         }
         return resultList;
     }
@@ -277,6 +271,7 @@ public class MessageActivity extends BaseActivity {
         String messageText = messageEditText.getText().toString();
 
         if (messageText.length() > 0) {
+            if (!isAuthorized()) return;
             Message message = new Message(messageText);
             message.setReceiverId(userId);
             saveMessage(message);
@@ -295,6 +290,24 @@ public class MessageActivity extends BaseActivity {
                 }
             }
         });
+    }
+
+    public boolean isAuthorized() {
+        if (!hasInternetConnection()) {
+            showSnackBar(R.string.internet_connection_failed);
+            return false;
+        }
+        ProfileStatus status = ProfileManager.getInstance(MessageActivity.this).checkProfile();
+        if (status.equals(ProfileStatus.NOT_AUTHORIZED) || status.equals(ProfileStatus.NO_PROFILE)) {
+            doAuthorization(status);
+            return false;
+        }
+        Application application = (Application) getApplication();
+        if (application.isBlocked(userId)) {
+            showWarningDialog(String.format(getResources().getString(R.string.blocked_msg), "message"));
+            return false;
+        }
+        return true;
     }
 
     private void hideKeyBoard() {

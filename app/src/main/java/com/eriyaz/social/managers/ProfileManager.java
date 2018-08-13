@@ -63,7 +63,6 @@ public class ProfileManager extends FirebaseListenersManager {
 
     private Context context;
     private DatabaseHelper databaseHelper;
-    private Map<Context, List<ValueEventListener>> activeListeners = new HashMap<>();
 
 
     public static ProfileManager getInstance(Context context) {
@@ -155,6 +154,10 @@ public class ProfileManager extends FirebaseListenersManager {
 
     public void createOrUpdateMessage(Message message, OnTaskCompleteListener onTaskCompleteListener) {
         ApplicationHelper.getDatabaseHelper().createMessage(message, onTaskCompleteListener);
+    }
+
+    public void blockUser(String blockUserId, String reason, OnTaskCompleteListener onTaskCompleteListener) {
+        ApplicationHelper.getDatabaseHelper().blockUser(blockUserId, reason, onTaskCompleteListener);
     }
 
     public void resetUnseenNotificationCount() {

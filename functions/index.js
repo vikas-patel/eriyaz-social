@@ -80,7 +80,7 @@ exports.pushNotificationRatings = functions.database.ref('/post-ratings/{postId}
                     actionType: actionTypeNewRating,
                     title: notificationTitle,
                     body: `${ratingAuthorProfile.username} rated your post`,
-                    icon: ratingAuthorProfile.photoUrl,
+                    icon: ratingAuthorProfile.photoUrl ? ratingAuthorProfile.photoUrl : "",
                     postId: postId,
                     postTitle: post.val().title,
                     authorName: ratingAuthorProfile.username
@@ -139,8 +139,65 @@ function sendPushNotification(senderId, receiverId, postId, body) {
                 actionType: actionTypeOfficialFeedback,
                 title: notificationTitle,
                 body: `${ratingAuthorProfile.username} ${body}`,
-                icon: ratingAuthorProfile.photoUrl,
+                icon: ratingAuthorProfile.photoUrl ? ratingAuthorProfile.photoUrl: "",
                 postId: postId,
+            },
+        };
+
+        // Listing all tokens.
+        const tokens = Object.keys(tokensSnapshot.val());
+        console.log('tokens:', tokens[0]);
+
+        // Send notifications to all tokens.
+        return admin.messaging().sendToDevice(tokens, payload).then(response => {
+                    // For each message check if there was an error.
+                    const tokensToRemove = [];
+            response.results.forEach((result, index) => {
+                const error = result.error;
+                if (error) {
+                    console.error('Failure sending notification to', tokens[index], error);
+                    // Cleanup the tokens who are not registered anymore.
+                    if (error.code === 'messaging/invalid-registration-token' ||
+                        error.code === 'messaging/registration-token-not-registered') {
+                        tokensToRemove.push(tokensSnapshot.ref.child(tokens[index]).remove());
+                    }
+                }
+            });
+            return Promise.all(tokensToRemove);
+        });
+    });
+}
+
+function sendChatPushNotification(senderId, receiverId, body, extraKeyValue) {
+    // Get the list of device notification tokens.
+    const getDeviceTokensTask = admin.database().ref(`/profiles/${receiverId}/notificationTokens`).once('value');
+    console.log('getDeviceTokensTask path: ', `/profiles/${receiverId}/notificationTokens`)
+
+    // Get rating author.
+    const getReceiverProfileTask = admin.database().ref(`/profiles/${senderId}`).once('value');
+
+    Promise.all([getDeviceTokensTask, getReceiverProfileTask]).then(results => {
+        const tokensSnapshot = results[0];
+        const senderProfile = results[1].val();
+
+        // Check if there are any device tokens.
+        if (!tokensSnapshot.hasChildren()) {
+            return console.log('There are no notification tokens to send to.');
+        }
+
+        console.log('There are', tokensSnapshot.numChildren(), 'tokens to send notifications to.');
+        console.log('Fetched rating Author profile', senderProfile);
+
+        // Create a notification
+        const payload = {
+            notification : {
+                title: notificationTitle,
+                body: body,
+                sound: "default",
+                click_action:"MESSAGE_ACTIVITY"
+            },
+            data : {
+                'ProfileActivity.USER_ID_EXTRA_KEY' : extraKeyValue
             },
         };
 
@@ -211,7 +268,7 @@ exports.pushNotificationComments = functions.database.ref('/post-comments/{postI
                     title: notificationTitle,
                     postTitle: post.val().title,
                     body: `${commentAuthorProfile.username} commented your post`,
-                    icon: commentAuthorProfile.photoUrl,
+                    icon: commentAuthorProfile.photoUrl ? commentAuthorProfile.photoUrl : "",
                     authorName: commentAuthorProfile.username,
                     postId: postId
                 },
@@ -310,20 +367,24 @@ function sendEmail(subject, body) {
 
 
 // Keeps track of the length of the 'likes' child list in a separate property.
-exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onWrite(event => {
-    const postRatingRef = event.data.ref.parent.parent;
+exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}/normalizedRating').onWrite(event => {
+    if (event.data.exists() && !event.data.previous.exists() && event.data.val() == 0) {
+        return console.log("ignore: normalizedRating hasn't set yet.");
+    }
+    const postRatingRef = event.data.ref.parent.parent.parent;
     const postId = event.params.postId;
-    console.log('Rating changed on post ', postId);
+    console.log('updating post counters ', postId);
 	
     return postRatingRef.once('value').then(snapshot => {
         let ratingTotal = 0;
         let ratingNum = snapshot.numChildren();
         snapshot.forEach(function(authorSnap) {
 	      authorSnap.forEach(function(ratingSnap) {
-		     ratingTotal = ratingTotal + ratingSnap.val().rating;
+             let ratingVal = ratingSnap.val().normalizedRating
+             if (!ratingVal) ratingVal = ratingSnap.val().rating;
+		     ratingTotal = ratingTotal + ratingVal;
 	      });
         });
-        console.log("ratingTotal ", ratingTotal);
         // Get the rated post
         const postRef = admin.database().ref(`/posts/${postId}`);
         return postRef.transaction(current => {
@@ -388,7 +449,7 @@ exports.pushNotificationNewBoughtFeedback = functions.database.ref('/bought-feed
         console.log("sent push notifications to admins");
     });
 
-});    
+});
 
 exports.detailedFeedbackPoints = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
     const commentId = event.params.commentId;
@@ -525,62 +586,71 @@ function addPoints(profileId, points) {
 //     });
 // });
 
-exports.ratingPoints = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onWrite(event => {
-    if (event.data.exists() && event.data.previous.exists()) {
-        return console.log("no points for rating updates");
-    }
-    console.log('Points for new/remove rating');
+// exports.ratingPoints = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onWrite(event => {
+//     if (event.data.exists() && event.data.previous.exists()) {
+//         return console.log("no points for rating updates");
+//     }
+//     console.log('Points for new/remove rating');
 
+//     const ratingAuthorId = event.params.authorId;
+//     const postId = event.params.postId;
+//     var point = 1;
+//     if (!event.data.exists()) {
+//         point = -1;
+//         const rating = event.data.previous.val();
+//         if (rating.detailedText && rating.rating > 5 && rating.rating <= 15) {
+//             point = -2;
+//         }
+//     }
+//     return updateUserRatingPoints(ratingAuthorId, point);
+// });
+
+exports.addRatingPoints = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onCreate(event => {
     const ratingAuthorId = event.params.authorId;
     const postId = event.params.postId;
     var point = 1;
-    if (!event.data.exists()) {
-        point = -1;
-        const rating = event.data.previous.val();
-        if (rating.detailedText && rating.rating > 5 && rating.rating <= 15) {
-            point = -2;
-        }
-    }
-
-    // Get rated post.
-    const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
-
-    return getPostTask.then(post => {
-
-        if (ratingAuthorId == post.val().authorId) {
-            return console.log('User rated own post');
-        }
-
-        // Get user points ref
-        const userPointsRef = admin.database().ref(`/user-points/${ratingAuthorId}`);
-        var newPointRef = userPointsRef.push();
-        newPointRef.set({
-            'action': event.data.exists() ? "add":"remove",
-            'type': 'rating',
-            'value': point,
-            'creationDate': admin.database.ServerValue.TIMESTAMP
-        });
-
-        // Get rating author.
-        const authorProfileRef = admin.database().ref(`/profiles/${ratingAuthorId}`);
-        return authorProfileRef.transaction(current => {
-            if (current == null) {
-                console.log("ignore: null object returned from cache, expect another event with fresh server value.");
-                return false;
-            }
-            current.points = (current.points || 0) + point;
-            if (point > 0) {
-                current.ratingCount = (current.ratingCount || 0) + 1;
-            } else {
-                current.ratingCount = (current.ratingCount || 0) - 1;
-            }
-            return current;
-        }).then(() => {
-            console.log('User rating points updated.');
-        });
-
-    })
+    return updateUserRatingPoints(ratingAuthorId, point);
 });
+
+exports.deleteRatingPoints = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onDelete(event => {
+    const ratingAuthorId = event.params.authorId;
+    const postId = event.params.postId;
+    var point = -1;
+    const rating = event.data.previous.val();
+    if (rating.detailedText && rating.rating > 5 && rating.rating <= 15) {
+        point = -2;
+    }
+    return updateUserRatingPoints(ratingAuthorId, point);
+});
+
+function updateUserRatingPoints(ratingAuthorId, point) {
+    // Get user points ref
+    const userPointsRef = admin.database().ref(`/user-points/${ratingAuthorId}`);
+    var newPointRef = userPointsRef.push();
+    newPointRef.set({
+        'action': point > 0 ? "add":"remove",
+        'type': 'rating',
+        'value': point,
+        'creationDate': admin.database.ServerValue.TIMESTAMP
+    });
+    // Get rating author.
+    const authorProfileRef = admin.database().ref(`/profiles/${ratingAuthorId}`);
+    return authorProfileRef.transaction(current => {
+        if (current == null) {
+            console.log("ignore: null object returned from cache, expect another event with fresh server value.");
+            return false;
+        }
+        current.points = (current.points || 0) + point;
+        if (point > 0) {
+            current.ratingCount = (current.ratingCount || 0) + 1;
+        } else {
+            current.ratingCount = (current.ratingCount || 0) - 1;
+        }
+        return current;
+    }).then(() => {
+        console.log('User rating points updated.');
+    });
+}
 
 exports.appNotificationRatings = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onCreate(event => {
     console.log('App notification for new rating');
@@ -616,15 +686,73 @@ exports.appNotificationRatings = functions.database.ref('/post-ratings/{postId}/
     });
 });
 
-exports.duplicateUserRating = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onWrite(event => {
+exports.normalizeRating = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}/rating').onWrite(event => {
+    console.log("calculate normalizeRating");
+    // todo: exit for delete
+    if (!event.data.exists()) {
+        return console.log("exit: rating removed");
+    }
+    const raterId = event.params.authorId;
+    const postId = event.params.postId;
+    const rating = event.data.val();
+    const ratingId = event.params.ratingId;
+    const benchmarkRating = 10;
+    return avgRatingLastX(raterId, rating).then(avgRating => {
+        console.log("avgRating", avgRating);
+        let normalRating;
+        if (avgRating < benchmarkRating) {
+            normalRating = Math.round(rating*(benchmarkRating/avgRating));
+            normalRating = Math.min(normalRating, 20);
+        } else {
+            normalRating = rating;
+        }
+        return admin.database().ref(`/post-ratings/${postId}/${raterId}/${ratingId}`).transaction(current => {
+            if (current == null) {
+                console.log("ignore: null object returned from cache, expect another event with fresh server value.");
+                return null;
+            }
+            current.normalizedRating = normalRating;
+            return current;
+        }).then(() => {
+            console.log('normalized rating updated.');
+        });
+    });
+});
+
+function avgRatingLastX(raterId, rating) {
+    console.log("calculate avgRating", rating, raterId);
+    const maxRatingNum = 10;
+    return admin.database().ref(`/user-ratings/${raterId}`).orderByChild("createdDate").limitToLast(maxRatingNum).once('value').then(ratingListSnap => {
+        let totalRatingVal = 0;
+        let count = 0;
+        ratingListSnap.forEach(function(ratingSnap) {
+            totalRatingVal = totalRatingVal + ratingSnap.val().rating;
+            count++;
+            console.log("last Rating", ratingSnap.val().rating);
+        })
+        console.log("total rating value", totalRatingVal, count);
+        if (count > 0) {
+            return totalRatingVal/count;
+        } else {
+            // first rating
+            return rating;
+        }
+    });
+
+}
+
+
+exports.duplicateUserRating = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}/normalizedRating').onWrite(event => {
     console.log('Duplicate user rating');
     const ratingAuthorId = event.params.authorId;
     const ratingId = event.params.ratingId;
     const postId = event.params.postId;
-    const rating = event.data.val();
-    if (rating != null) rating.postId = postId;
-    const userRatingRef = admin.database().ref(`/user-ratings/${ratingAuthorId}/${ratingId}`);
-    return userRatingRef.set(rating);
+    return event.data.ref.parent.once("value").then(ratingSnap => {
+        const rating = ratingSnap.val();
+        if (rating != null) rating.postId = postId;
+        const userRatingRef = admin.database().ref(`/user-ratings/${ratingAuthorId}/${ratingId}`);
+        return userRatingRef.set(rating);
+    });
 });
 
 exports.enqueueSupportingRatingTask = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onCreate(event => {
@@ -676,6 +804,31 @@ function randomGroup(size, range) {
     }
     return arr;
 }
+
+exports.voiceCommentAppUpdateNotification = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
+    const postId = event.params.postId;
+    const comment = event.data.val();
+    const commentAuthorId = comment.authorId;
+    if (!comment.audioPath) return console.log("comment has no audio");
+    const voiceVersion = 2.9;
+    admin.database().ref(`/posts/${postId}`).once('value').then(post => {
+        var postAuthorId = post.val().authorId;
+        if (commentAuthorId == postAuthorId) {
+            return console.log('User commented on own post');
+        }
+        const appVersionTask = admin.database().ref(`/profiles/${postAuthorId}/appVersion`).once('value');
+        return appVersionTask.then(versionSnap => {
+            const versionStr = versionSnap.val();
+            if (!versionStr) return console.log("app version not set");
+            const version = parseFloat(versionStr);
+            console.log("user app version", version);
+            if (version < voiceVersion) {
+                const msg = "You have received a voice message on your post, but not visible on old versions of app. Tap to Update."
+                return sendAppUpdateNotification(postAuthorId, msg);
+            }
+        });
+    });
+});
 
 exports.appNotificationComments = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
     console.log('App notification for new comment');
@@ -744,6 +897,18 @@ exports.appNotificationFlag = functions.database.ref('/flags/{flaggedUser}/{flag
     });
 });
 
+exports.appNotificationBlock = functions.database.ref('/block-users/{blockedUser}/{blockedBy}').onCreate(event => {
+    console.log('App notification for new block');
+
+    const blockedBy = event.params.blockedBy;
+    const blockedUser = event.params.blockedUser;
+    admin.database().ref(`profiles/${blockedBy}`).once('value').then(function(profileSnap) {
+        var profile = profileSnap.val();
+        const msg = `${profile.username} has blocked you. You cannot rate, comment or message him/her in future.`;
+        const notificationTask = sendAppNotificationProfileAction(blockedUser, blockedBy, msg);
+    });
+});
+
 exports.appNotificationCommentConversation = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
     console.log('App notification for new comment in conversation');
 
@@ -760,6 +925,7 @@ exports.appNotificationCommentConversation = functions.database.ref('/post-comme
         const postVal = post.val();
         console.log("new comment on post '", postVal.title,"'.");
         var postAuthorId = postVal.authorId;
+        if (postAuthorId != commentAuthorId) return console.log("no notification if comment not from post author");
         // process all post comments
         return postCommentRef.once('value').then(snapshot => {
             const authorToNotify = [];
@@ -821,10 +987,9 @@ exports.appNotificationMessages = functions.database.ref('/user-messages/{userId
         }
          // Get message author.
         const getMessageAuthorProfileTask = admin.database().ref(`/profiles/${messageAuthorId}`).once('value');
-
         return getMessageAuthorProfileTask.then(profile => {
             var msg = profile.val().username + " left a message on your profile page.";
-            return sendAppMessageNotification(userId, messageAuthorId, msg, userId);
+            return sendChatPushAppNotification(userId, messageAuthorId, msg, userId);
         });
     }
     // Get parent feedback.
@@ -858,7 +1023,7 @@ exports.appNotificationMessages = functions.database.ref('/user-messages/{userId
                     if (sentParentAuthorNotification) {
                         sentParentAuthorNotification = false;
                         var msg = profile.val().username + " replied on your message.";
-                        return sendAppMessageNotification(parentMessageAuthorId, messageAuthorId, msg, userId);
+                        return sendChatPushAppNotification(parentMessageAuthorId, messageAuthorId, msg, userId);
                     }
                   if (authorToNotify.length > 0) {
                     const authorId = authorToNotify.pop();
@@ -876,6 +1041,15 @@ exports.appNotificationMessages = functions.database.ref('/user-messages/{userId
     });
 });
 
+function sendChatPushAppNotification(authorId, fromUserId, msg, extraKeyValue) {
+    var promises = [];
+    promises.push(sendChatPushNotification(fromUserId, authorId, msg, extraKeyValue));
+    promises.push(sendAppMessageNotification(authorId, fromUserId, msg, extraKeyValue));
+    return Promise.all(promises).then(results => {
+        console.log("task completed");
+    });
+}
+
 function sendAppMessageNotification(authorId, fromUserId, msg, extraKeyValue) {
     console.log("sending msg:", msg);
     // Get user notification ref
@@ -891,8 +1065,8 @@ function sendAppMessageNotification(authorId, fromUserId, msg, extraKeyValue) {
     });
 }
 
-function sendAppRewardsNotification(authorId, fromUserId, msg) {
-    console.log("sending reward notification:", msg);
+function sendAppNotificationProfileAction(authorId, fromUserId, msg) {
+    console.log("sending profile action notification:", msg);
     // Get user notification ref
     const userNotificationsRef = admin.database().ref(`/user-notifications/${authorId}`);
     var newNotificationRef = userNotificationsRef.push();
@@ -901,10 +1075,23 @@ function sendAppRewardsNotification(authorId, fromUserId, msg) {
         'fromUserId' : fromUserId,
         'message': msg,
         'extraKey' : 'ProfileActivity.USER_ID_EXTRA_KEY',
-        'extraKeyValue' : authorId,
+        'extraKeyValue' : fromUserId,
         'createdDate': admin.database.ServerValue.TIMESTAMP
     });
 }
+
+function sendAppUpdateNotification(authorId, msg) {
+    const userNotificationsRef = admin.database().ref(`/user-notifications/${authorId}`);
+    var newNotificationRef = userNotificationsRef.push();
+    // add notification
+    return newNotificationRef.set({
+        'action': 'com.eriyaz.social',
+        'message': msg,
+        'openPlayStore': true,
+        'createdDate': admin.database.ServerValue.TIMESTAMP
+    });
+}
+
 
 function sendAppNotificationNoAction(authorId, fromUserId, msg) {
     console.log("sending app notification:", msg);
@@ -1164,7 +1351,7 @@ exports.grantSignupReward = functions.database.ref('/profiles/{uid}/id').onCreat
           var profile = profileSnap.val();
           console.log("referred_by", profile.referred_by);
           const WELCOME_MSG = `Hi ${profile.username}. Welcome to ${notificationTitle} community. I am the Developer and a Moderator here. Feel free to reach out to me for any questions/help. \nImportant : Be fair and genuine in your ratings, or you might be blacklisted by other members.`;
-          const GIFT_JOINING_MSG = 'Vikas Patel gifted you 3 points.';
+          const GIFT_JOINING_MSG = 'Vikas Patel gifted you 4 points.';
           const taskList = [];
           const welcomeMsgTask = sendUserMessage(uid, WELCOME_ADMIN, WELCOME_MSG);
           // const addPointsTask =  addPoints(uid, 3);
@@ -1174,7 +1361,7 @@ exports.grantSignupReward = functions.database.ref('/profiles/{uid}/id').onCreat
             // add reward points
             // const addPointsTask =  addPoints(profile.referred_by, REWARD_POINTS);
             const msg = "Congrats your friend " +  profile.username + " joined.";
-            const notificationTask = sendAppRewardsNotification(profile.referred_by, uid, msg);
+            const notificationTask = sendAppNotificationProfileAction(profile.referred_by, uid, msg);
             taskList.push(notificationTask);
           }
           return Promise.all(taskList).then(results => {
@@ -1207,16 +1394,7 @@ exports.appUpdateNotification = functions.https.onRequest((req, res) => {
             const profile = profiles.pop();
             // Get user notification ref
             const authorId = profile.id;
-            const userNotificationsRef = admin.database().ref(`/user-notifications/${authorId}`);
-            var newNotificationRef = userNotificationsRef.push();
-            // add notification
-            return newNotificationRef.set({
-                'action': 'com.eriyaz.social',
-                //'fromUserId' : '',
-                'message': msg,
-                'openPlayStore': true,
-                'createdDate': admin.database.ServerValue.TIMESTAMP
-            });
+            return sendAppUpdateNotification(authorId, msg);
           }
           return null;
         }, MAX_CONCURRENT);
@@ -1248,11 +1426,25 @@ exports.appUninstall = functions.analytics.event('app_remove').onLog(event => {
     }
 });
 
+exports.sessionStart = functions.analytics.event('session_start').onLog(event => {
+    const user = event.data.user;
+    const uid = user.userId;
+    const appVersion = user.appInfo.appVersion;
+    if (uid) {
+        const profileAppVersionRef = admin.database().ref(`profiles/${uid}/appVersion`);
+        return profileAppVersionRef.transaction(current => {
+              return appVersion;
+        }).then(() => {
+            console.log(`app version ${appVersion} set for profile ${uid}`);
+        });
+    }
+});
+
 exports.userReInstall = functions.analytics.event('SignIn').onLog(event => {
     const user = event.data.user;
     const uid = user.userId;
     console.log("signin detected for user ", uid);
-    admin.database().ref(`profiles/${uid}/unInstalled`).once('value').then(function(data) {
+    return admin.database().ref(`profiles/${uid}/unInstalled`).once('value').then(function(data) {
       var isUnInstalled = data.val();
       if (isUnInstalled) {
         const profileUninstallRef = admin.database().ref(`profiles/${uid}/unInstalled`);
@@ -1336,6 +1528,31 @@ function createRating(ratingVal, authorId, postId) {
         'createdDate': admin.database.ServerValue.TIMESTAMP
     })
 }
+
+exports.profileSearch = functions.https.onRequest((req, res) => {
+    const queryText = req.query.name;
+    if (!queryText) return res.status(200).send(`name parameter null`);
+    console.log("profile search by", queryText);
+    const queueRef = db.ref('profiles');
+
+    // Get all tasks that with expired times
+    return queueRef.orderByChild('username').startAt(queryText).endAt(queryText+"\uf8ff").once('value').then(profiles => {
+        if (profiles.exists()) {
+            let arr = [];
+            profiles.forEach( profileSnap => {
+                const profile = profileSnap.val();
+                arr.push(JSON.stringify(profile));
+            })
+
+            res.status(200).send(arr.join('\n'));
+            
+        } else {
+
+            res.status(200).send(`No result found`);
+        }
+
+    });
+});
 
 /// TASK RUNNER CLOUD FUNCTION ///
 

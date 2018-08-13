@@ -15,6 +15,7 @@
         app:shadow="false"
         app:border="true"
         app:border_width="0dp" />
+
     <ImageButton
         android:id="@+id/optionMenuButton"
         android:layout_width="wrap_content"
@@ -50,7 +51,7 @@
                 android:id="@+id/expandable_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:autoLink="web"
+                android:clickable="true"
                 android:ellipsize="end"
                 android:textAppearance="@style/TextAppearance.Second" />
             <TextView

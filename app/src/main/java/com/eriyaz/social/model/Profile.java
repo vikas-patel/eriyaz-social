@@ -33,8 +33,10 @@ public class Profile implements Serializable {
     private int postCount;
     private long lastPostCreatedDate;
     private int unseen;
+    private int unseenMessageCount;
     private String registrationToken;
     private boolean admin;
+    private String appVersion;
 
     public Profile() {
         // Default constructor required for calls to DataSnapshot.getValue(Profile.class)
@@ -124,6 +126,14 @@ public class Profile implements Serializable {
         this.lastPostCreatedDate = lastPostCreatedDate;
     }
 
+    public String getAppVersion() {
+        return appVersion;
+    }
+
+    public void setAppVersion(String appVersion) {
+        this.appVersion = appVersion;
+    }
+
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
         result.put("id", id);
@@ -131,6 +141,7 @@ public class Profile implements Serializable {
         result.put("email", email);
         result.put("photoUrl", photoUrl);
         result.put("points", points);
+        result.put("appVersion", appVersion);
         return result;
     }
 

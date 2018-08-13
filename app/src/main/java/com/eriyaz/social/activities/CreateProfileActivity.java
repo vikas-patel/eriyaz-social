@@ -39,6 +39,7 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.eriyaz.social.Constants;
 import com.eriyaz.social.utils.ImageUtil;
+import com.eriyaz.social.utils.Utils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.iid.FirebaseInstanceId;
@@ -175,6 +176,7 @@ public class CreateProfileActivity extends PickImageActivity implements OnProfil
             profile.setUsername(name);
             // 3 points on joinging
             profile.setPoints(Constants.Profile.JOINING_POINT);
+            profile.setAppVersion(Utils.getAppVersionName(this));
             ProfileManager.getInstance(this).createOrUpdateProfile(profile, imageUri, this);
         }
     }

@@ -34,6 +34,7 @@ import android.view.inputmethod.InputMethodManager;
 
 import com.eriyaz.social.R;
 import com.eriyaz.social.enums.ProfileStatus;
+import com.eriyaz.social.managers.BlockUserManager;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.model.Point;

@@ -180,6 +180,7 @@ public class RecordLayout extends LinearLayout implements RecordingService.Recor
                 new DefaultTrackSelector(), new DefaultLoadControl());
 
         commentPlayerView.setPlayer(commentPlayer);
+        commentPlayerView.setControllerHideOnTouch(false);
 //        commentPlayer.addListener(componentListener);
 
         commentPlayer.setPlayWhenReady(false);

@@ -427,6 +427,24 @@ public class DatabaseHelper {
             }});
     }
 
+    public void blockUser(String blockUserId, String reason, final OnTaskCompleteListener onTaskCompleteListener) {
+        String authorId = firebaseAuth.getCurrentUser().getUid();
+        if (blockUserId.equals(authorId)) {
+            onTaskCompleteListener.onTaskComplete(false);
+            return;
+        }
+        DatabaseReference blockReference = database.getReference().child("block-users/"+blockUserId+"/"+authorId);
+        Map children = new HashMap();
+        children.put("reason", reason);
+        blockReference.updateChildren(children, new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                if (onTaskCompleteListener != null) {
+                    onTaskCompleteListener.onTaskComplete(true);
+                }
+            }});
+    }
+
     public void createComment(Comment comment, final String postId, final OnTaskCompleteListener onTaskCompleteListener) {
         try {
             DatabaseReference mCommentsReference = database.getReference().child("post-comments/" + postId);
@@ -1189,6 +1207,29 @@ public class DatabaseHelper {
         return valueEventListener;
     }
 
+    public ValueEventListener getBlockedByList(String userId, final OnDataChangedListener<String> onDataChangedListener) {
+        DatabaseReference databaseReference = database.getReference("block-users").child(userId);
+        ValueEventListener valueEventListener = databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                List<String> list = new ArrayList<>();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    String blockedBy = snapshot.getKey();
+                    list.add(blockedBy);
+                }
+                onDataChangedListener.onListChanged(list);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                LogUtil.logError(TAG, "getBlockedByList(), onCancelled", new Exception(databaseError.getMessage()));
+            }
+        });
+
+        activeListeners.put(valueEventListener, databaseReference);
+        return valueEventListener;
+    }
+
     public Task<Void> removeSavedRecording(String itemId) {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference databaseReference = database.getReference();
@@ -1244,7 +1285,7 @@ public class DatabaseHelper {
                 Collections.sort(list, new Comparator<Message>() {
                     @Override
                     public int compare(Message lhs, Message rhs) {
-                        return ((Long) rhs.getCreatedDate()).compareTo((Long) lhs.getCreatedDate());
+                        return ((Long) lhs.getCreatedDate()).compareTo((Long) rhs.getCreatedDate());
                     }
                 });
 
@@ -1275,7 +1316,7 @@ public class DatabaseHelper {
                 Collections.sort(list, new Comparator<Message>() {
                     @Override
                     public int compare(Message lhs, Message rhs) {
-                        return ((Long) rhs.getCreatedDate()).compareTo((Long) lhs.getCreatedDate());
+                        return ((Long) lhs.getCreatedDate()).compareTo((Long) rhs.getCreatedDate());
                     }
                 });
 

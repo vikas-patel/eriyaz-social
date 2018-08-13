@@ -37,6 +37,7 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
+import android.text.Html;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.transition.Transition;
@@ -61,9 +62,11 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.eriyaz.social.Application;
 import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.CommentsAdapter;
 import com.eriyaz.social.adapters.RatingsAdapter;
+import com.eriyaz.social.dialogs.BlockDialog;
 import com.eriyaz.social.dialogs.ComplainDialog;
 import com.eriyaz.social.dialogs.EditCommentDialog;
 import com.eriyaz.social.enums.BoughtFeedbackStatus;
@@ -93,6 +96,7 @@ import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.utils.FormatterUtil;
 import com.eriyaz.social.utils.OfficialFeedbackRequest;
 import com.eriyaz.social.utils.PermissionsUtil;
+import com.eriyaz.social.utils.RatingUtil;
 import com.eriyaz.social.views.RecordLayout;
 import com.google.android.exoplayer2.util.Util;
 import com.google.firebase.auth.FirebaseAuth;
@@ -104,7 +108,8 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class PostDetailsActivity extends BaseActivity implements EditCommentDialog.CommentDialogCallback, ComplainDialog.ComplainCallback {
+public class PostDetailsActivity extends BaseActivity implements EditCommentDialog.CommentDialogCallback,
+        ComplainDialog.ComplainCallback, BlockDialog.BlockCallback {
     private static final String TAG = PostDetailsActivity.class.getSimpleName();
 
     public static final String POST_ID_EXTRA_KEY = "PostDetailsActivity.POST_ID_EXTRA_KEY";
@@ -123,12 +128,11 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private TextView ratingCounterTextView;
     private TextView averageRatingTextView;
     private TextView ratingLabelTextView;
+    private TextView aggregatePercentileTextView;
 
     private TextView commentsLabel;
 //    private TextView likeCounterTextView;
     private TextView commentsCountTextView;
-    private TextView watcherCounterTextView;
-    private LinearLayout watcherContainerLayout;
     private TextView authorTextView;
     private TextView dateTextView;
     private ImageView authorImageView;
@@ -198,7 +202,6 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         isAuthorAnimationRequired = getIntent().getBooleanExtra(AUTHOR_ANIMATION_NEEDED_EXTRA_KEY, false);
         postId = getIntent().getStringExtra(POST_ID_EXTRA_KEY);
 
-        incrementWatchersCount();
 
         fileName = (TextView) findViewById(R.id.file_name_text);
         descriptionEditText = findViewById(R.id.descriptionEditText);
@@ -221,14 +224,13 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         ratingCounterTextView = (TextView) findViewById(R.id.ratingCounterTextView);
         averageRatingTextView = (TextView) findViewById(R.id.averageRatingTextView);
         ratingLabelTextView = findViewById(R.id.ratingLabelTextView);
+        aggregatePercentileTextView = findViewById(R.id.aggregatePercentileTextView);
 //        ratingBar = (BubbleSeekBar) findViewById(R.id.ratingBar);
 
         authorImageView = (ImageView) findViewById(R.id.authorImageView);
         authorTextView = (TextView) findViewById(R.id.authorTextView);
 //        likeCounterTextView = (TextView) findViewById(R.id.likeCounterTextView);
         commentsCountTextView = (TextView) findViewById(R.id.commentsCountTextView);
-        watcherCounterTextView = (TextView) findViewById(R.id.watcherCounterTextView);
-        watcherContainerLayout = findViewById(R.id.watchersContainer);
         dateTextView = (TextView) findViewById(R.id.dateTextView);
         commentsProgressBar = (ProgressBar) findViewById(R.id.commentsProgressBar);
         warningCommentsTextView = (TextView) findViewById(R.id.warningCommentsTextView);
@@ -317,17 +319,8 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (hasInternetConnection()) {
-                    ProfileStatus profileStatus = ProfileManager.getInstance(PostDetailsActivity.this).checkProfile();
-
-                    if (profileStatus.equals(ProfileStatus.PROFILE_CREATED)) {
-                        sendComment();
-                    } else {
-                        doAuthorization(profileStatus);
-                    }
-                } else {
-                    showSnackBar(R.string.internet_connection_failed);
-                }
+                if (!isAuthorized()) return;
+                sendComment();
             }
         });
 
@@ -380,6 +373,24 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         });
     }
 
+    public boolean isAuthorized() {
+        if (!hasInternetConnection()) {
+            showSnackBar(R.string.internet_connection_failed);
+            return false;
+        }
+        ProfileStatus status = ProfileManager.getInstance(PostDetailsActivity.this).checkProfile();
+        if (status.equals(ProfileStatus.NOT_AUTHORIZED) || status.equals(ProfileStatus.NO_PROFILE)) {
+            doAuthorization(status);
+            return false;
+        }
+        Application application = (Application) getApplication();
+        if (application.isBlocked(post.getAuthorId())) {
+            showWarningDialog(String.format(getResources().getString(R.string.blocked_msg), "comment"));
+            return false;
+        }
+        return true;
+    }
+
     private void createOfficialFeedbackRequest() {
         OfficialFeedbackRequest request = new OfficialFeedbackRequest(post.getAuthorId(), post.getId(), paymentAmount, PostDetailsActivity.this);
         request.create(new OnPaymentCompleteListener() {
@@ -388,9 +399,9 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
                 if (status.equals(PaymentStatus.SUCCESS)) {
                     showSnackBar("Payment Successful.");
                 } else if (status.equals(PaymentStatus.PENDING)) {
-                    showPaymentDialog("Payment Status Pending");
+                    showDialog("Payment Status Pending");
                 } else {
-                    showPaymentDialog("Payment Failed");
+                    showDialog("Payment Failed");
                 }
             }
         });
@@ -489,7 +500,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             public void onPlayClick(View view, int position, String authorName) {
                 Comment comment = commentsAdapter.getItemByPosition(position);
                 try {
-                    RecordingItem item = new RecordingItem(authorName, comment.getAudioPath(), 0);
+                    RecordingItem item = new RecordingItem(authorName + "'s voice comment", comment.getAudioPath(), 0);
                     item.setServer(true);
                     RecordPlayFragment playbackFragment =
                             RecordPlayFragment.newInstance(item);
@@ -499,6 +510,17 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
                 } catch (Exception e) {
                     Log.e(TAG, "exception", e);
                 }
+            }
+
+            @Override
+            public void onBlockClick(View view, int position) {
+                Comment comment = commentsAdapter.getItemByPosition(position);
+                if (!hasInternetConnection()) {
+                    showSnackBar(R.string.internet_connection_failed);
+                    return;
+                }
+                String blockUser = comment.getAuthorId();
+                openUserBlockDialog(blockUser);
             }
 
             @Override
@@ -571,6 +593,17 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             }
 
             @Override
+            public void onBlockClick(View view, int position) {
+                Rating rating = ratingsAdapter.getItemByPosition(position);
+                if (!hasInternetConnection()) {
+                    showSnackBar(R.string.internet_connection_failed);
+                    return;
+                }
+                String blockUser = rating.getAuthorId();
+                openUserBlockDialog(blockUser);
+            }
+
+            @Override
             public void onAuthorClick(String authorId, View view) {
                 openProfileActivity(authorId, view);
             }
@@ -628,7 +661,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         toast.show();
     }
 
-    private void showPaymentDialog(String msg) {
+    private void showDialog(String msg) {
         AlertDialog.Builder builder = new BaseAlertDialogBuilder(this);
         builder.setMessage(msg);
         builder.setPositiveButton(R.string.button_ok, null);
@@ -638,13 +671,6 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private void showPointsNeededDialog() {
         AlertDialog.Builder builder = new BaseAlertDialogBuilder(this);
         builder.setMessage(String.format(getResources().getString(R.string.insufficient_points_view_rating), profile.getUsername()));
-        builder.setPositiveButton(R.string.button_ok, null);
-        builder.show();
-    }
-
-    private void showRatingSelfRecordingDialog() {
-        AlertDialog.Builder builder = new BaseAlertDialogBuilder(this);
-        builder.setMessage(getResources().getString(R.string.rating_self_recording));
         builder.setPositiveButton(R.string.button_ok, null);
         builder.show();
     }
@@ -702,12 +728,6 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         initLikeButtonState();
         invalidateOptionsMenu();
         progressBar.setVisibility(View.GONE);
-    }
-
-    private void incrementWatchersCount() {
-        postManager.incrementWatchersCount(postId);
-        Intent intent = getIntent();
-        setResult(RESULT_OK, intent.putExtra(POST_STATUS_EXTRA_KEY, PostStatus.UPDATED));
     }
 
     private void showPostWasRemovedDialog() {
@@ -831,26 +851,37 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             avgRatingText = String.format( "%.1f", post.getAverageRating());
         }
         averageRatingTextView.setText(avgRatingText);
-        if (post.getAverageRating() > 15) {
-            ratingLabelTextView.setText("AMAZING");
-            ratingLabelTextView.setTextColor(getResources().getColor(R.color.dark_green));
-        } else if (post.getAverageRating() > 10) {
-            ratingLabelTextView.setText("GOOD");
-            ratingLabelTextView.setTextColor(getResources().getColor(R.color.light_green));
-        } else if (post.getAverageRating() > 5) {
-            ratingLabelTextView.setText("AVERAGE");
-            ratingLabelTextView.setTextColor(getResources().getColor(R.color.accent));
-        } else if (post.getAverageRating() > 0){
-            ratingLabelTextView.setText("NOT OK");
-            ratingLabelTextView.setTextColor(getResources().getColor(R.color.red));
+        if (hasAccessToModifyPost()) {
+            String percentileStr = RatingUtil.getRatingPercentile(Math.round(post.getAverageRating()));
+            aggregatePercentileTextView.setText(Html.fromHtml(String.format(getString(R.string.aggregate_post_percentile), percentileStr)));
+            aggregatePercentileTextView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    // open rating chart
+                    Intent intent = new Intent(PostDetailsActivity.this, RatingsChartActivity.class);
+                    startActivity(intent);
+                }
+            });
         } else {
-            ratingLabelTextView.setText("");
+            if (post.getAverageRating() > 15) {
+                ratingLabelTextView.setText("AMAZING");
+                ratingLabelTextView.setTextColor(getResources().getColor(R.color.dark_green));
+            } else if (post.getAverageRating() > 10) {
+                ratingLabelTextView.setText("GOOD");
+                ratingLabelTextView.setTextColor(getResources().getColor(R.color.light_green));
+            } else if (post.getAverageRating() > 5) {
+                ratingLabelTextView.setText("AVERAGE");
+                ratingLabelTextView.setTextColor(getResources().getColor(R.color.accent));
+            } else if (post.getAverageRating() > 0){
+                ratingLabelTextView.setText("NOT OK");
+                ratingLabelTextView.setTextColor(getResources().getColor(R.color.red));
+            } else {
+                ratingLabelTextView.setText("");
+            }
         }
 
 //        likeController.setUpdatingLikeCounter(false);
 //        ratingController.setUpdatingRatingCounter(false);
-        watcherContainerLayout.setVisibility(View.VISIBLE);
-        watcherCounterTextView.setText(String.valueOf(post.getWatchersCount()));
 
         CharSequence date = FormatterUtil.getRelativeTimeSpanStringShort(this, post.getCreatedDate());
         dateTextView.setText(date);
@@ -1470,15 +1501,37 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         complainDialog.show(getFragmentManager(), ComplainDialog.TAG);
     }
 
+    private void openUserBlockDialog(String blockUser) {
+        BlockDialog blockDialog = new BlockDialog();
+        Bundle args = new Bundle();
+        args.putString(BlockDialog.BLOCKED_USER_KEY, blockUser);
+        blockDialog.setArguments(args);
+        blockDialog.show(getFragmentManager(), ComplainDialog.TAG);
+    }
+
     @Override
     public void onFlagReason(Flag flag) {
         postManager.flagUser(flag, new OnTaskCompleteListener() {
             @Override
             public void onTaskComplete(boolean success) {
                 if (success) {
-                    showPaymentDialog("Received your complaint. Will review and send a warning to user.");
+                    showDialog("Received your complaint. Will review and send a warning to user.");
                 } else {
                     showSnackBar(R.string.error_fail_create_complain);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onBlock(String blockedUser, String reason) {
+        profileManager.blockUser(blockedUser, reason, new OnTaskCompleteListener() {
+            @Override
+            public void onTaskComplete(boolean success) {
+                if (success) {
+                    showSnackBar(R.string.block_success);
+                } else {
+                    showSnackBar(R.string.error_fail_block);
                 }
             }
         });
