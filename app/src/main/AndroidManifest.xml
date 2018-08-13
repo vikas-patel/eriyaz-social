@@ -139,15 +139,19 @@
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
-        <receiver android:name=".services.CancelNotificationReceiver">
-        </receiver>
 
-        <activity android:name=".activities.AdminActivity"
+        <receiver android:name=".services.CancelNotificationReceiver"></receiver>
+
+        <activity
+            android:name=".activities.AdminActivity"
             android:configChanges="orientation|screenSize"
             android:label="Admin" />
         <activity
             android:name=".activities.ResetPasswordActivity"
-            android:label="Reset Password"></activity>
+            android:label="Reset Password" />
+        <activity
+            android:name=".activities.RateCelebrityActivity"
+            android:exported="true" />
     </application>
 
 </manifest>

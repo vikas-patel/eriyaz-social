@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:focusableInTouchMode="true"
+    android:focusable="true"
+    android:background="@android:color/white">
+
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true">
+
+
+
+        <RelativeLayout
+            android:id="@+id/activity_post_details"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <TextView
+                    android:text="Rate A Member : "
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/intrinsic_padding"
+                    android:layout_marginBottom="@dimen/large_intrinsic_padding"
+                    android:textColor="@color/primary"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+                    />
+
+                <TextView
+                    android:id="@+id/file_name_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/primary_dark"
+                    android:text="..loading post"
+                    android:textSize="18sp"/>
+
+                <ProgressBar
+                    android:id="@+id/playerProgressBar"
+                    android:layout_width="@dimen/progress_bar_size"
+                    android:layout_height="@dimen/progress_bar_size"
+                    android:layout_centerInParent="true"
+                    android:layout_gravity="center"
+                    android:visibility="visible" />
+                <com.google.android.exoplayer2.ui.PlayerView
+                    android:id="@+id/exoPlayerView"
+                    android:layout_width="match_parent"
+                    app:controller_layout_id="@layout/custom_playback_control"
+                    app:show_timeout="0"
+                    android:layout_marginBottom="@dimen/large_intrinsic_padding"
+                    app:fastforward_increment="5000"
+                    app:rewind_increment="5000"
+                    android:layout_height="80dp"
+                    android:visibility="gone"/>
+
+                <TextView
+                    android:text="Rate Below:"
+                    android:textAppearance="@style/TextAppearance.Subhead"
+                    android:id="@+id/ratingTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <ProgressBar
+                    android:id="@+id/seekbarProgressBar"
+                    android:layout_width="@dimen/progress_bar_size"
+                    android:layout_height="@dimen/progress_bar_size"
+                    android:layout_centerInParent="true"
+                    android:layout_gravity="center"
+                    android:visibility="visible" />
+                <include
+                    android:id="@+id/seekbarContainer"
+                    layout="@layout/seekbar_container"
+                    android:layout_marginTop="@dimen/intrinsic_padding"
+                    android:layout_marginBottom="@dimen/large_intrinsic_padding"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"/>
+
+
+
+                <LinearLayout
+                    android:id="@+id/celebrityReveal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone">
+                    <TextView
+                        android:text="You just rated "
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                    <TextView
+                        android:id="@+id/celebrityName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/primary_dark"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:textSize="20dp"
+                        android:text="Playback Singer %s"/>
+                    <TextView
+                        android:id="@+id/celebrityRecievedRating"
+                        android:layout_width="wrap_content"
+                        android:textSize="15dp"
+                        android:textStyle="bold"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/warning"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Warning : Be fair in your ratings."
+                    android:textColor="@color/red"
+                    android:visibility="gone"/>
+
+
+
+                <TextView
+                    android:id="@+id/viewOtherRatings"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="View How Other People Rated."
+                    android:onClick="toggleRatingsAndComments"
+                    android:visibility="gone"/>
+
+                <LinearLayout
+                    android:id="@+id/ratingsAndCommentsContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:id="@+id/ratingContainer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="@dimen/intrinsic_padding"
+                        android:paddingBottom="@dimen/intrinsic_padding"
+                        android:paddingRight="@dimen/large_intrinsic_padding"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:id="@+id/averateRatingTitle"
+                            android:text="Average Rating:"
+                            android:textColor="@color/primary_dark"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingLeft="@dimen/small_intrinsic_padding" />
+
+                        <TextView
+                            android:id="@+id/averageRatingTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingLeft="@dimen/small_intrinsic_padding"
+                            android:textAppearance="@style/TextAppearance.Second.Light" />
+
+                        <ImageView
+                            android:id="@+id/ratingImageView"
+                            app:srcCompat="@drawable/ic_star"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+
+                        <TextView
+                            android:id="@+id/ratingCounterTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingLeft="@dimen/small_intrinsic_padding"
+                            android:textAppearance="@style/TextAppearance.Second.Light" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/ratingsLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/countersContainer"
+                        android:layout_marginBottom="@dimen/intrinsic_padding"
+                        android:paddingLeft="@dimen/large_intrinsic_padding"
+                        android:paddingRight="@dimen/large_intrinsic_padding"
+                        android:text="Ratings"
+                        android:textColor="@color/primary_dark_text"
+                        android:visibility="gone" />
+
+                    <RelativeLayout
+                        android:id="@+id/ratingsParentContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/ratingsLabel"
+                        android:paddingLeft="@dimen/large_intrinsic_padding"
+                        android:paddingRight="@dimen/large_intrinsic_padding">
+
+                        <android.support.v7.widget.RecyclerView
+                            android:id="@+id/ratingsRecyclerView"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="gone"
+                            app:layoutManager="LinearLayoutManager"
+                            tools:listitem="@layout/comment_list_item" />
+
+                        <ProgressBar
+                            android:id="@+id/ratingsProgressBar"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerInParent="true"
+                            android:visibility="visible" />
+
+                        <TextView
+                            android:id="@+id/warningRatingsTextView"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:padding="@dimen/intrinsic_padding"
+                            android:text="@string/internet_connection_failed"
+                            android:visibility="gone" />
+                    </RelativeLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+        </RelativeLayout>
+
+        <!--<android.support.design.widget.FloatingActionButton-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_margin="5dp"-->
+            <!--android:layout_gravity="bottom"-->
+            <!--app:srcCompat="@android:drawable/ic_media_next"/>-->
+
+    </ScrollView>
+
+
+</RelativeLayout>
