@@ -58,12 +58,13 @@ android {
 }
 
 repositories {
-    maven{
+    maven {
         url 'http://sdk.uxcam.com/android/'
     }
 }
 
 dependencies {
+    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.google.android.exoplayer:exoplayer-core:2.8.1'
     compile 'com.google.android.exoplayer:exoplayer-ui:2.8.1'

@@ -23,26 +23,20 @@ import android.app.Dialog;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ProgressBar;
 
 import com.eriyaz.social.ApplicationHelper;
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseAlertDialogBuilder;
-import com.eriyaz.social.activities.PostDetailsActivity;
 import com.eriyaz.social.adapters.AvtarAdapter;
-import com.eriyaz.social.managers.CommentManager;
 import com.eriyaz.social.managers.listeners.OnDataChangedListener;
-import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
 import com.eriyaz.social.model.Avatar;
-import com.eriyaz.social.model.Notification;
 
 import java.util.List;
 

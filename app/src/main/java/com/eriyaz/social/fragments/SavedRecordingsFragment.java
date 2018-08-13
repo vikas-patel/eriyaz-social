@@ -1,12 +1,9 @@
 package com.eriyaz.social.fragments;
 
 import android.os.Bundle;
-import android.os.FileObserver;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,7 +12,6 @@ import android.widget.Toast;
 
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.CreatePostActivity;
-import com.eriyaz.social.activities.ProfileActivity;
 import com.eriyaz.social.adapters.FileViewerAdapter;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnDataChangedListener;

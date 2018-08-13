@@ -1088,6 +1088,9 @@ public class DatabaseHelper {
                         if (mapObj.containsKey("anonymous")) {
                             post.setNickName((String) mapObj.get("nickName"));
                         }
+                        if (mapObj.containsKey("celebrityName")) {
+                            post.setCelebrityName((String) mapObj.get("celebrityName"));
+                        }
                         if (mapObj.containsKey("avatarImageUrl")) {
                             post.setAvatarImageUrl((String) mapObj.get("avatarImageUrl"));
                         }

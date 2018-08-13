@@ -55,6 +55,7 @@ public class Post implements Serializable, LazyLoading {
     private boolean anonymous;
     private String avatarImageUrl;
     private String nickName;
+    private String celebrityName;
 
     @Override
     public boolean equals(Object o) {
@@ -234,6 +235,11 @@ public class Post implements Serializable, LazyLoading {
         this.nickName = nickName;
     }
 
+    public String getCelebrityName() { return celebrityName;  }
+
+    public void setCelebrityName(String celebrityName) { this.celebrityName = celebrityName; }
+
+
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
 
@@ -255,6 +261,7 @@ public class Post implements Serializable, LazyLoading {
         result.put("avatarImageUrl", avatarImageUrl);
         result.put("anonymous", anonymous);
         result.put("nickName", nickName);
+        result.put("celebrityName", celebrityName);
         result.put("createdDateText", FormatterUtil.getFirebaseDateFormat().format(new Date(createdDate)));
 
         return result;

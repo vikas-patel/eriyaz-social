@@ -265,6 +265,10 @@
     <string name="detailed_feedback_combined">%1$s\nTune Match: %2$s \nVoice Quality: %3$s %4$s</string>
     <string name="rating_detailed_text">Tune Match: %1$s \nVoice Quality: %2$s %3$s</string>
 
+    <!-- Rate Celebrity Screen -->
+    <string name="celebrity_name">Playback Singer %s</string>
+    <string name="celebrity_rating">%d/20</string>
+
     <!--Firebase errors-->
     <string name="permission_denied_error">Please check your rules to access the Firebase Realtime Database</string>
 
