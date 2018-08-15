@@ -66,6 +66,7 @@ import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.AnimationUtils;
 import com.eriyaz.social.utils.DeepLinkUtil;
 import com.eriyaz.social.utils.LogUtil;
+import com.eriyaz.social.utils.PreferencesUtil;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -106,7 +107,6 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -114,6 +114,10 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         blockUserManager = BlockUserManager.getInstance(this);
         ProfileStatus profileStatus = profileManager.checkProfile();
         if(profileStatus.equals(ProfileStatus.NOT_AUTHORIZED) || profileStatus.equals(ProfileStatus.NO_PROFILE)) {
+            if (!BuildConfig.DEBUG && !PreferencesUtil.isPostCreated(MainActivity.this)) {
+                UXCam.startWithKey("8e284e93d1b8286");
+                UXCam.allowShortBreakForAnotherApp();
+            }
             doAuthorization(profileStatus);
         } else {
             blockUserManager.getBlockedByList(MainActivity.this,
@@ -282,6 +286,9 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         return new OnObjectChangedListener<Profile>() {
             @Override
             public void onObjectChanged(Profile profile) {
+                if (!PreferencesUtil.isPostCreated(MainActivity.this)) {
+                    PreferencesUtil.setPostCreated(MainActivity.this, true);
+                }
                 if (profile.getPostCount() == 1) {
                     // show first post popup
                     analytics.logFirstPost();
@@ -478,6 +485,12 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
     }
 
     private void openCreatePostActivity() {
+        if (!PreferencesUtil.isRecordOpened(MainActivity.this)) {
+            PreferencesUtil.setRecordOpened(MainActivity.this, true);
+            if (profile != null && profile.getPostCount() == 0) {
+                analytics.logFirstRecord();
+            }
+        }
         Intent intent = new Intent(this, CreatePostActivity.class);
         startActivityForResult(intent, CreatePostActivity.CREATE_NEW_POST_REQUEST);
     }

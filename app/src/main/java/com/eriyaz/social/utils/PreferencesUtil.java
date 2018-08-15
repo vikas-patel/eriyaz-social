@@ -25,6 +25,8 @@ public class PreferencesUtil {
 
     private static final String SHARED_PREFERENCES_NAME = "com.eriyaz.social";
     private static final String PREF_PARAM_IS_PROFILE_CREATED = "isProfileCreated";
+    private static final String PREF_PARAM_IS_POST_CREATED = "isPostCreated";
+    private static final String PREF_PARAM_IS_RECORD_OPENED = "isPostCreated";
     private static final String PREF_PARAM_IS_POSTS_WAS_LOADED_AT_LEAST_ONCE = "isPostsWasLoadedAtLeastOnce";
     private static final String PREF_PARAM_IS_USER_RATED_AT_LEAST_ONCE = "isUserRatedAtLeastOnce";
     private static final String PREF_PARAM_IS_USER_VIEWED_RATING_AT_LEAST_ONCE = "isUserViewedRatingAtLeastOnce";
@@ -82,5 +84,21 @@ public class PreferencesUtil {
         final SharedPreferences.Editor editor = getSharedPreferences(context).edit();
         editor.clear();
         editor.apply();
+    }
+
+    public static Boolean isPostCreated(Context context) {
+        return getSharedPreferences(context).getBoolean(PREF_PARAM_IS_POST_CREATED, false);
+    }
+
+    public static void setPostCreated(Context context, Boolean isPostCreated) {
+        getSharedPreferences(context).edit().putBoolean(PREF_PARAM_IS_POST_CREATED, isPostCreated).commit();
+    }
+
+    public static Boolean isRecordOpened(Context context) {
+        return getSharedPreferences(context).getBoolean(PREF_PARAM_IS_RECORD_OPENED, false);
+    }
+
+    public static void setRecordOpened(Context context, Boolean isRecordOpened) {
+        getSharedPreferences(context).edit().putBoolean(PREF_PARAM_IS_RECORD_OPENED, isRecordOpened).commit();
     }
 }

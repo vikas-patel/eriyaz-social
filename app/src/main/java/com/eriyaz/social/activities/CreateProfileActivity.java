@@ -195,6 +195,7 @@ public class CreateProfileActivity extends PickImageActivity implements OnProfil
 
         if (success) {
             finish();
+            analytics.createProfile();
             PreferencesUtil.setProfileCreated(this, success);
             DatabaseHelper.getInstance(CreateProfileActivity.this.getApplicationContext())
                     .addRegistrationToken(FirebaseInstanceId.getInstance().getToken(), profile.getId());
