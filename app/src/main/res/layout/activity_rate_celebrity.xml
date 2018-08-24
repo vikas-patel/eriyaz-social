@@ -29,7 +29,7 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:text="Rate A Member : "
+                    android:text="Rate One Recording : "
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/intrinsic_padding"
@@ -46,6 +46,14 @@
                     android:text="..loading post"
                     android:textSize="18sp"/>
 
+                <!--<TextView-->
+                    <!--android:id="@+id/singerName"-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:textColor="@color/primary_dark"-->
+                    <!--android:text="by Sandeep Yadav"-->
+                    <!--android:textSize="14sp"/>-->
+
                 <ProgressBar
                     android:id="@+id/playerProgressBar"
                     android:layout_width="@dimen/progress_bar_size"
@@ -53,6 +61,7 @@
                     android:layout_centerInParent="true"
                     android:layout_gravity="center"
                     android:visibility="visible" />
+
                 <com.google.android.exoplayer2.ui.PlayerView
                     android:id="@+id/exoPlayerView"
                     android:layout_width="match_parent"
@@ -65,9 +74,9 @@
                     android:visibility="gone"/>
 
                 <TextView
+                    android:id="@+id/rateBelowLabel"
                     android:text="Rate Below:"
                     android:textAppearance="@style/TextAppearance.Subhead"
-                    android:id="@+id/ratingTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
 
@@ -88,12 +97,54 @@
                     android:visibility="gone"/>
 
 
+                <TableLayout
+                    android:id="@+id/confirmRatingSection"
+                    android:visibility="gone"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <TableRow>
+                        <TextView
+                            android:id="@+id/confirmRatingText"
+                            android:text="You selected : %d/20"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </TableRow>
+                    <TableRow>
+                        <Button
+                            android:id="@+id/cancelRating"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_column="1"
+                            android:text="Cancel" />
+                        <Button
+                            android:id="@+id/submitRating"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_column="2"
+
+                            android:text="Submit" />
+                    </TableRow>
+                </TableLayout>
+
+                <!--<ImageView-->
+                    <!--android:id="@+id/celebrityAvatar"-->
+                    <!--android:layout_width="24dp"-->
+                    <!--android:layout_height="24dp"-->
+                    <!--android:layout_gravity="center_vertical"-->
+                    <!--android:layout_marginLeft="@dimen/large_intrinsic_padding"-->
+                    <!--android:layout_marginRight="@dimen/small_intrinsic_padding"/>-->
+
+
+
 
                 <LinearLayout
                     android:id="@+id/celebrityReveal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:orientation="vertical"
                     android:visibility="gone">
+
                     <TextView
                         android:text="You just rated "
                         android:layout_width="wrap_content"
@@ -113,6 +164,18 @@
                         android:textSize="15dp"
                         android:textStyle="bold"
                         android:layout_height="wrap_content"/>
+                    <com.eriyaz.social.views.CircularImageView
+                        android:id="@+id/celebrityAvatar"
+                        android:layout_width="@dimen/post_author_image_side"
+                        android:layout_height="@dimen/post_author_image_side"
+                        android:layout_marginRight="@dimen/small_intrinsic_padding"
+                        android:layout_marginTop="@dimen/post_author_image_margin"
+                        app:border="false"
+                        app:shadow="true"
+                        app:shadow_color="@color/circle_image_shadow"
+                        app:shadow_radius="@dimen/circle_image_shadow_radius"
+                        android:transitionName="@string/post_author_image_transition_name"
+                        tools:targetApi="lollipop" />
                 </LinearLayout>
 
                 <TextView
@@ -123,14 +186,15 @@
                     android:textColor="@color/red"
                     android:visibility="gone"/>
 
-
-
                 <TextView
                     android:id="@+id/viewOtherRatings"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:padding="@dimen/intrinsic_padding"
                     android:text="View How Other People Rated."
                     android:onClick="toggleRatingsAndComments"
+                    android:textColor="?android:textColorLink"
                     android:visibility="gone"/>
 
                 <LinearLayout

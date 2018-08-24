@@ -18,6 +18,7 @@
 package com.eriyaz.social.activities;
 
 import android.animation.Animator;
+import android.app.ActionBar;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -38,15 +39,19 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.RatingsAdapter;
 import com.eriyaz.social.controllers.RatingController;
+import com.eriyaz.social.dialogs.AvatarDialog;
 import com.eriyaz.social.enums.PostOrigin;
 import com.eriyaz.social.enums.PostStatus;
 import com.eriyaz.social.enums.ProfileStatus;
@@ -98,6 +103,7 @@ public class RateCelebrityActivity extends BaseActivity {
     public static final int UPDATE_POST_REQUEST = 1;
     public static final String POST_STATUS_EXTRA_KEY = "PostDetailsActivity.POST_STATUS_EXTRA_KEY";
     public static final String POST_ORIGIN_EXTRA_KEY = "PostDetailsActivity.POST_ORIGIN_EXTRA_KEY";
+    public static final String CELEBRITY_AVATAR_URL = "https://firebasestorage.googleapis.com/v0/b/eriyaz-social-dev.appspot.com/o/images%2Fcelebrity-singers%2Fatif-aslam.jpeg?alt=media&token=b45444f9-99a7-4d17-9eb6-4badf196fb5e";
 
 
     @Nullable
@@ -206,6 +212,45 @@ public class RateCelebrityActivity extends BaseActivity {
         }
         supportPostponeEnterTransition();
 
+        findViewById(R.id.submitRating).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                findViewById(R.id.seekbarContainer).setVisibility(View.GONE);
+                findViewById(R.id.rateBelowLabel).setVisibility(View.GONE);
+
+
+                int progress = ratingBar.getProgress();
+                findViewById(R.id.viewOtherRatings).setVisibility(View.VISIBLE);
+                ((TextView) findViewById(R.id.celebrityName)).setText(String.format(getString(R.string.celebrity_name),post.getCelebrityName()));
+                ((TextView) findViewById(R.id.celebrityRecievedRating)).setText(String.format(getString(R.string.celebrity_rating), progress));
+                findViewById(R.id.celebrityReveal).setVisibility(View.VISIBLE);
+                if(progress < 10) {
+                    findViewById(R.id.warning).setVisibility(View.VISIBLE);
+                }
+                ratingController.handleRatingClickAction((BaseActivity) RateCelebrityActivity.this, post, progress);
+//                ratingController.setUpdatingRatingCounter(false);
+                findViewById(R.id.confirmRatingSection).setVisibility(View.GONE);
+
+
+            }
+        });
+
+        findViewById(R.id.cancelRating).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ratingBar.setProgress(0);
+                findViewById(R.id.confirmRatingSection).setVisibility(View.GONE);
+            }
+        });
+
+        String avatarImageUrl = CELEBRITY_AVATAR_URL;
+        Glide.with(this)
+            .load(avatarImageUrl)
+            .diskCacheStrategy(DiskCacheStrategy.SOURCE)
+            .crossFade()
+            .into((ImageView)findViewById(R.id.celebrityAvatar));
+
+
     }
 
     private void updateRatingDetails() {
@@ -222,49 +267,12 @@ public class RateCelebrityActivity extends BaseActivity {
 
             @Override
             public void getProgressOnActionUp(BubbleSeekBar bubbleSeekBar, final int progress, float progressFloat) {
-//                if (!isAuthorized()) {
-//                    ratingBar.setProgress(rating.getRating());
-//                    return;
-//                }
-                if(ratingBar.isEnabled()) {
-                    AlertDialog.Builder builder = new BaseAlertDialogBuilder(RateCelebrityActivity.this);
-                    builder.setMessage("You Rated : " + progress + " \n You cannot change after Submit.");
-                    builder.setPositiveButton("Submit", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-//                            ratingController.setUpdatingRatingCounter(false);
-//
-                            ratingController.handleRatingClickAction((BaseActivity) RateCelebrityActivity.this, post, progress);
-                            ratingBar.setEnabled(false);
-                            findViewById(R.id.viewOtherRatings).setVisibility(View.VISIBLE);
-//                            ratingBar.setProgress(rating.getRating());
-                            ((TextView) findViewById(R.id.celebrityName)).setText(String.format(getString(R.string.celebrity_name),post.getCelebrityName()));
-                            ((TextView) findViewById(R.id.celebrityRecievedRating)).setText(String.format(getString(R.string.celebrity_rating), progress));
-                            findViewById(R.id.celebrityReveal).setVisibility(View.VISIBLE);
-                            if(progress < 10) {
-                                findViewById(R.id.warning).setVisibility(View.VISIBLE);
-                            }
-                        }
-                    });
-                    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            ratingBar.setProgress(rating.getRating());
-                        }
-                    });
-                    builder.show();
-                }
-//                ratingBar.setProgress(rating.getRating());
-                ratingController.setUpdatingRatingCounter(false);
-                Log.d("RATING", progress + " 1");
-
-//                ratingBar.setProgress(rating.getRating());
+                ((TextView) findViewById(R.id.confirmRatingText)).setText("You Rated : " + progress + " \n You cannot change after Submit.");
+                findViewById(R.id.confirmRatingSection).setVisibility(View.VISIBLE);
             }
 
             @Override
             public void getProgressOnFinally(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat, boolean fromUser) {
-                ratingController.handleRatingClickAction((BaseActivity) RateCelebrityActivity.this, post, progress);
-                Log.d("RATING", progress + " 2");
             }
         });
 
@@ -449,7 +457,7 @@ public class RateCelebrityActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
+        return;
     }
 
     private void initRatingRecyclerView() {
@@ -475,7 +483,7 @@ public class RateCelebrityActivity extends BaseActivity {
 
             @Override
             public void onBlockClick(View view, int position) {
-                
+
             }
 
             @Override
@@ -697,6 +705,7 @@ public class RateCelebrityActivity extends BaseActivity {
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
+
         if (profile == null || post == null) return true;
         if (deleteActionMenuItem != null && hasAccessToModifyPost()) {
 //            editActionMenuItem.setVisible(true);
