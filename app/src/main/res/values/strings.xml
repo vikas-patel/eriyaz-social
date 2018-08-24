@@ -51,6 +51,7 @@
     <string name="hint_title">Song name</string>
     <string name="hint_description">Additional notes</string>
     <string name="attempt_label">Attempt</string>
+    <string name="reward_spinner_label">Reward points</string>
     <string name="hint_feedback">Report an issue, suggest a feature, or send feedback.</string>
     <string name="hint_detailed_comment">Additional Comment.</string>
     <string name="hint_block_dialog">Tell us why you want to block this user.</string>
@@ -149,6 +150,7 @@
     <string name="profile_menu_item">Profile</string>
     <string name="feedback_menu_item">Contact Us</string>
     <string name="admin_menu_item">Admin</string>
+    <string name="reward_menu_item">Reward Feedbacker</string>
     <string name="notification_menu_item">Notification</string>
     <string name="message_notification_menu_item">Message Notifications</string>
     <string name="share_app_menu_item">Share App</string>
@@ -171,12 +173,15 @@
     <string name="normalized_rating_calculation_text"><![CDATA[Normalized Rating = <font color=\'#17a1d7\'>(%1$d/%2$d)*10</font> = <font color=\'#17a1d7\'>%3$d/20</font>]]></string>
     <string name="actual_rating_text"><![CDATA[Actual Rating : <font color=\'#17a1d7\'>%1$d</font>]]></string>
     <string name="average_rating_text"><![CDATA[<font color=\'#019B86\'><u>%1$s</u></font>\'s Average Rating : <font color=\'#17a1d7\'>%2$d</font>]]></string>
+    <string name="comment_reward_points"><![CDATA[<font color=\'#019B86\'><u>+%1$d</u></font>]]></string>
+    <string name="reputation_ranking_coming_soon"><![CDATA[Reputation points awarded by Admin for informative/encouraging feedback. \nComing Soon : Reputation ranking of <b>feedbackers.</b>]]></string>
     <string name="average_rating_link"><![CDATA[<u>%1$d</u>]]></string>
     <string name="aggregate_post_percentile"><![CDATA[<u>%1$s</u>]]></string>
     <string name="percentile_text"><![CDATA[Percentile : <font color=\'#17a1d7\'>%1$s</font>]]></string>
     <string name="send_comment_button_label">Send</string>
     <string name="posted_by_label">Posted by:</string>
     <string name="score_label">contribution score</string>
+    <string name="reputation_label">reputation score</string>
     <string name="insufficient_points_view_rating">Dear %1$s, this is a rating for rating exchange platform. You need 1 point to view this rating. Please rate others to earn points.</string>
     <string name="point_spent_view_rating">1 point spent to view rating.</string>
     <string name="rating_self_recording">This is your own recording so your rating is not considered. Please wait for others to rate you.</string>
@@ -244,6 +249,7 @@
     <string name="block_comment_menu_item">Block</string>
     <string name="message_comment_was_removed">Comment was removed</string>
     <string name="message_comment_was_edited">Comment was edited</string>
+    <string name="message_comment_was_rewared">Commenter was rewarded</string>
     <string name="title_edit_comment">Edit comment</string>
     <string name="title_complain_reason">Complain</string>
     <string name="title_block_dialog">Block</string>
@@ -315,6 +321,30 @@
         <item>Attempt 8</item>
         <item>Attempt 9</item>
         <item>Attempt 10</item>
+    </string-array>
+
+    <string-array name="reward_arrays">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+        <item>15</item>
+        <item>16</item>
+        <item>17</item>
+        <item>18</item>
+        <item>19</item>
+        <item>20</item>
     </string-array>
 
 

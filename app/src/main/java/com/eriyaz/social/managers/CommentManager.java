@@ -23,9 +23,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 
 import com.eriyaz.social.enums.UploadImagePrefix;
-import com.eriyaz.social.utils.Analytics;
 import com.eriyaz.social.utils.ImageUtil;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -56,11 +54,11 @@ public class CommentManager extends FirebaseListenersManager {
         this.context = context;
     }
 
-    public void createOrUpdateComment(String commentText, String postId, OnTaskCompleteListener onTaskCompleteListener) {
+    public void createComment(String commentText, String postId, OnTaskCompleteListener onTaskCompleteListener) {
         ApplicationHelper.getDatabaseHelper().createComment(commentText, postId, onTaskCompleteListener);
     }
 
-    public void createOrUpdateComment(Comment comment, String postId, OnTaskCompleteListener onTaskCompleteListener) {
+    public void createComment(Comment comment, String postId, OnTaskCompleteListener onTaskCompleteListener) {
         ApplicationHelper.getDatabaseHelper().createComment(comment, postId, onTaskCompleteListener);
     }
 
@@ -88,7 +86,7 @@ public class CommentManager extends FirebaseListenersManager {
 
                     comment.setAudioPath(String.valueOf(downloadUrl));
                     comment.setAudioTitle(imageTitle);
-                    createOrUpdateComment(comment, postId, onTaskCompleteListener);
+                    createComment(comment, postId, onTaskCompleteListener);
                 }
             });
         }
@@ -147,5 +145,9 @@ public class CommentManager extends FirebaseListenersManager {
 
     public void updateComment(String commentId, String commentText, String postId, OnTaskCompleteListener onTaskCompleteListener) {
         ApplicationHelper.getDatabaseHelper().updateComment(commentId, commentText, postId, onTaskCompleteListener);
+    }
+
+    public void updateComment(Comment comment, String postId, OnTaskCompleteListener onTaskCompleteListener) {
+        ApplicationHelper.getDatabaseHelper().updateComment(comment, postId, onTaskCompleteListener);
     }
 }

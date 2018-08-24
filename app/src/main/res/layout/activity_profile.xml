@@ -152,19 +152,19 @@
                             android:paddingTop="@dimen/small_intrinsic_padding"
                             android:textAppearance="@style/TextAppearance.Title" />
 
-                        <LinearLayout
+                        <TextView
+                            android:id="@+id/pointsCountersTextView"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal">
-
-                            <TextView
-                                android:id="@+id/pointsCountersTextView"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:gravity="center"
-                                android:textAppearance="@style/TextAppearance.Title" />
-
-                        </LinearLayout>
+                            android:gravity="center"
+                            android:textAppearance="@style/TextAppearance.Title" />
+                        <TextView
+                            android:id="@+id/reputationsCountersTextView"
+                            android:paddingTop="@dimen/small_intrinsic_padding"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:textAppearance="@style/TextAppearance.Title" />
 
                     </LinearLayout>
 

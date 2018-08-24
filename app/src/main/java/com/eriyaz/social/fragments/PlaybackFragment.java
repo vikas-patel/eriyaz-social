@@ -351,7 +351,7 @@ public class PlaybackFragment extends BaseDialogFragment {
             Uri audioUri = Uri.fromFile(new File(commentRecordLayout.getRecordItem().getFilePath()));
             commentManager.createOrUpdateCommentWithAudio(audioUri, detailed_comment, post.getId(), listener);
         } else {
-            commentManager.createOrUpdateComment(detailed_comment, post.getId(), listener);
+            commentManager.createComment(detailed_comment, post.getId(), listener);
         }
     }
 

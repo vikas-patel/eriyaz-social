@@ -76,12 +76,14 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
     private String currentUserId;
     private String userID;
     private int userPoints;
+    private int reputationsPoints;
     private boolean isRatingTabDefault;
 
     private TabLayout tabLayout;
     private ViewPager profileTabViewPager;
 
     private TextView pointsCountersTextView;
+    private TextView reputationsCountersTextView;
     private ProfileManager profileManager;
     final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
 
@@ -112,6 +114,7 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
         nameEditText = (TextView) findViewById(R.id.nameEditText);
         messageTextLayout = findViewById(R.id.messageTextLayout);
         pointsCountersTextView = (TextView) findViewById(R.id.pointsCountersTextView);
+        reputationsCountersTextView = findViewById(R.id.reputationsCountersTextView);
 //        postsLabelTextView = (TextView) findViewById(R.id.postsLabelTextView);
 
         profileTabViewPager = findViewById(R.id.profileTabPager);
@@ -190,16 +193,16 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
 
     private Spannable buildCounterSpannable(String label, int value) {
         SpannableStringBuilder contentString = new SpannableStringBuilder();
-        contentString.append(String.valueOf(value));
-        contentString.append("\n");
+        contentString.append(label + " ");
+//        contentString.append("\n");
         int start = contentString.length();
-        contentString.append(label);
-        contentString.setSpan(new TextAppearanceSpan(this, R.style.TextAppearance_Second_Light), start, contentString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        contentString.setSpan(new TextAppearanceSpan(this, R.style.TextAppearance_Title_White), 0, start-1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        contentString.append(String.valueOf(value));
+        contentString.setSpan(new TextAppearanceSpan(this, R.style.TextAppearance_Title_White), start, contentString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        contentString.setSpan(new TextAppearanceSpan(this, R.style.TextAppearance_Second_Light), 0, start, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         if (value > 0) {
-            contentString.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.light_green)), 0, start-1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            contentString.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.light_green)), start, contentString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         } else {
-            contentString.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.red)), 0, start-1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            contentString.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.red)), start, contentString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
         return contentString;
     }
@@ -254,8 +257,11 @@ public class ProfileActivity extends BaseActivity implements GoogleApiClient.OnC
             }
 
             userPoints = (int) profile.getPoints();
+            reputationsPoints = (int) profile.getReputationPoints();
             String pointsLabel = getResources().getString(R.string.score_label);
             pointsCountersTextView.setText(buildCounterSpannable(pointsLabel, userPoints));
+            String reputationsLabel = getResources().getString(R.string.reputation_label);
+            reputationsCountersTextView.setText(buildCounterSpannable(reputationsLabel, reputationsPoints));
         }
     }
 

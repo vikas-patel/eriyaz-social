@@ -17,12 +17,7 @@
 package com.eriyaz.social.model;
 
 
-import com.eriyaz.social.utils.FormatterUtil;
-
 import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Comment {
 
@@ -33,6 +28,7 @@ public class Comment {
     private String audioTitle;
     private long createdDate;
     private boolean detailedFeedback;
+    private int reputationPoints;
 
 
     public Comment() {
@@ -99,5 +95,13 @@ public class Comment {
 
     public void setDetailedFeedback(boolean aDetailedFeedback) {
         detailedFeedback = aDetailedFeedback;
+    }
+
+    public int getReputationPoints() {
+        return reputationPoints;
+    }
+
+    public void setReputationPoints(int reputationPoints) {
+        this.reputationPoints = reputationPoints;
     }
 }

@@ -20,31 +20,32 @@ package com.eriyaz.social.adapters.holders;
 
 import android.content.Context;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
+import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
+import com.eriyaz.social.activities.BaseAlertDialogBuilder;
 import com.eriyaz.social.adapters.CommentsAdapter;
-import com.eriyaz.social.fragments.PlaybackFragment;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.model.Comment;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Profile;
-import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.utils.FormatterUtil;
 import com.eriyaz.social.utils.ImageUtil;
 import com.eriyaz.social.utils.TimestampTagUtil;
@@ -65,16 +66,19 @@ CommentViewHolder extends RecyclerView.ViewHolder {
     private final TextView expandableTextView;
     private final TextView dateTextView;
     protected ImageButton optionMenuButton;
+    protected Spinner rewardSpinner;
+    private TextView rewardTextView;
     private ImageView playImageView;
     private String mUserName = "";
     private final ProfileManager profileManager;
     private CommentsAdapter.Callback callback;
     private Context context;
+    private boolean isAdmin;
 
     private HashTagHelper mistakesTextHashTagHelper;
 
 
-    public CommentViewHolder(View itemView, final CommentsAdapter.Callback callback) {
+    public CommentViewHolder(View itemView, final CommentsAdapter.Callback callback, boolean aIsAdmin) {
         super(itemView);
 
         this.callback = callback;
@@ -87,6 +91,9 @@ CommentViewHolder extends RecyclerView.ViewHolder {
         dateTextView = (TextView) itemView.findViewById(R.id.dateTextView);
         optionMenuButton = itemView.findViewById(R.id.optionMenuButton);
         playImageView = itemView.findViewById(R.id.playimageView);
+        rewardSpinner = itemView.findViewById(R.id.rewardSpinner);
+        rewardTextView = itemView.findViewById(R.id.rewardText);
+        isAdmin = aIsAdmin;
 
         mistakesTextHashTagHelper = HashTagHelper.Creator.create(itemView.getResources().getColor(R.color.red), new HashTagHelper.OnHashTagClickListener() {
             @Override
@@ -176,6 +183,44 @@ CommentViewHolder extends RecyclerView.ViewHolder {
                 popup.show();
             }
         });
+
+        if (isAdmin) {
+            rewardSpinner.setVisibility(View.VISIBLE);
+            rewardSpinner.setSelection(comment.getReputationPoints());
+            final int initial = rewardSpinner.getSelectedItemPosition();
+            rewardSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                    if (initial == i) return;
+                    callback.onRewardClick(view, getAdapterPosition(), i);
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                }
+            });
+        }
+
+        if (comment.getReputationPoints() > 0) {
+            rewardTextView.setVisibility(View.VISIBLE);
+            rewardTextView.setText(Html.fromHtml(String.format(context.getString(R.string.comment_reward_points), comment.getReputationPoints())));
+            rewardTextView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    showDialog(R.string.reputation_ranking_coming_soon);
+                }
+            });
+        } else {
+            rewardTextView.setVisibility(View.GONE);
+        }
+    }
+
+    private void showDialog(int messageId) {
+        AlertDialog.Builder builder = new BaseAlertDialogBuilder(context);
+        builder.setMessage(Html.fromHtml(context.getString(messageId)));
+        builder.setPositiveButton(R.string.button_ok, null);
+        builder.show();
     }
 
     private OnObjectChangedListener<Profile> createOnProfileChangeListener(final ExpandableTextView expandableTextView, final ImageView avatarImageView, final String comment) {

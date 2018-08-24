@@ -509,6 +509,11 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         startActivityForResult(intent, Constants.ACTIVITY.CREATE_ADMIN);
     }
 
+    private void openRewardActivity() {
+        Intent intent = new Intent(MainActivity.this, RewardActivity.class);
+        startActivityForResult(intent, Constants.ACTIVITY.CREATE_ADMIN);
+    }
+
     private void openRatingsChartActivity() {
         Intent intent = new Intent(MainActivity.this, RatingsChartActivity.class);
         startActivity(intent);
@@ -581,6 +586,8 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         if (profile.isAdmin()) {
             MenuItem adminItem = menu.findItem(R.id.admin_menu_item);
             adminItem.setVisible(true);
+            MenuItem rewardItem = menu.findItem(R.id.reward_menu_item);
+            rewardItem.setVisible(true);
         }
         return super.onPrepareOptionsMenu(menu);
     }
@@ -614,6 +621,9 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
                 return true;
             case R.id.admin_menu_item:
                 openAdminActivity();
+                return true;
+            case R.id.reward_menu_item:
+                openRewardActivity();
                 return true;
             case R.id.tnc_menu_item:
                 openTnCActivity();

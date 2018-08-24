@@ -223,4 +223,9 @@ public class BaseActivity extends AppCompatActivity {
         return false;
     }
 
+    public void showFloatButtonRelatedSnackBar(int messageId) {
+        // override by subclass
+        showSnackBar(messageId);
+    }
+
 }

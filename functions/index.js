@@ -365,7 +365,6 @@ function sendEmail(subject, body) {
         .catch((error) => console.error('There was an error while sending the email:', error));
 }
 
-
 // Keeps track of the length of the 'likes' child list in a separate property.
 exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}/normalizedRating').onWrite(event => {
     if (event.data.exists() && !event.data.previous.exists() && event.data.val() == 0) {
@@ -449,6 +448,49 @@ exports.pushNotificationNewBoughtFeedback = functions.database.ref('/bought-feed
         console.log("sent push notifications to admins");
     });
 
+});
+
+exports.updatePostLastCommentDate = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
+    const postId = event.params.postId;
+    console.log('updating post last comment date ', postId);
+    const postRef = admin.database().ref(`/posts/${postId}`);
+    return postRef.transaction(current => {
+        if (current == null) {
+            console.log("ignore: null object returned from cache, expect another event with fresh server value.");
+            return null;
+        }
+        current.lastCommentDate = admin.database.ServerValue.TIMESTAMP;
+        return current;
+    }).then(() => {
+        console.log('Post last comment date updated.');
+    });
+});
+
+exports.rewardReputationPoints = functions.database.ref('/post-comments/{postId}/{commentId}/reputationPoints').onCreate(event => {
+    const newPoints = event.data.val();
+    if (!newPoints) return;
+    const commentId = event.params.commentId;
+    const postId = event.params.postId;
+    const commentRef = event.data.ref.parent;
+    
+    return commentRef.once('value').then(snapshot => {
+        let comment = snapshot.val();
+        const commentAuthorId = comment.authorId;
+        return updateUserReputationPoints(commentAuthorId, newPoints, postId);
+    });
+});
+
+exports.rewardReputationPointsUpdate = functions.database.ref('/post-comments/{postId}/{commentId}/reputationPoints').onUpdate(event => {
+    const commentId = event.params.commentId;
+    const postId = event.params.postId;
+    const commentRef = event.data.ref.parent;
+    const newPoints = event.data.val();
+    const previousPoints = event.data.previous.val();
+    return commentRef.once('value').then(snapshot => {
+        let comment = snapshot.val();
+        const commentAuthorId = comment.authorId;
+        return updateUserReputationPoints(commentAuthorId, newPoints - previousPoints, postId, previousPoints != 0);
+    });
 });
 
 exports.detailedFeedbackPoints = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
@@ -652,6 +694,47 @@ function updateUserRatingPoints(ratingAuthorId, point) {
     });
 }
 
+function updateUserReputationPoints(authorId, points, postId, isUpdate) {
+    // Get rated post.
+    const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
+
+    const newNotificationTask =  getPostTask.then(post => {
+        const userNotificationsRef = admin.database().ref(`/user-notifications/${authorId}`);
+        var newNotificationRef = userNotificationsRef.push();
+        var msg;
+        if (isUpdate) {
+            const change = points > 0 ? "incremented" : "decremented";
+            msg = `Admin has ${change} reputation points by ${Math.abs(points)} for your feedback on "${post.val().title}" recording.`;
+        } else {
+            msg = `You have been awarded +${points} reputation points by the admin for your feedback on "${post.val().title}" recording.`;
+        }
+        return newNotificationRef.set({
+            'action': 'com.eriyaz.social.activities.PostDetailsActivity',
+            'fromUserId' : WELCOME_ADMIN,
+            'message': msg,
+            'extraKey' : 'PostDetailsActivity.POST_ID_EXTRA_KEY',
+            'extraKeyValue' : postId,
+            'createdDate': admin.database.ServerValue.TIMESTAMP
+        });
+    });
+
+    const authorProfileRef = admin.database().ref(`/profiles/${authorId}`);
+    const profilePointTask = authorProfileRef.transaction(current => {
+        if (current == null) {
+            console.log("ignore: null object returned from cache, expect another event with fresh server value.");
+            return false;
+        }
+        current.reputationPoints = (current.reputationPoints || 0) + points;
+        return current;
+    }).then(() => {
+        console.log('User rating points updated.');
+    });
+    var promises = [newNotificationTask, profilePointTask];
+    return Promise.all(promises).then(results => {
+        console.log("task completed");
+    });
+}
+
 exports.appNotificationRatings = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onCreate(event => {
     console.log('App notification for new rating');
 
@@ -674,7 +757,7 @@ exports.appNotificationRatings = functions.database.ref('/post-ratings/{postId}/
             const userNotificationsRef = admin.database().ref(`/user-notifications/${postAuthorId}`);
             var newNotificationRef = userNotificationsRef.push();
             var msg = profile.val().username + " rated your post '" + post.val().title + "'";
-            newNotificationRef.set({
+            return newNotificationRef.set({
                 'action': 'com.eriyaz.social.activities.PostDetailsActivity',
                 'fromUserId' : ratingAuthorId,
                 'message': msg,
@@ -1352,11 +1435,10 @@ exports.grantSignupReward = functions.database.ref('/profiles/{uid}/id').onCreat
           console.log("referred_by", profile.referred_by);
           const WELCOME_MSG = `Hi ${profile.username}. Welcome to ${notificationTitle} community. I am the Developer and a Moderator here. Feel free to reach out to me for any questions/help. \nImportant : Be fair and genuine in your ratings, or you might be blacklisted by other members.`;
           const GIFT_JOINING_MSG = 'Vikas Patel gifted you 4 points.';
-          const taskList = [];
           const welcomeMsgTask = sendUserMessage(uid, WELCOME_ADMIN, WELCOME_MSG);
           // const addPointsTask =  addPoints(uid, 3);
           const giftJoiningMsgTask = sendAppNotificationNoAction(uid, WELCOME_ADMIN, GIFT_JOINING_MSG);
-          taskList = [welcomeMsgTask, giftJoiningMsgTask];
+          const taskList = [welcomeMsgTask, giftJoiningMsgTask];
           if (profile.referred_by) {
             // add reward points
             // const addPointsTask =  addPoints(profile.referred_by, REWARD_POINTS);
@@ -1545,6 +1627,34 @@ exports.profileSearch = functions.https.onRequest((req, res) => {
             })
 
             res.status(200).send(arr.join('\n'));
+            
+        } else {
+
+            res.status(200).send(`No result found`);
+        }
+
+    });
+});
+
+exports.profileStats = functions.https.onRequest((req, res) => {
+    const queryText = req.query.name;
+    if (!queryText) return res.status(200).send(`name parameter null`);
+    console.log("profile search by", queryText);
+    const queueRef = db.ref('profiles');
+
+    // Get all tasks that with expired times
+    return queueRef.orderByChild('appVersion').equalTo(queryText).once('value').then(profiles => {
+        if (profiles.exists()) {
+            let totalProfileCount = 0;
+            let uninstallProfileCount = 0;
+            profiles.forEach( profileSnap => {
+                totalProfileCount++;
+                const profile = profileSnap.val();
+                if (profile.unInstalled) {
+                    uninstallProfileCount++;
+                }
+            })
+            res.status(200).send("Total profile count: " + totalProfileCount + " \nUninstall profile count: " + uninstallProfileCount);
             
         } else {
 

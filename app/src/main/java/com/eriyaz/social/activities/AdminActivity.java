@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class AdminActivity extends AppCompatActivity {
+public class AdminActivity extends BaseActivity {
     private RecyclerView commentsRecyclerView;
     private BoughtFeedbackAdapter commentsAdapter;
     private BoughtFeedbackManager commentManager;
@@ -30,6 +30,9 @@ public class AdminActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin);
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
 
         commentsAdapter = new BoughtFeedbackAdapter();
         commentsAdapter.setCallback(new BoughtFeedbackAdapter.Callback() {

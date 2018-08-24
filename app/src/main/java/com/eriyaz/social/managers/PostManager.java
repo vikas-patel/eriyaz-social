@@ -82,10 +82,14 @@ public class PostManager extends FirebaseListenersManager {
     public void getPostsList(OnPostListChangedListener<Post> onDataChangedListener, long date) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
-            ApplicationHelper.getDatabaseHelper().getPostList(onDataChangedListener, date);
+            ApplicationHelper.getDatabaseHelper().getPostList(onDataChangedListener, false, date);
         } else {
             ApplicationHelper.getDatabaseHelper().getFilteredPostList(user.getUid(), onDataChangedListener, date);
         }
+    }
+
+    public void getPostsByComment(OnPostListChangedListener<Post> onDataChangedListener, long date) {
+        ApplicationHelper.getDatabaseHelper().getPostList(onDataChangedListener, true, date);
     }
 
     public void getPostsListByUser(OnDataChangedListener<Post> onDataChangedListener, String userId) {

@@ -24,7 +24,9 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.eriyaz.social.R;
+import com.eriyaz.social.activities.BaseActivity;
 import com.eriyaz.social.activities.MainActivity;
+import com.eriyaz.social.activities.RewardActivity;
 import com.eriyaz.social.adapters.holders.LoadViewHolder;
 import com.eriyaz.social.adapters.holders.PostViewHolder;
 import com.eriyaz.social.controllers.RatingController;
@@ -50,9 +52,9 @@ public class PostsAdapter extends BasePostsAdapter {
     private boolean isMoreDataAvailable = true;
     private long lastLoadedItemCreatedDate;
     private SwipeRefreshLayout swipeContainer;
-    private MainActivity mainActivity;
+    private BaseActivity mainActivity;
 
-    public PostsAdapter(final MainActivity activity, SwipeRefreshLayout swipeContainer) {
+    public PostsAdapter(final BaseActivity activity, SwipeRefreshLayout swipeContainer) {
         super(activity);
         this.mainActivity = activity;
         this.swipeContainer = swipeContainer;
@@ -200,7 +202,11 @@ public class PostsAdapter extends BasePostsAdapter {
             }
         };
 
-        PostManager.getInstance(activity).getPostsList(onPostsDataChangedListener, nextItemCreatedDate);
+        if (mainActivity instanceof RewardActivity) {
+            PostManager.getInstance(activity).getPostsByComment(onPostsDataChangedListener, nextItemCreatedDate);
+        } else {
+            PostManager.getInstance(activity).getPostsList(onPostsDataChangedListener, nextItemCreatedDate);
+        }
     }
 
     private void hideProgress() {

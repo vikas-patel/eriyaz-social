@@ -18,10 +18,12 @@
             android:id="@+id/ratingLabelTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingLeft="@dimen/small_intrinsic_padding" />
+            android:visibility="gone" />
         <TextView
             android:id="@+id/aggregatePercentileTextView"
             android:layout_width="wrap_content"
+            android:visibility="gone"
+            android:paddingLeft="@dimen/small_intrinsic_padding"
             android:textColor="?android:textColorLink"
             android:layout_height="wrap_content" />
 
@@ -30,6 +32,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingLeft="@dimen/small_intrinsic_padding"
+            android:visibility="gone"
             android:textAppearance="@style/TextAppearance.Second.Light" />
 
         <ImageView

@@ -518,6 +518,26 @@ public class DatabaseHelper {
         });
     }
 
+    public void updateComment(Comment comment, final String postId, final OnTaskCompleteListener onTaskCompleteListener) {
+        DatabaseReference mCommentReference = database.getReference().child("post-comments").child(postId).child(comment.getId());
+        mCommentReference.setValue(comment).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                if (onTaskCompleteListener != null) {
+                    onTaskCompleteListener.onTaskComplete(true);
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                if (onTaskCompleteListener != null) {
+                    onTaskCompleteListener.onTaskComplete(false);
+                }
+                LogUtil.logError(TAG, "updateComment", e);
+            }
+        });
+    }
+
     public void decrementCommentsCount(String postId, final OnTaskCompleteListener onTaskCompleteListener) {
         DatabaseReference postRef = database.getReference("posts/" + postId + "/commentsCount");
         postRef.runTransaction(new Transaction.Handler() {
@@ -890,13 +910,14 @@ public class DatabaseHelper {
         });
     }
 
-    public void getPostList(final OnPostListChangedListener<Post> onDataChangedListener, long date) {
+    public void getPostList(final OnPostListChangedListener<Post> onDataChangedListener, final boolean sortByComment, long date) {
+        final String sortBy = sortByComment ? "lastCommentDate" : "createdDate";
         DatabaseReference databaseReference = database.getReference("posts");
         Query postsQuery;
         if (date == 0) {
-            postsQuery = databaseReference.limitToLast(Constants.Post.POST_AMOUNT_ON_PAGE).orderByChild("createdDate");
+            postsQuery = databaseReference.limitToLast(Constants.Post.POST_AMOUNT_ON_PAGE).orderByChild(sortBy);
         } else {
-            postsQuery = databaseReference.limitToLast(Constants.Post.POST_AMOUNT_ON_PAGE).endAt(date).orderByChild("createdDate");
+            postsQuery = databaseReference.limitToLast(Constants.Post.POST_AMOUNT_ON_PAGE).endAt(date).orderByChild(sortBy);
         }
 
 //        postsQuery.keepSynced(true);
@@ -904,11 +925,11 @@ public class DatabaseHelper {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Map<String, Object> objectMap = (Map<String, Object>) dataSnapshot.getValue();
-                PostListResult result = parsePostList(objectMap, new ArrayList<String>());
+                PostListResult result = parsePostList(objectMap, new ArrayList<String>(), sortByComment);
                 if (result.getPosts().isEmpty() && result.isMoreDataAvailable()) {
-                    getPostList(onDataChangedListener, result.getLastItemCreatedDate() - 1);
+                    getPostList(onDataChangedListener, sortByComment, result.getLastItemCreatedDate() - 1);
                 } else {
-                    onDataChangedListener.onListChanged(parsePostList(objectMap, new ArrayList<String>()));
+                    onDataChangedListener.onListChanged(parsePostList(objectMap, new ArrayList<String>(), sortByComment));
                 }
             }
 
@@ -929,7 +950,7 @@ public class DatabaseHelper {
         postsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                PostListResult result = parsePostList((Map<String, Object>) dataSnapshot.getValue(), new ArrayList<String>());
+                PostListResult result = parsePostList((Map<String, Object>) dataSnapshot.getValue(), new ArrayList<String>(), false);
                 onDataChangedListener.onListChanged(result.getPosts());
             }
 
@@ -1023,7 +1044,7 @@ public class DatabaseHelper {
     }
 
     private PostListResult parseAppendPostList(Map<String, Object> objectMap, List<String> filterPosts,  PostListResult resultAll) {
-        PostListResult result = parsePostList(objectMap, filterPosts);
+        PostListResult result = parsePostList(objectMap, filterPosts, false);
         if (resultAll == null) return result;
         resultAll.getPosts().addAll(result.getPosts());
         resultAll.setLastItemCreatedDate(result.getLastItemCreatedDate());
@@ -1031,7 +1052,7 @@ public class DatabaseHelper {
         return resultAll;
     }
 
-    private PostListResult parsePostList(Map<String, Object> objectMap, List<String> filterPosts) {
+    private PostListResult parsePostList(Map<String, Object> objectMap, List<String> filterPosts,  boolean sortByComment) {
         PostListResult result = new PostListResult();
         List<Post> list = new ArrayList<Post>();
         boolean isMoreDataAvailable = true;
@@ -1094,17 +1115,30 @@ public class DatabaseHelper {
                         if (mapObj.containsKey("avatarImageUrl")) {
                             post.setAvatarImageUrl((String) mapObj.get("avatarImageUrl"));
                         }
+                        if (mapObj.containsKey("lastCommentDate")) {
+                            post.setLastCommentDate((long) mapObj.get("lastCommentDate"));
+                        }
+
                         list.add(post);
                     }
                 }
             }
 
-            Collections.sort(list, new Comparator<Post>() {
-                @Override
-                public int compare(Post lhs, Post rhs) {
-                    return ((Long) rhs.getCreatedDate()).compareTo(lhs.getCreatedDate());
-                }
-            });
+            if (sortByComment) {
+                Collections.sort(list, new Comparator<Post>() {
+                    @Override
+                    public int compare(Post lhs, Post rhs) {
+                        return ((Long) rhs.getLastCommentDate()).compareTo(lhs.getLastCommentDate());
+                    }
+                });
+            } else {
+                Collections.sort(list, new Comparator<Post>() {
+                    @Override
+                    public int compare(Post lhs, Post rhs) {
+                        return ((Long) rhs.getCreatedDate()).compareTo(lhs.getCreatedDate());
+                    }
+                });
+            }
 
             result.setPosts(list);
             result.setLastItemCreatedDate(lastItemCreatedDate);
