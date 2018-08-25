@@ -32,6 +32,7 @@ import android.support.v7.view.ActionMode;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -160,6 +161,8 @@ public class RateCelebrityActivity extends BaseActivity {
 
     private boolean isRatingsCollapsed = true;
 
+    private boolean isRatingSubmitted = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -230,6 +233,8 @@ public class RateCelebrityActivity extends BaseActivity {
                 ratingController.handleRatingClickAction((BaseActivity) RateCelebrityActivity.this, post, progress);
 //                ratingController.setUpdatingRatingCounter(false);
                 findViewById(R.id.confirmRatingSection).setVisibility(View.GONE);
+                findViewById(R.id.nextButton).setVisibility(View.VISIBLE);
+                isRatingSubmitted = true;
 
 
             }
@@ -267,7 +272,7 @@ public class RateCelebrityActivity extends BaseActivity {
 
             @Override
             public void getProgressOnActionUp(BubbleSeekBar bubbleSeekBar, final int progress, float progressFloat) {
-                ((TextView) findViewById(R.id.confirmRatingText)).setText("You Rated : " + progress + " \n You cannot change after Submit.");
+                ((TextView) findViewById(R.id.confirmRatingText)).setText(Html.fromHtml(String.format(getString(R.string.rating_selection),progress)));
                 findViewById(R.id.confirmRatingSection).setVisibility(View.VISIBLE);
             }
 
@@ -340,16 +345,18 @@ public class RateCelebrityActivity extends BaseActivity {
 
             @Override
             public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-                if(playbackState == Player.STATE_READY) {
-                    playerProgressBar.setVisibility(View.GONE);
-                    playerView.setVisibility(View.VISIBLE);
-                    new Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            findViewById(R.id.seekbarProgressBar).setVisibility(View.GONE);
-                            findViewById(R.id.seekbarContainer).setVisibility(View.VISIBLE);
-                        }
-                    }, 1000);
+                if(!isRatingSubmitted) {
+                    if (playbackState == Player.STATE_READY) {
+                        playerProgressBar.setVisibility(View.GONE);
+                        playerView.setVisibility(View.VISIBLE);
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                findViewById(R.id.seekbarProgressBar).setVisibility(View.GONE);
+                                findViewById(R.id.seekbarContainer).setVisibility(View.VISIBLE);
+                            }
+                        }, 1000);
+                    }
                 }
             }
 
