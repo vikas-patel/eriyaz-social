@@ -24,6 +24,7 @@ public class Analytics {
     public static final String MESSAGE = "message";
     public static final String POST = "Post";
     public static final String FIRST_POST = "FirstPost";
+    public static final String FIRST_RECORD = "FirstRecord";
     public static final String OPEN_OTHER_AUDIO = "OpenOtherAudio";
     public static final String OPEN_SELF_AUDIO = "OpenSelfAudio";
     public static final String OPEN_RECORDED_AUDIO = "OpenRecordedAudio";
@@ -36,6 +37,7 @@ public class Analytics {
     public static final String SHARE_APP = "ShareApp";
     public static final String OPEN_ALERT_DIALOG = "OpenAlertDialog";
     public static final String SIGNIN = "SignIn";
+    public static final String CREATE_PROFILE = "CreateProfile";
     public static final String InviteAppInstall = "InviteAppInstall";
 
     public Analytics(Context context) {
@@ -132,6 +134,13 @@ public class Analytics {
         firebase.logEvent(FIRST_POST, bundle);
     }
 
+    public void logFirstRecord() {
+        Bundle bundle = new Bundle();
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) bundle.putString("UserName", currentUser.getDisplayName());
+        firebase.logEvent(FIRST_RECORD, bundle);
+    }
+
     public void logOpenPostDetailsFromPushNotification() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         Bundle bundle = new Bundle();
@@ -191,6 +200,13 @@ public class Analytics {
         Bundle bundle = new Bundle();
         if (currentUser != null) bundle.putString("UserName", currentUser.getDisplayName());
         firebase.logEvent(SIGNIN, bundle);
+    }
+
+    public void createProfile() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        Bundle bundle = new Bundle();
+        if (currentUser != null) bundle.putString("UserName", currentUser.getDisplayName());
+        firebase.logEvent(CREATE_PROFILE, bundle);
     }
 
     public FirebaseAnalytics getFirebase() {

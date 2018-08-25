@@ -30,6 +30,7 @@ public class Profile implements Serializable {
     private String email;
     private String photoUrl;
     private long points;
+    private long reputationPoints;
     private int postCount;
     private long lastPostCreatedDate;
     private int unseen;
@@ -84,6 +85,14 @@ public class Profile implements Serializable {
 
     public void setPoints(long points) {
         this.points = points;
+    }
+
+    public long getReputationPoints() {
+        return reputationPoints;
+    }
+
+    public void setReputationPoints(long reputationPoints) {
+        this.reputationPoints = reputationPoints;
     }
 
     public int getUnseen() {

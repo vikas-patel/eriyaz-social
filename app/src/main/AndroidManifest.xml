@@ -155,6 +155,10 @@
             android:configChanges="orientation|screenSize"
             android:label="Admin" />
         <activity
+            android:name=".activities.RewardActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="Reward Feedbackers" />
+        <activity
             android:name=".activities.ResetPasswordActivity"
             android:label="Reset Password" />
         <activity

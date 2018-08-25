@@ -66,6 +66,7 @@ import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.AnimationUtils;
 import com.eriyaz.social.utils.DeepLinkUtil;
 import com.eriyaz.social.utils.LogUtil;
+import com.eriyaz.social.utils.PreferencesUtil;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -106,7 +107,6 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -114,6 +114,10 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         blockUserManager = BlockUserManager.getInstance(this);
         ProfileStatus profileStatus = profileManager.checkProfile();
         if(profileStatus.equals(ProfileStatus.NOT_AUTHORIZED) || profileStatus.equals(ProfileStatus.NO_PROFILE)) {
+            if (!BuildConfig.DEBUG && !PreferencesUtil.isPostCreated(MainActivity.this)) {
+                UXCam.startWithKey("8e284e93d1b8286");
+                UXCam.allowShortBreakForAnotherApp();
+            }
             doAuthorization(profileStatus);
         } else {
             blockUserManager.getBlockedByList(MainActivity.this,
@@ -282,10 +286,10 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         return new OnObjectChangedListener<Profile>() {
             @Override
             public void onObjectChanged(Profile profile) {
+                if (!PreferencesUtil.isPostCreated(MainActivity.this)) {
+                    PreferencesUtil.setPostCreated(MainActivity.this, true);
+                }
                 if (profile.getPostCount() == 1) {
-                    if (!BuildConfig.DEBUG) {
-                        UXCam.startWithKey("8e284e93d1b8286");
-                    }
                     // show first post popup
                     analytics.logFirstPost();
                     showPopupDialog(R.string.rating_benchmark);
@@ -481,6 +485,12 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
     }
 
     private void openCreatePostActivity() {
+        if (!PreferencesUtil.isRecordOpened(MainActivity.this)) {
+            PreferencesUtil.setRecordOpened(MainActivity.this, true);
+            if (profile != null && profile.getPostCount() == 0) {
+                analytics.logFirstRecord();
+            }
+        }
         Intent intent = new Intent(this, CreatePostActivity.class);
         startActivityForResult(intent, CreatePostActivity.CREATE_NEW_POST_REQUEST);
     }
@@ -496,6 +506,11 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
 
     private void openAdminActivity() {
         Intent intent = new Intent(MainActivity.this, AdminActivity.class);
+        startActivityForResult(intent, Constants.ACTIVITY.CREATE_ADMIN);
+    }
+
+    private void openRewardActivity() {
+        Intent intent = new Intent(MainActivity.this, RewardActivity.class);
         startActivityForResult(intent, Constants.ACTIVITY.CREATE_ADMIN);
     }
 
@@ -571,6 +586,8 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
         if (profile.isAdmin()) {
             MenuItem adminItem = menu.findItem(R.id.admin_menu_item);
             adminItem.setVisible(true);
+            MenuItem rewardItem = menu.findItem(R.id.reward_menu_item);
+            rewardItem.setVisible(true);
         }
         return super.onPrepareOptionsMenu(menu);
     }
@@ -604,6 +621,9 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
                 return true;
             case R.id.admin_menu_item:
                 openAdminActivity();
+                return true;
+            case R.id.reward_menu_item:
+                openRewardActivity();
                 return true;
             case R.id.tnc_menu_item:
                 openTnCActivity();

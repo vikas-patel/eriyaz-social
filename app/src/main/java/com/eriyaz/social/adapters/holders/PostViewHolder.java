@@ -59,10 +59,10 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     private TextView detailsTextView;
     protected View playImageView;
     private TextView authorTextView;
-    private TextView averageRatingTextView;
+//    private TextView averageRatingTextView;
     private TextView ratingCounterTextView;
     private ImageView ratingsImageView;
-    private TextView ratingLabelTextView;
+//    private TextView ratingLabelTextView;
 
     private TextView commentsCountTextView;
 //    private TextView watcherCounterTextView;
@@ -85,8 +85,8 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         fileName = view.findViewById(R.id.file_name_text);
 //        audioLength = view.findViewById(R.id.file_length_text);
         playImageView = view.findViewById(R.id.imageView);
-        averageRatingTextView = (TextView) view.findViewById(R.id.averageRatingTextView);
-        ratingLabelTextView = view.findViewById(R.id.ratingLabelTextView);
+//        averageRatingTextView = (TextView) view.findViewById(R.id.averageRatingTextView);
+//        ratingLabelTextView = view.findViewById(R.id.ratingLabelTextView);
         ratingCounterTextView = (TextView) view.findViewById(R.id.ratingCounterTextView);
         ratingsImageView = (ImageView) view.findViewById(R.id.ratingImageView);
 
@@ -167,26 +167,26 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
             detailsTextView.setVisibility(View.VISIBLE);
             detailsTextView.setText(description);
         }
-        String avgRatingText = "";
-        if (post.getAverageRating() > 0) {
-            avgRatingText = String.format( "%.1f", post.getAverageRating());
-        }
-        averageRatingTextView.setText(avgRatingText);
-        if (post.getAverageRating() > 15) {
-            ratingLabelTextView.setText("AMAZING");
-            ratingLabelTextView.setTextColor(context.getResources().getColor(R.color.dark_green));
-        } else if (post.getAverageRating() > 10) {
-            ratingLabelTextView.setText("GOOD");
-            ratingLabelTextView.setTextColor(context.getResources().getColor(R.color.light_green));
-        } else if (post.getAverageRating() > 5) {
-            ratingLabelTextView.setText("AVERAGE");
-            ratingLabelTextView.setTextColor(context.getResources().getColor(R.color.accent));
-        } else if (post.getAverageRating() > 0){
-            ratingLabelTextView.setText("NOT OK");
-            ratingLabelTextView.setTextColor(context.getResources().getColor(R.color.red));
-        } else {
-            ratingLabelTextView.setText("");
-        }
+//        String avgRatingText = "";
+//        if (post.getAverageRating() > 0) {
+//            avgRatingText = String.format( "%.1f", post.getAverageRating());
+//        }
+//        averageRatingTextView.setText(avgRatingText);
+//        if (post.getAverageRating() > 15) {
+//            ratingLabelTextView.setText("AMAZING");
+//            ratingLabelTextView.setTextColor(context.getResources().getColor(R.color.dark_green));
+//        } else if (post.getAverageRating() > 10) {
+//            ratingLabelTextView.setText("GOOD");
+//            ratingLabelTextView.setTextColor(context.getResources().getColor(R.color.light_green));
+//        } else if (post.getAverageRating() > 5) {
+//            ratingLabelTextView.setText("AVERAGE");
+//            ratingLabelTextView.setTextColor(context.getResources().getColor(R.color.accent));
+//        } else if (post.getAverageRating() > 0){
+//            ratingLabelTextView.setText("NOT OK");
+//            ratingLabelTextView.setTextColor(context.getResources().getColor(R.color.red));
+//        } else {
+//            ratingLabelTextView.setText("");
+//        }
         ratingCounterTextView.setText("(" + post.getRatingsCount() + ")");
         commentsCountTextView.setText(String.valueOf(post.getCommentsCount()));
 //        watcherCounterTextView.setText(String.valueOf(post.getWatchersCount()));

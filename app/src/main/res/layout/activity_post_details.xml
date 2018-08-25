@@ -92,6 +92,7 @@
                 </LinearLayout>
                 <Button
                     android:id="@+id/buy_feedback_button"
+                    android:layout_marginLeft="@dimen/large_intrinsic_padding"
                     android:layout_below="@+id/fileViewContainer"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

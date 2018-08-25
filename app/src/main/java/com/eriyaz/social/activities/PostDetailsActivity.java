@@ -54,7 +54,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -118,6 +117,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     public static final int UPDATE_POST_REQUEST = 1;
     public static final String POST_STATUS_EXTRA_KEY = "PostDetailsActivity.POST_STATUS_EXTRA_KEY";
     public static final String POST_ORIGIN_EXTRA_KEY = "PostDetailsActivity.POST_ORIGIN_EXTRA_KEY";
+    public static final String IS_ADMIN_EXTRA_KEY = "PostDetailsActivity.IS_ADMIN_EXTRA_KEY";
 
     private EditText commentEditText;
     @Nullable
@@ -172,6 +172,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     private boolean authorAnimationInProgress = false;
 
     private boolean isAuthorAnimationRequired;
+    private boolean isAdmin;
     private CommentsAdapter commentsAdapter;
     private RatingsAdapter ratingsAdapter;
     private ActionMode mActionMode;
@@ -200,6 +201,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
 
 
         isAuthorAnimationRequired = getIntent().getBooleanExtra(AUTHOR_ANIMATION_NEEDED_EXTRA_KEY, false);
+        isAdmin = getIntent().getBooleanExtra(IS_ADMIN_EXTRA_KEY, false);
         postId = getIntent().getStringExtra(POST_ID_EXTRA_KEY);
 
 
@@ -482,7 +484,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
     }
 
     private void initCommentRecyclerView() {
-        commentsAdapter = new CommentsAdapter(post);
+        commentsAdapter = new CommentsAdapter(post, isAdmin);
         commentsAdapter.setCallback(new CommentsAdapter.Callback() {
             @Override
             public void onDeleteClick(View view, int position) {
@@ -494,6 +496,13 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             public void onEditClick(View view, int position) {
                 Comment comment = commentsAdapter.getItemByPosition(position);
                 openEditCommentDialog(comment);
+            }
+
+            @Override
+            public void onRewardClick(View view, int position, int points) {
+                Comment comment = commentsAdapter.getItemByPosition(position);
+                comment.setReputationPoints(points);
+                updateComment(comment);
             }
 
             @Override
@@ -846,12 +855,15 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
         commentsLabel.setText(String.format(getString(R.string.label_comments), commentsCount));
 //        likeCounterTextView.setText(String.valueOf(post.getLikesCount()));
         ratingCounterTextView.setText("(" + post.getRatingsCount() + ")");
-        String avgRatingText = "";
-        if (post.getAverageRating() > 0) {
-            avgRatingText = String.format( "%.1f", post.getAverageRating());
-        }
-        averageRatingTextView.setText(avgRatingText);
         if (hasAccessToModifyPost()) {
+            String avgRatingText = "";
+            if (post.getAverageRating() > 0) {
+                avgRatingText = String.format( "%.1f", post.getAverageRating());
+            }
+            averageRatingTextView.setVisibility(View.VISIBLE);
+            aggregatePercentileTextView.setVisibility(View.VISIBLE);
+            ratingLabelTextView.setVisibility(View.VISIBLE);
+            averageRatingTextView.setText(avgRatingText);
             String percentileStr = RatingUtil.getRatingPercentile(Math.round(post.getAverageRating()));
             aggregatePercentileTextView.setText(Html.fromHtml(String.format(getString(R.string.aggregate_post_percentile), percentileStr)));
             aggregatePercentileTextView.setOnClickListener(new View.OnClickListener() {
@@ -862,7 +874,6 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
                     startActivity(intent);
                 }
             });
-        } else {
             if (post.getAverageRating() > 15) {
                 ratingLabelTextView.setText("AMAZING");
                 ratingLabelTextView.setTextColor(getResources().getColor(R.color.dark_green));
@@ -1165,7 +1176,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             comment.setAuthorId(authorId);
             commentManager.createOrUpdateCommentWithAudio(audioUri, comment, post.getId(), listener);
         } else {
-            commentManager.createOrUpdateComment(commentText, post.getId(), listener);
+            commentManager.createComment(commentText, post.getId(), listener);
         }
         commentEditText.setText(null);
         commentEditText.clearFocus();
@@ -1198,7 +1209,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             publicActionMenuItem.setVisible(true);
         }
 
-        if (complainActionMenuItem != null && post != null && !post.isHasComplain() && profile.isAdmin()) {
+        if (complainActionMenuItem != null && post != null && !post.isHasComplain() && isAdmin) {
             complainActionMenuItem.setVisible(true);
         }
         return super.onPrepareOptionsMenu(menu);
@@ -1413,6 +1424,16 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
             public void onTaskComplete(boolean success) {
                 hideProgress();
                 showSnackBar(R.string.message_comment_was_edited);
+            }
+        });
+    }
+    private void updateComment(Comment comment) {
+        showProgress();
+        commentManager.updateComment(comment, postId, new OnTaskCompleteListener() {
+            @Override
+            public void onTaskComplete(boolean success) {
+                hideProgress();
+                showSnackBar(R.string.message_comment_was_rewared);
             }
         });
     }

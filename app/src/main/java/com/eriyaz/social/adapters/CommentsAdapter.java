@@ -39,16 +39,18 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentViewHolder> {
     private List<Comment> list = new ArrayList<>();
     private Callback callback;
     private Post post;
+    private boolean isAdmin;
 
-    public CommentsAdapter(Post aPost) {
+    public CommentsAdapter(Post aPost, boolean aIsAdmin) {
         post = aPost;
+        isAdmin = aIsAdmin;
     }
 
     @Override
     public CommentViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         final View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.comment_list_item, parent, false);
-        return new CommentViewHolder(view, callback);
+        return new CommentViewHolder(view, callback, isAdmin);
     }
 
     @Override
@@ -79,6 +81,8 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentViewHolder> {
         void onDeleteClick(View view, int position);
 
         void onEditClick(View view, int position);
+
+        void onRewardClick(View view, int position, int points);
 
         void onPlayClick(View view, int position, String authorName);
 

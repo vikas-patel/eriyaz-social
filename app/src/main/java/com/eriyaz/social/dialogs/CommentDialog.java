@@ -35,7 +35,6 @@ import com.eriyaz.social.activities.BaseAlertDialogBuilder;
 import com.eriyaz.social.activities.PostDetailsActivity;
 import com.eriyaz.social.managers.CommentManager;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
-import com.eriyaz.social.utils.LogUtil;
 
 /**
  * Created by alexey on 12.05.17.
@@ -77,7 +76,7 @@ public class CommentDialog extends DialogFragment {
                     public void onClick(DialogInterface dialog, int which) {
                         String newCommentText = editCommentEditText.getText().toString();
                         if (newCommentText.length() > 0) {
-                            commentManager.createOrUpdateComment(newCommentText, postId, new OnTaskCompleteListener() {
+                            commentManager.createComment(newCommentText, postId, new OnTaskCompleteListener() {
                                 @Override
                                 public void onTaskComplete(boolean success) {
 

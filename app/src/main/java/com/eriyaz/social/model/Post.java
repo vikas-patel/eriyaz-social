@@ -38,6 +38,7 @@ public class Post implements Serializable, LazyLoading {
     private String title;
     private String description;
     private long createdDate;
+    private long lastCommentDate;
     private String imagePath;
     private String imageTitle;
     private String authorId;
@@ -239,6 +240,13 @@ public class Post implements Serializable, LazyLoading {
 
     public void setCelebrityName(String celebrityName) { this.celebrityName = celebrityName; }
 
+    public long getLastCommentDate() {
+        return lastCommentDate;
+    }
+
+    public void setLastCommentDate(long lastCommentDate) {
+        this.lastCommentDate = lastCommentDate;
+    }
 
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();

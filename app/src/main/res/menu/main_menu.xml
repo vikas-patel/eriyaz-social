@@ -37,6 +37,12 @@
         android:visible="false"
         android:orderInCategory="1" />
     <item
+        android:id="@+id/reward_menu_item"
+        android:title="@string/reward_menu_item"
+        app:showAsAction="never"
+        android:visible="false"
+        android:orderInCategory="1" />
+    <item
         android:id="@+id/tnc_menu_item"
         android:title="@string/tnc_menu_item"
         app:showAsAction="never"

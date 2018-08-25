@@ -54,16 +54,23 @@
                 android:clickable="true"
                 android:ellipsize="end"
                 android:textAppearance="@style/TextAppearance.Second" />
-            <TextView
+            <ImageView
                 android:id="@+id/questionTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:visibility="gone"
-                android:drawablePadding="@dimen/small_intrinsic_padding"
-                android:drawableLeft="@drawable/ic_help"
-                android:paddingRight="@dimen/large_intrinsic_padding"
+                app:srcCompat="@drawable/ic_help"
+                android:paddingRight="@dimen/small_intrinsic_padding"
                 android:paddingLeft="@dimen/large_intrinsic_padding" />
+            <TextView
+                android:id="@+id/tapToTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:text="Tap to view"
+                android:visibility="gone"
+                android:ellipsize="end" />
         </LinearLayout>
 
 
