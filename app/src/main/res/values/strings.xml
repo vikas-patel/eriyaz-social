@@ -277,6 +277,9 @@
     <!-- Rate Celebrity Screen -->
     <string name="celebrity_name">Playback Singer %s</string>
     <string name="celebrity_rating">%d/20</string>
+    <string name="rating_selection">You Selected : <b>%d/20</b></string>
+    <string name="cannot_change_after_submit"><b>Note</b> : You cannot change rating after Submit.</string>
+    <string name="view_other_ratings_link"><u>View How Other People Rated </u></string>
 
     <!--Firebase errors-->
     <string name="permission_denied_error">Please check your rules to access the Firebase Realtime Database</string>
