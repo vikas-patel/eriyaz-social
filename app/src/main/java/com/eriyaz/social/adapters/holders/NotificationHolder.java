@@ -60,7 +60,11 @@ public class NotificationHolder extends RecyclerView.ViewHolder {
         dateTextView.setText(date);
         if (notification.isFromSystem()) {
             itemView.setBackgroundColor(context.getResources().getColor(R.color.highlight_bg));
-        } else if (!notification.isRead()) itemView.setBackgroundColor(context.getResources().getColor(android.R.color.white));
+        } else if (!notification.isRead()) {
+            itemView.setBackgroundColor(context.getResources().getColor(android.R.color.white));
+        } else {
+            itemView.setBackgroundColor(context.getResources().getColor(R.color.default_bg));
+        }
 
         itemView.setOnClickListener(new View.OnClickListener() {
             @Override

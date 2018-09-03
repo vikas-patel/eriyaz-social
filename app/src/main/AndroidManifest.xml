@@ -159,6 +159,10 @@
             android:configChanges="orientation|screenSize"
             android:label="Reward Feedbackers" />
         <activity
+            android:name=".activities.LeaderboardActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="Top Critics" />
+        <activity
             android:name=".activities.ResetPasswordActivity"
             android:label="Reset Password" />
         <activity

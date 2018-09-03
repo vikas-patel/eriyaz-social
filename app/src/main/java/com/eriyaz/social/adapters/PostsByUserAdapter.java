@@ -73,8 +73,8 @@ public class PostsByUserAdapter extends BasePostsAdapter implements ProfileTabIn
             }
 
             @Override
-            public void onPlayClick(int position, Rating rating, View view) {
-                openPlayFragment(position, rating, view);
+            public void onPlayClick(int position, Rating rating, String authorName, View view) {
+                openPlayFragment(position, rating, authorName, view);
             }
 
             @Override

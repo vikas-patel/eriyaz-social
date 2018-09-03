@@ -78,7 +78,7 @@ public class RatedPostsByUserAdapter extends RecyclerView.Adapter<RecyclerView.V
             }
 
             @Override
-            public void onPlayClick(int position, Post post, Rating rating, View view) {
+            public void onPlayClick(int position, Post post, Rating rating, String authorName, View view) {
                 selectedPostPosition = position;
                 try {
                     RecordingItem item = new RecordingItem();
@@ -86,7 +86,7 @@ public class RatedPostsByUserAdapter extends RecyclerView.Adapter<RecyclerView.V
                     item.setLength(post.getAudioDuration());
                     item.setFilePath(post.getImagePath());
                     PlaybackFragment playbackFragment =
-                            new PlaybackFragment().newInstance(item, post, rating);
+                            new PlaybackFragment().newInstance(item, post, rating, authorName);
                     FragmentTransaction transaction = activity.getSupportFragmentManager()
                             .beginTransaction();
                     playbackFragment.show(transaction, "dialog_playback");

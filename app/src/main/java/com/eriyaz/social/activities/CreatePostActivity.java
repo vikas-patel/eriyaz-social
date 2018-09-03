@@ -29,6 +29,7 @@ import android.widget.ProgressBar;
 import com.eriyaz.social.Constants;
 import com.eriyaz.social.fragments.HostFragment;
 import com.eriyaz.social.fragments.SavedRecordingsFragment;
+import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.managers.listeners.OnRecordingEndListener;
 import com.eriyaz.social.model.Profile;
@@ -58,6 +59,7 @@ public class CreatePostActivity extends BaseActivity implements OnRecordingEndLi
     private TabLayout tabLayout;
     private RecordingTabAdapter tabAdapter;
     private Profile profile;
+    protected ProfileManager profileManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +75,7 @@ public class CreatePostActivity extends BaseActivity implements OnRecordingEndLi
         pager.setAdapter(tabAdapter);
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(pager);
+        profileManager = ProfileManager.getInstance(this);
         profileManager.getProfileSingleValue(FirebaseAuth.getInstance().getCurrentUser().getUid(),
                 createOnProfileChangedListener());
     }
@@ -97,6 +100,9 @@ public class CreatePostActivity extends BaseActivity implements OnRecordingEndLi
             post.setAnonymous(true);
             post.setNickName(nickName);
             post.setAvatarImageUrl(avatarImageUrl);
+        }
+        if (profile != null && profile.getPostCount() == 0) {
+            post.setAuthorFirstPost(true);
         }
 //        FileViewerFragment fileFragment = (FileViewerFragment) getSupportFragmentManager().findFragmentById(R.id.record_fragment);
         post.setAudioDuration(audioDuration);

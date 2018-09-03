@@ -68,29 +68,31 @@
                 android:textAppearance="@style/TextAppearance.Second.Light" />
 
         </RelativeLayout>
-        <LinearLayout
-            android:id="@+id/rewardContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <TextView
-                android:id="@+id/rewardText"
-                android:layout_width="wrap_content"
-                android:textSize="16sp"
-                android:textColor="@color/default_link"
-                android:visibility="gone"
-                android:layout_height="wrap_content" />
-            <Spinner
-                android:id="@+id/rewardSpinner"
-                android:visibility="gone"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingLeft="@dimen/large_intrinsic_padding"
-                android:entries="@array/reward_arrays" />
-
-        </LinearLayout>
 
     </com.eriyaz.social.views.ExpandableTextView>
+    <LinearLayout
+        android:id="@+id/rewardContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/large_intrinsic_padding"
+        android:layout_toRightOf="@+id/avatarImageView"
+        android:layout_below="@id/commentText"
+        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/rewardText"
+            android:layout_width="wrap_content"
+            android:textSize="16sp"
+            android:textColor="@color/default_link"
+            android:visibility="gone"
+            android:layout_height="wrap_content" />
+        <Spinner
+            android:id="@+id/rewardSpinner"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="@dimen/large_intrinsic_padding"
+            android:entries="@array/reward_arrays" />
+    </LinearLayout>
     <ImageButton
         android:id="@+id/optionMenuButton"
         android:layout_width="wrap_content"

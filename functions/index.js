@@ -1426,6 +1426,20 @@ function createOrUpdateBoughtFeedback(postId, authorId, paymentStatus) {
     });
 }
 
+exports.restoreReputationPoints = functions.database.ref('/profiles/{uid}/reputationPoints').onDelete(event => {
+    var uid = event.params.uid;
+    console.log("restore lost reputation points", uid);
+    const previousPoints = event.data.previous.val();
+    if (!previousPoints) return console.log("exit: previous reputationPoints null");
+    const profileReputationPointsRef = admin.database().ref(`profiles/${uid}/reputationPoints`);
+    return profileReputationPointsRef.transaction(current => {
+          return previousPoints;
+    }).then(() => {
+        console.log('restored reputationPoints completed for profile', uid);
+    });
+
+});
+
 exports.grantSignupReward = functions.database.ref('/profiles/{uid}/id').onCreate(event => {
     console.log("new user signed in");
       var uid = event.params.uid;
@@ -1661,6 +1675,31 @@ exports.profileStats = functions.https.onRequest((req, res) => {
             res.status(200).send(`No result found`);
         }
 
+    });
+});
+
+exports.rankTaskRunner = functions.https.onRequest((req, res) => {
+    console.log("rank task runner");
+    const queueRef = db.ref('tasks');
+    const profileRef = admin.database().ref(`/profiles`);
+    var updateProfiles = {};
+    let updated = 0;
+    const profileQuery = profileRef.orderByChild('reputationPoints').startAt(1).once('value').then(profiles => {
+        let rank = profiles.numChildren();
+        // return in asc order by reputation points
+        profiles.forEach( profileSnap => {
+            let key = profileSnap.key;
+            console.log("key, rank", key, rank);
+            let previousRank = profileSnap.val().rank;
+            if (!previousRank || previousRank != rank) {
+                updateProfiles[`${key}/rank`] = rank;
+                updated++;
+            }
+            rank--;
+        });
+        console.log("updates", updateProfiles);
+        res.status(200).send(`updated profiles ${updated}`);
+        return profileRef.update(updateProfiles);
     });
 });
 

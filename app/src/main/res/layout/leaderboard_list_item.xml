@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:padding="@dimen/intrinsic_padding">
+
+    <TextView
+        android:id="@+id/rankTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:textSize="16dp"
+        android:paddingLeft="@dimen/intrinsic_padding"
+        android:paddingRight="@dimen/large_intrinsic_padding"
+        android:textColor="@color/default_link"
+        android:text="1" />
+
+    <com.eriyaz.social.views.CircularImageView
+        android:id="@+id/avatarImageView"
+        android:layout_width="@dimen/bought_feedback_list_avatar_height"
+        android:layout_height="@dimen/bought_feedback_list_avatar_height"
+        android:paddingLeft="@dimen/intrinsic_padding"
+        android:paddingRight="@dimen/intrinsic_padding"
+        android:src="@drawable/ic_stub"
+        app:shadow="false"
+        app:border="true"
+        app:border_width="0dp" />
+
+    <TextView
+        android:id="@+id/authorNameTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAlignment="textStart"
+        android:gravity="start"
+        android:layout_weight="1"
+        android:paddingLeft="@dimen/intrinsic_padding"
+        android:paddingRight="@dimen/small_intrinsic_padding"
+        android:text="Mr. xyz" />
+
+    <TextView
+        android:id="@+id/pointsTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:paddingLeft="@dimen/intrinsic_padding"
+        android:paddingRight="@dimen/intrinsic_padding"
+        android:textAppearance="@style/TextAppearance.Highlight"
+        android:text="270" />
+
+</LinearLayout>

@@ -88,7 +88,7 @@ public abstract class BasePostsAdapter extends RecyclerView.Adapter<RecyclerView
     }
 
 
-    protected void openPlayFragment(int position, Rating rating, View view) {
+    protected void openPlayFragment(int position, Rating rating, String authorName, View view) {
         selectedPostPosition = position;
         Post post = getItemByPosition(position);
         try {
@@ -97,7 +97,7 @@ public abstract class BasePostsAdapter extends RecyclerView.Adapter<RecyclerView
             item.setLength(post.getAudioDuration());
             item.setFilePath(post.getImagePath());
             PlaybackFragment playbackFragment =
-                    new PlaybackFragment().newInstance(item, post, rating);
+                    new PlaybackFragment().newInstance(item, post, rating, authorName);
             FragmentTransaction transaction = ((AppCompatActivity)view.getContext()).getSupportFragmentManager()
                     .beginTransaction();
             playbackFragment.show(transaction, "dialog_playback");

@@ -107,7 +107,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class PostDetailsActivity extends BaseActivity implements EditCommentDialog.CommentDialogCallback,
+public class PostDetailsActivity extends BaseCurrentProfileActivity implements EditCommentDialog.CommentDialogCallback,
         ComplainDialog.ComplainCallback, BlockDialog.BlockCallback {
     private static final String TAG = PostDetailsActivity.class.getSimpleName();
 
@@ -289,7 +289,7 @@ public class PostDetailsActivity extends BaseActivity implements EditCommentDial
                     item.setLength(post.getAudioDuration());
                     item.setFilePath(post.getImagePath());
                     PlaybackFragment playbackFragment =
-                            new PlaybackFragment().newInstance(item, post, rating);
+                            new PlaybackFragment().newInstance(item, post, rating, profile.getUsername());
                     FragmentTransaction transaction = getSupportFragmentManager()
                             .beginTransaction();
                     playbackFragment.show(transaction, "dialog_playback");

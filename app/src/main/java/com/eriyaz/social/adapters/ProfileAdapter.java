@@ -25,38 +25,42 @@ import android.view.ViewGroup;
 
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
-import com.eriyaz.social.activities.MainActivity;
 import com.eriyaz.social.activities.RewardActivity;
+import com.eriyaz.social.adapters.holders.LeaderBoardViewHolder;
 import com.eriyaz.social.adapters.holders.LoadViewHolder;
 import com.eriyaz.social.adapters.holders.PostViewHolder;
-import com.eriyaz.social.controllers.RatingController;
 import com.eriyaz.social.enums.ItemType;
 import com.eriyaz.social.managers.PostManager;
+import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnPostListChangedListener;
+import com.eriyaz.social.managers.listeners.OnProfileListChangedListener;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.PostListResult;
+import com.eriyaz.social.model.Profile;
+import com.eriyaz.social.model.ProfileListResult;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.utils.PreferencesUtil;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
  * Created by Kristina on 10/31/16.
  */
 
-public class PostsAdapter extends BasePostsAdapter {
-    public static final String TAG = PostsAdapter.class.getSimpleName();
+public class ProfileAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    public static final String TAG = ProfileAdapter.class.getSimpleName();
 
+    protected List<Profile> profileList = new LinkedList<>();
     private Callback callback;
     private boolean isLoading = false;
     private boolean isMoreDataAvailable = true;
-    private long lastLoadedItemCreatedDate;
+    private int lastLoadedItemRank;
     private SwipeRefreshLayout swipeContainer;
-    private BaseActivity mainActivity;
+    private BaseActivity activity;
 
-    public PostsAdapter(final BaseActivity activity, SwipeRefreshLayout swipeContainer) {
-        super(activity);
-        this.mainActivity = activity;
+    public ProfileAdapter(final BaseActivity activity, SwipeRefreshLayout swipeContainer) {
+        this.activity = activity;
         this.swipeContainer = swipeContainer;
         initRefreshLayout();
         setHasStableIds(true);
@@ -76,11 +80,21 @@ public class PostsAdapter extends BasePostsAdapter {
     private void onRefreshAction() {
         if (activity.hasInternetConnection()) {
             loadFirstPage();
-            cleanSelectedPostInformation();
         } else {
             swipeContainer.setRefreshing(false);
-            mainActivity.showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
+            activity.showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
         }
+    }
+
+    @Override
+    public int getItemCount() {
+        return profileList.size();
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        if (profileList.get(position) == null) return -1;
+        return profileList.get(position).getItemType().getTypeCode();
     }
 
     public void setCallback(Callback callback) {
@@ -91,35 +105,11 @@ public class PostsAdapter extends BasePostsAdapter {
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         if (viewType == ItemType.ITEM.getTypeCode()) {
-            return new PostViewHolder(inflater.inflate(R.layout.post_item_list_view, parent, false),
-                    createOnClickListener());
+            return new LeaderBoardViewHolder(inflater.inflate(R.layout.leaderboard_list_item, parent, false),
+                    callback);
         } else {
             return new LoadViewHolder(inflater.inflate(R.layout.loading_view, parent, false));
         }
-    }
-
-    private PostViewHolder.OnClickListener createOnClickListener() {
-        return new PostViewHolder.OnClickListener() {
-            @Override
-            public void onItemClick(int position, View view) {
-                if (callback != null) {
-                    selectedPostPosition = position;
-                    callback.onItemClick(getItemByPosition(position), view);
-                }
-            }
-
-            @Override
-            public void onPlayClick(int position, Rating rating, String authorName, View view) {
-                openPlayFragment(position, rating, authorName, view);
-            }
-
-            @Override
-            public void onAuthorClick(int position, View view) {
-                if (callback != null) {
-                    callback.onAuthorClick(getItemByPosition(position), view);
-                }
-            }
-        };
     }
 
     @Override
@@ -131,52 +121,50 @@ public class PostsAdapter extends BasePostsAdapter {
                     //change adapter contents
                     if (activity.hasInternetConnection()) {
                         isLoading = true;
-                        postList.add(new Post(ItemType.LOAD));
-                        notifyItemInserted(postList.size());
-                        loadNext(lastLoadedItemCreatedDate - 1);
+                        profileList.add(new Profile(ItemType.LOAD));
+                        notifyItemInserted(profileList.size());
+                        loadNext(lastLoadedItemRank + 1);
                     } else {
-                        mainActivity.showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
+                        activity.showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
                     }
                 }
             });
-
-
         }
 
         if (getItemViewType(position) != ItemType.LOAD.getTypeCode()) {
-            ((PostViewHolder) holder).bindData(postList.get(position));
+            ((LeaderBoardViewHolder) holder).bindData(profileList.get(position));
         }
     }
 
-    private void addList(List<Post> list) {
-        this.postList.addAll(list);
+    private void addList(List<Profile> list) {
+        this.profileList.addAll(list);
         notifyDataSetChanged();
         isLoading = false;
     }
 
     public void loadFirstPage() {
         loadNext(0);
-        PostManager.getInstance(mainActivity.getApplicationContext()).clearNewPostsCounter();
+        PostManager.getInstance(activity.getApplicationContext()).clearNewPostsCounter();
     }
 
-    private void loadNext(final long nextItemCreatedDate) {
+    private void loadNext(final int nextItemRank) {
 
-        if (!PreferencesUtil.isPostWasLoadedAtLeastOnce(mainActivity) && !activity.hasInternetConnection()) {
-            mainActivity.showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
+        if (!PreferencesUtil.isPostWasLoadedAtLeastOnce(activity) && !activity.hasInternetConnection()) {
+            activity.showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
             hideProgress();
             callback.onListLoadingFinished();
             return;
         }
 
-        OnPostListChangedListener<Post> onPostsDataChangedListener = new OnPostListChangedListener<Post>() {
+        OnProfileListChangedListener<Profile> onProfilesDataChangedListener = new OnProfileListChangedListener<Profile>() {
             @Override
-            public void onListChanged(PostListResult result) {
-                lastLoadedItemCreatedDate = result.getLastItemCreatedDate();
+            public void onListChanged(ProfileListResult result) {
+                lastLoadedItemRank = result.getLastItemRank();
                 isMoreDataAvailable = result.isMoreDataAvailable();
-                List<Post> list = result.getPosts();
+                List<Profile> list = result.getProfiles();
 
-                if (nextItemCreatedDate == 0) {
-                    postList.clear();
+                if (nextItemRank == 0) {
+                    profileList.clear();
                     notifyDataSetChanged();
                     swipeContainer.setRefreshing(false);
                 }
@@ -186,8 +174,8 @@ public class PostsAdapter extends BasePostsAdapter {
                 if (!list.isEmpty()) {
                     addList(list);
 
-                    if (!PreferencesUtil.isPostWasLoadedAtLeastOnce(mainActivity)) {
-                        PreferencesUtil.setPostWasLoadedAtLeastOnce(mainActivity, true);
+                    if (!PreferencesUtil.isPostWasLoadedAtLeastOnce(activity)) {
+                        PreferencesUtil.setPostWasLoadedAtLeastOnce(activity, true);
                     }
                 } else {
                     isLoading = false;
@@ -202,23 +190,18 @@ public class PostsAdapter extends BasePostsAdapter {
             }
         };
 
-        if (mainActivity instanceof RewardActivity) {
-            PostManager.getInstance(activity).getPostsByComment(onPostsDataChangedListener, nextItemCreatedDate);
-        } else {
-            PostManager.getInstance(activity).getPostsList(onPostsDataChangedListener, nextItemCreatedDate);
-        }
+        ProfileManager.getInstance(activity).getProfilesByRank(onProfilesDataChangedListener, nextItemRank);
     }
 
     private void hideProgress() {
-        if (!postList.isEmpty() && getItemViewType(postList.size() - 1) == ItemType.LOAD.getTypeCode()) {
-            postList.remove(postList.size() - 1);
-            notifyItemRemoved(postList.size() - 1);
+        if (!profileList.isEmpty() && getItemViewType(profileList.size() - 1) == ItemType.LOAD.getTypeCode()) {
+            profileList.remove(profileList.size() - 1);
+            notifyItemRemoved(profileList.size() - 1);
         }
     }
 
-    public void removeSelectedPost() {
-        postList.remove(selectedPostPosition);
-        notifyItemRemoved(selectedPostPosition);
+    protected Profile getItemByPosition(int position) {
+        return profileList.get(position);
     }
 
     @Override
@@ -228,9 +211,8 @@ public class PostsAdapter extends BasePostsAdapter {
     }
 
     public interface Callback {
-        void onItemClick(Post post, View view);
+        void onItemClick(Profile profile, View view);
         void onListLoadingFinished();
-        void onAuthorClick(Post post, View view);
         void onCanceled(String message);
     }
 }

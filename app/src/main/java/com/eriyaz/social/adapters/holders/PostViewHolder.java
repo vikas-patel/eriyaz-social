@@ -59,6 +59,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     private TextView detailsTextView;
     protected View playImageView;
     private TextView authorTextView;
+    protected String authorName;
 //    private TextView averageRatingTextView;
     private TextView ratingCounterTextView;
     private ImageView ratingsImageView;
@@ -142,7 +143,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
             public void onClick(View view) {
                 int position = getAdapterPosition();
                 if (onClickListener != null && position != RecyclerView.NO_POSITION) {
-                    onClickListener.onPlayClick(getAdapterPosition(), ratingByCurrentUser, view);
+                    onClickListener.onPlayClick(getAdapterPosition(), ratingByCurrentUser, authorName, view);
                 }
             }
         });
@@ -237,6 +238,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 
     private void setProfile(String userName, String profileUrl) {
         if (((BaseActivity)context).isActivityDestroyed()) return;
+        authorName = userName;
         authorTextView.setText(userName);
         if (profileUrl != null) {
             Glide.with(context)
@@ -278,7 +280,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
 
     public interface OnClickListener {
         void onItemClick(int position, View view);
-        void onPlayClick(int position, Rating rating, View view);
+        void onPlayClick(int position, Rating rating, String authorName, View view);
 
         //void onLikeClick(LikeController likeController, int position);
 

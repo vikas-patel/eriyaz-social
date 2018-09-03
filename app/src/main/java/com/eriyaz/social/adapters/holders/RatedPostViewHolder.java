@@ -63,7 +63,7 @@ public class RatedPostViewHolder extends PostViewHolder {
                 }
                 int position = getAdapterPosition();
                 if (onClickListener != null && position != RecyclerView.NO_POSITION) {
-                    onClickListener.onPlayClick(getAdapterPosition(), post, ratingByCurrentUser, view);
+                    onClickListener.onPlayClick(getAdapterPosition(), post, ratingByCurrentUser, authorName, view);
                 }
             }
         });
@@ -95,7 +95,7 @@ public class RatedPostViewHolder extends PostViewHolder {
 
     public interface OnClickListener {
         void onItemClick(int position, Post post, View view);
-        void onPlayClick(int position, Post post, Rating rating, View view);
+        void onPlayClick(int position, Post post, Rating rating, String authorName, View view);
         void onAuthorClick(String authorId, View view);
     }
 

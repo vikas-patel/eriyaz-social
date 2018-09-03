@@ -23,6 +23,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.eriyaz.social.managers.listeners.OnPostCreatedListener;
+import com.eriyaz.social.managers.listeners.OnProfileListChangedListener;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteMessageListener;
 import com.eriyaz.social.model.Avatar;
 import com.eriyaz.social.model.BoughtFeedback;
@@ -30,6 +31,7 @@ import com.eriyaz.social.model.Flag;
 import com.eriyaz.social.model.Message;
 import com.eriyaz.social.model.Notification;
 import com.eriyaz.social.model.Point;
+import com.eriyaz.social.model.ProfileListResult;
 import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.utils.Analytics;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -941,6 +943,34 @@ public class DatabaseHelper {
         });
     }
 
+    public void getProfilesByRank(final OnProfileListChangedListener<Profile> onDataChangedListener, int rank) {
+        DatabaseReference databaseReference = database.getReference("profiles");
+        Query profileQuery;
+        if (rank == 0) {
+            profileQuery = databaseReference.limitToFirst(Constants.Post.POST_AMOUNT_ON_PAGE).startAt(1).orderByChild("rank");
+        } else {
+            profileQuery = databaseReference.limitToFirst(Constants.Post.POST_AMOUNT_ON_PAGE).startAt(rank).orderByChild("rank");
+        }
+
+        profileQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ProfileListResult result = parseProfileList(dataSnapshot);
+                if (result.getProfiles().isEmpty() && result.isMoreDataAvailable()) {
+                    getProfilesByRank(onDataChangedListener, result.getLastItemRank() + 1);
+                } else {
+                    onDataChangedListener.onListChanged(result);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                LogUtil.logError(TAG, "getPostList(), onCancelled", new Exception(databaseError.getMessage()));
+                onDataChangedListener.onCanceled(context.getString(R.string.permission_denied_error));
+            }
+        });
+    }
+
     public void getPostListByUser(final OnDataChangedListener<Post> onDataChangedListener, String userId) {
         DatabaseReference databaseReference = database.getReference("posts");
         Query postsQuery;
@@ -1074,9 +1104,17 @@ public class DatabaseHelper {
                     boolean hasComplain = mapObj.containsKey("hasComplain") && (boolean) mapObj.get("hasComplain");
                     boolean isRemoved = mapObj.containsKey("removed") && (boolean) mapObj.get("removed");
                     long createdDate = (long) mapObj.get("createdDate");
-
-                    if (lastItemCreatedDate == 0 || lastItemCreatedDate > createdDate) {
-                        lastItemCreatedDate = createdDate;
+                    if (sortByComment) {
+                        if (mapObj.containsKey("lastCommentDate")) {
+                            long lastCommentDate = (long) mapObj.get("lastCommentDate");
+                            if (lastItemCreatedDate == 0 || lastItemCreatedDate > lastCommentDate) {
+                                lastItemCreatedDate = lastCommentDate;
+                            }
+                        }
+                    } else {
+                        if (lastItemCreatedDate == 0 || lastItemCreatedDate > createdDate) {
+                            lastItemCreatedDate = createdDate;
+                        }
                     }
 
                     if (!hasComplain && !isRemoved && !filterPosts.contains(key)) {
@@ -1118,6 +1156,9 @@ public class DatabaseHelper {
                         if (mapObj.containsKey("lastCommentDate")) {
                             post.setLastCommentDate((long) mapObj.get("lastCommentDate"));
                         }
+                        if (mapObj.containsKey("isAuthorFirstPost")) {
+                            post.setAuthorFirstPost((boolean) mapObj.get("isAuthorFirstPost"));
+                        }
 
                         list.add(post);
                     }
@@ -1145,6 +1186,33 @@ public class DatabaseHelper {
             result.setMoreDataAvailable(isMoreDataAvailable);
         }
 
+        return result;
+    }
+
+    private ProfileListResult parseProfileList(DataSnapshot dataSnapshot) {
+        ProfileListResult result = new ProfileListResult();
+        List<Profile> list = new ArrayList<Profile>();
+        boolean isMoreDataAvailable = true;
+        int lastItemRank = 0;
+        isMoreDataAvailable = Constants.Post.POST_AMOUNT_ON_PAGE == dataSnapshot.getChildrenCount();
+        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+            Profile profile = snapshot.getValue(Profile.class);
+            list.add(profile);
+            if (lastItemRank == 0 || lastItemRank < profile.getRank()) {
+                lastItemRank = profile.getRank();
+            }
+        }
+
+        Collections.sort(list, new Comparator<Profile>() {
+            @Override
+            public int compare(Profile lhs, Profile rhs) {
+                return ((Integer) lhs.getRank()).compareTo(rhs.getRank());
+            }
+        });
+
+        result.setProfiles(list);
+        result.setLastItemRank(lastItemRank);
+        result.setMoreDataAvailable(isMoreDataAvailable);
         return result;
     }
 

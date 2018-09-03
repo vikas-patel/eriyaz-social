@@ -57,6 +57,7 @@ public class Post implements Serializable, LazyLoading {
     private String avatarImageUrl;
     private String nickName;
     private String celebrityName;
+    private boolean isAuthorFirstPost;
 
     @Override
     public boolean equals(Object o) {
@@ -248,6 +249,14 @@ public class Post implements Serializable, LazyLoading {
         this.lastCommentDate = lastCommentDate;
     }
 
+    public boolean isAuthorFirstPost() {
+        return isAuthorFirstPost;
+    }
+
+    public void setAuthorFirstPost(boolean authorFirstPost) {
+        isAuthorFirstPost = authorFirstPost;
+    }
+
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
 
@@ -270,6 +279,7 @@ public class Post implements Serializable, LazyLoading {
         result.put("anonymous", anonymous);
         result.put("nickName", nickName);
         result.put("celebrityName", celebrityName);
+        result.put("isAuthorFirstPost", isAuthorFirstPost);
         result.put("createdDateText", FormatterUtil.getFirebaseDateFormat().format(new Date(createdDate)));
 
         return result;

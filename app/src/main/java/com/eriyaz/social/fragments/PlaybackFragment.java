@@ -28,6 +28,7 @@ import com.eriyaz.social.Constants;
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
 import com.eriyaz.social.activities.BaseAlertDialogBuilder;
+import com.eriyaz.social.activities.BaseCurrentProfileActivity;
 import com.eriyaz.social.activities.MainActivity;
 import com.eriyaz.social.activities.PostDetailsActivity;
 import com.eriyaz.social.activities.ProfileActivity;
@@ -38,6 +39,7 @@ import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
 import com.eriyaz.social.model.Comment;
 import com.eriyaz.social.model.Post;
+import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.utils.PermissionsUtil;
@@ -76,6 +78,7 @@ public class PlaybackFragment extends BaseDialogFragment {
     private BubbleSeekBar ratingBar;
     private Post post;
     private Rating rating;
+    private String authorName;
     private RatingController ratingController;
     private boolean isRatingChanged = false;
     private long startTimePlayer;
@@ -121,12 +124,13 @@ public class PlaybackFragment extends BaseDialogFragment {
         return f;
     }
 
-    public PlaybackFragment newInstance(RecordingItem item, Post post, Rating rating) {
+    public PlaybackFragment newInstance(RecordingItem item, Post post, Rating rating, String authorName) {
         PlaybackFragment f = new PlaybackFragment();
         Bundle b = new Bundle();
         b.putParcelable(RECORDING_ITEM, item);
         b.putSerializable(PostDetailsActivity.POST_ID_EXTRA_KEY, post);
         b.putSerializable(Rating.RATING_ID_EXTRA_KEY, rating);
+        b.putString(Profile.AUTHOR_NAME_EXTRA_KEY, authorName);
         f.setArguments(b);
         return f;
     }
@@ -137,6 +141,7 @@ public class PlaybackFragment extends BaseDialogFragment {
         item = getArguments().getParcelable(RECORDING_ITEM);
         post = (Post) getArguments().getSerializable(PostDetailsActivity.POST_ID_EXTRA_KEY);
         rating = (Rating) getArguments().getSerializable(Rating.RATING_ID_EXTRA_KEY);
+        authorName = getArguments().getString(Profile.AUTHOR_NAME_EXTRA_KEY);
         if (rating == null) rating = new Rating();
     }
 
@@ -609,10 +614,27 @@ public class PlaybackFragment extends BaseDialogFragment {
                         ratingBar.setProgress(rating.getRating());
                         return;
                     }
-                    if (!PreferencesUtil.isUserRatedAtLeastOnce(getActivity())) {
-                        PreferencesUtil.setUserRatedAtLeastOnce(getActivity(), true);
-                        showDialog(String.format(getString(R.string.first_rating_message), progress));
+                    // if new user, check limits
+                    if (((BaseCurrentProfileActivity) getActivity()).isNewUser()) {
+                        // post no rating, can't rate below 10
+                        // post has rating avg
+                        if (post.getRatingsCount() == 0 && progress <= 10) {
+                            showDialog(R.string.new_user_restriction_below_10);
+                            ratingBar.setProgress(rating.getRating());
+                            return;
+                        } else if (post.getAverageRating() > 15 && progress < 14) {
+                            showDialog(R.string.new_user_restriction_below_average);
+                            ratingBar.setProgress(rating.getRating());
+                            return;
+                        }
                     }
+
+                    if (post.isAuthorFirstPost() && progress <= 10) {
+                        showDialog(String.format(getResources().getString(R.string.first_post_rating_restriction), authorName));
+                        ratingBar.setProgress(rating.getRating());
+                        return;
+                    }
+
                     if (!PreferencesUtil.isUserRatedMany(getActivity())) {
                         PreferencesUtil.incrementUserRatingCount(getActivity());
                     }

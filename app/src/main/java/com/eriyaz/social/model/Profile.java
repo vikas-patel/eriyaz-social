@@ -16,6 +16,7 @@
 
 package com.eriyaz.social.model;
 
+import com.eriyaz.social.enums.ItemType;
 import com.google.firebase.database.IgnoreExtraProperties;
 
 import java.io.Serializable;
@@ -24,6 +25,7 @@ import java.util.Map;
 
 @IgnoreExtraProperties
 public class Profile implements Serializable {
+    public static final String AUTHOR_NAME_EXTRA_KEY = "Profile.AUTHOR_NAME_EXTRA_KEY";
 
     private String id;
     private String username;
@@ -32,15 +34,23 @@ public class Profile implements Serializable {
     private long points;
     private long reputationPoints;
     private int postCount;
+    private int ratingCount;
     private long lastPostCreatedDate;
     private int unseen;
+    private ItemType itemType;
     private int unseenMessageCount;
     private String registrationToken;
     private boolean admin;
     private String appVersion;
+    private int rank;
 
     public Profile() {
         // Default constructor required for calls to DataSnapshot.getValue(Profile.class)
+    }
+
+    public Profile(ItemType itemType) {
+        this.itemType = itemType;
+        setId(itemType.toString());
     }
 
     public Profile(String id) {
@@ -119,6 +129,14 @@ public class Profile implements Serializable {
         this.postCount = postCount;
     }
 
+    public int getRatingCount() {
+        return ratingCount;
+    }
+
+    public void setRatingCount(int ratingCount) {
+        this.ratingCount = ratingCount;
+    }
+
     public boolean isAdmin() {
         return admin;
     }
@@ -135,12 +153,28 @@ public class Profile implements Serializable {
         this.lastPostCreatedDate = lastPostCreatedDate;
     }
 
+    public int getRank() {
+        return rank;
+    }
+
+    public void setRank(int rank) {
+        this.rank = rank;
+    }
+
     public String getAppVersion() {
         return appVersion;
     }
 
     public void setAppVersion(String appVersion) {
         this.appVersion = appVersion;
+    }
+
+    public ItemType getItemType() {
+        if (itemType == null) {
+            return ItemType.ITEM;
+        } else {
+            return itemType;
+        }
     }
 
     public Map<String, Object> toMap() {

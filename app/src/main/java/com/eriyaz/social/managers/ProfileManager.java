@@ -21,6 +21,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 
 import com.eriyaz.social.managers.listeners.OnDataChangedListener;
+import com.eriyaz.social.managers.listeners.OnProfileListChangedListener;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
 import com.eriyaz.social.model.Message;
 import com.eriyaz.social.model.Notification;
@@ -205,6 +206,10 @@ public class ProfileManager extends FirebaseListenersManager {
     public void removeMessage(String messageId, final String userId, final OnTaskCompleteListener onTaskCompleteListener) {
         final DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
         databaseHelper.removeMessage(messageId, userId, onTaskCompleteListener);
+    }
+
+    public void getProfilesByRank(OnProfileListChangedListener<Profile> onDataChangedListener, int rank) {
+        ApplicationHelper.getDatabaseHelper().getProfilesByRank(onDataChangedListener, rank);
     }
 
     public ProfileStatus checkProfile() {

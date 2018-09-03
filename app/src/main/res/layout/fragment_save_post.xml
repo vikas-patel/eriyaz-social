@@ -159,14 +159,14 @@
             android:layout_weight="1" />
         <Button android:id="@+id/saveLaterButton"
             android:text="Save For Later"
-            style="@style/Widget.AppCompat.Button.Colored"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
             android:layout_marginBottom="@dimen/intrinsic_padding"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content" />
 
         <Button android:id="@+id/retryButton"
             android:text="Retry"
-            style="@style/Widget.AppCompat.Button.Colored"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
             android:layout_marginBottom="@dimen/intrinsic_padding"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content" />

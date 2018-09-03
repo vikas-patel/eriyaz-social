@@ -80,7 +80,7 @@ import java.util.List;
 
 import static com.eriyaz.social.utils.ImageUtil.setBadgeCount;
 
-public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnUpdateNeededListener{
+public class MainActivity extends BaseCurrentProfileActivity implements ForceUpdateChecker.OnUpdateNeededListener{
     private static final String TAG = MainActivity.class.getSimpleName();
 
     private PostsAdapter postsAdapter;
@@ -95,7 +95,6 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
     private boolean counterAnimationInProgress = false;
     private long userPoints = 0;
     final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
-    private Profile profile;
     protected BlockUserManager blockUserManager;
 
     // private Snackbar karmaSnackbar;
@@ -175,16 +174,24 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
     }
 
 
-    private OnObjectChangedListener<Profile> createOnProfileChangedListener() {
-        return new OnObjectChangedListener<Profile>() {
-            @Override
-            public void onObjectChanged(Profile aProfile) {
-                profile = aProfile;
-                userPoints = profile.getPoints();
+//    private OnObjectChangedListener<Profile> createOnProfileChangedListener() {
+//        return new OnObjectChangedListener<Profile>() {
+//            @Override
+//            public void onObjectChanged(Profile aProfile) {
+//                profile = aProfile;
+//                userPoints = profile.getPoints();
+////                if (userPoints < WARNING_MIN_POINTS) showShareAppBanner();
+//                invalidateOptionsMenu();
+//            }
+//        };
+//    }
+
+    @Override
+    protected void onProfileObjectChanged(Profile aProfile) {
+        super.onProfileObjectChanged(aProfile);
+        userPoints = currentProfile.getPoints();
 //                if (userPoints < WARNING_MIN_POINTS) showShareAppBanner();
-                invalidateOptionsMenu();
-            }
-        };
+        invalidateOptionsMenu();
     }
 
     @Override
@@ -198,16 +205,15 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
                         FirebaseAuth.getInstance().getCurrentUser().getUid(),
                         createOnBlockedByChangedDataListener());
             }
-            profileManager.getProfileValue(MainActivity.this,
-                    FirebaseAuth.getInstance().getCurrentUser().getUid(),
-                    createOnProfileChangedListener());
+//            profileManager.getProfileValue(MainActivity.this,
+//                    FirebaseAuth.getInstance().getCurrentUser().getUid(),
+//                    createOnProfileChangedListener());
         }
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        profileManager.closeListeners(MainActivity.this);
     }
 
     private void showShareAppBanner() {
@@ -341,6 +347,10 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
             postsAdapter.setCallback(new PostsAdapter.Callback() {
                 @Override
                 public void onItemClick(final Post post, final View view) {
+                    if (!hasInternetConnection()) {
+                        showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
+                        return;
+                    }
                     PostManager.getInstance(MainActivity.this).isPostExistSingleValue(post.getId(), new OnObjectExistListener<Post>() {
                         @Override
                         public void onDataChanged(boolean exist) {
@@ -360,7 +370,7 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
 
                 @Override
                 public void onAuthorClick(Post post, View view) {
-                    if (post.isAnonymous() && (profile == null || !profile.isAdmin())) {
+                    if (post.isAnonymous() && (currentProfile == null || !currentProfile.isAdmin())) {
                         showSnackBar("Post is anonymous");
                         return;
                     }
@@ -470,9 +480,9 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
                     @Override
                     public void onObjectChanged(Profile aProfile) {
                         hideProgress();
-                        profile = aProfile;
-                        LogUtil.logInfo(TAG, "fetched profile points " + profile.getPoints());
-                        userPoints = profile.getPoints();
+                        currentProfile = aProfile;
+                        LogUtil.logInfo(TAG, "fetched profile points " + currentProfile.getPoints());
+                        userPoints = currentProfile.getPoints();
                         if (userPoints >= points_post_create) {
                             openCreatePostActivity();
                         } else {
@@ -487,7 +497,7 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
     private void openCreatePostActivity() {
         if (!PreferencesUtil.isRecordOpened(MainActivity.this)) {
             PreferencesUtil.setRecordOpened(MainActivity.this, true);
-            if (profile != null && profile.getPostCount() == 0) {
+            if (currentProfile != null && currentProfile.getPostCount() == 0) {
                 analytics.logFirstRecord();
             }
         }
@@ -511,7 +521,12 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
 
     private void openRewardActivity() {
         Intent intent = new Intent(MainActivity.this, RewardActivity.class);
-        startActivityForResult(intent, Constants.ACTIVITY.CREATE_ADMIN);
+        startActivity(intent);
+    }
+
+    private void openLeaderboardActivity() {
+        Intent intent = new Intent(MainActivity.this, LeaderboardActivity.class);
+        startActivity(intent);
     }
 
     private void openRatingsChartActivity() {
@@ -579,11 +594,11 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        if (profile == null) return true;
+        if (currentProfile == null) return true;
         MenuItem itemNotification = menu.findItem(R.id.notification);
         LayerDrawable icon = (LayerDrawable) itemNotification.getIcon();
-        setBadgeCount(this, icon, Integer.toString(profile.getUnseen()));
-        if (profile.isAdmin()) {
+        setBadgeCount(this, icon, Integer.toString(currentProfile.getUnseen()));
+        if (currentProfile.isAdmin()) {
             MenuItem adminItem = menu.findItem(R.id.admin_menu_item);
             adminItem.setVisible(true);
             MenuItem rewardItem = menu.findItem(R.id.reward_menu_item);
@@ -618,6 +633,9 @@ public class MainActivity extends BaseActivity implements ForceUpdateChecker.OnU
                 return true;
             case R.id.ratings_chart_menu_item:
                 openRatingsChartActivity();
+                return true;
+            case R.id.leaderboard_menu_item:
+                openLeaderboardActivity();
                 return true;
             case R.id.admin_menu_item:
                 openAdminActivity();

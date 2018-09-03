@@ -42,5 +42,6 @@
     <color name="transparentColor">#00ffffff</color>
     <color name="play_control_color">#FF00A6FF</color>
     <color name="highlight_bg">#FFEDD7</color>
+    <color name="default_bg">#FAFAFA</color>
     <color name="default_link">#019B86</color>
 </resources>

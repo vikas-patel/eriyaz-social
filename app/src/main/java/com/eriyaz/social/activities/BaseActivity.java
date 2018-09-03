@@ -42,7 +42,7 @@ import com.eriyaz.social.utils.Analytics;
 import com.eriyaz.social.utils.DeepLinkUtil;
 import com.google.firebase.auth.FirebaseAuth;
 
-/**
+/**[
  * Created by alexey on 05.12.16.
  */
 
@@ -53,7 +53,6 @@ public class BaseActivity extends AppCompatActivity {
     public ActionBar actionBar;
     protected Analytics analytics;
     protected DeepLinkUtil deepLinkUtil;
-    protected ProfileManager profileManager;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -61,39 +60,23 @@ public class BaseActivity extends AppCompatActivity {
         actionBar = getSupportActionBar();
         analytics = new Analytics(this);
         deepLinkUtil = new DeepLinkUtil(this);
-        profileManager = ProfileManager.getInstance(this);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (profileManager.checkProfile().equals(ProfileStatus.PROFILE_CREATED)) {
-            profileManager.onNewPointAddedListener(BaseActivity.this,
-                    FirebaseAuth.getInstance().getCurrentUser().getUid(),
-                    newPointAddedListener());
-        }
         analytics.logActivity(this);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        profileManager.closeChildListeners(this);
     }
 
     public void doAuthorization(ProfileStatus status) {
         if (status.equals(ProfileStatus.NOT_AUTHORIZED) || status.equals(ProfileStatus.NO_PROFILE)) {
             startLoginActivity();
         }
-    }
-
-    private OnObjectChangedListener<Point> newPointAddedListener() {
-        return new OnObjectChangedListener<Point>() {
-            @Override
-            public void onObjectChanged(Point point) {
-                showPointSnackbar(point);
-            }
-        };
     }
 
     public void showPointSnackbar(Point point) {
