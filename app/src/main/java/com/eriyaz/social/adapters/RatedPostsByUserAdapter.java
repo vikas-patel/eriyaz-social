@@ -18,6 +18,7 @@ package com.eriyaz.social.adapters;
 
 import android.app.Activity;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -26,31 +27,36 @@ import android.view.ViewGroup;
 
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
+import com.eriyaz.social.adapters.holders.LoadViewHolder;
+import com.eriyaz.social.adapters.holders.NotificationHolder;
 import com.eriyaz.social.adapters.holders.RatedPostViewHolder;
 import com.eriyaz.social.enums.ItemType;
 import com.eriyaz.social.fragments.PlaybackFragment;
 import com.eriyaz.social.managers.PostManager;
 import com.eriyaz.social.managers.listeners.OnDataChangedListener;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
+import com.eriyaz.social.model.ItemListResult;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.model.RecordingItem;
+import com.eriyaz.social.utils.LogUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 
-public class RatedPostsByUserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements ProfileTabInterface {
+public class RatedPostsByUserAdapter extends BaseItemsAdapter implements ProfileTabInterface {
     public static final String TAG = RatedPostsByUserAdapter.class.getSimpleName();
-    protected List<Rating> ratedPostList = new LinkedList<>();
     protected BaseActivity activity;
     protected String userId;
     protected int selectedPostPosition = -1;
     protected PostsByUserAdapter.CallBack callBack;
 
-    public RatedPostsByUserAdapter(final BaseActivity activity, String userId) {
+    public RatedPostsByUserAdapter(final BaseActivity activity, String userId, SwipeRefreshLayout swipeContainer) {
+        super(activity, swipeContainer);
         this.userId = userId;
         this.activity = activity;
     }
@@ -58,9 +64,12 @@ public class RatedPostsByUserAdapter extends RecyclerView.Adapter<RecyclerView.V
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        View view = inflater.inflate(R.layout.post_item_list_view, parent, false);
-
-        return new RatedPostViewHolder(view, createOnClickListener());
+        if (viewType == ItemType.ITEM.getTypeCode()) {
+            View view = inflater.inflate(R.layout.post_item_list_view, parent, false);
+            return new RatedPostViewHolder(view , createOnClickListener());
+        } else {
+            return new LoadViewHolder(inflater.inflate(R.layout.loading_view, parent, false));
+        }
     }
 
     public void setCallBack(PostsByUserAdapter.CallBack callBack) {
@@ -108,7 +117,7 @@ public class RatedPostsByUserAdapter extends RecyclerView.Adapter<RecyclerView.V
         return new OnObjectChangedListener<Rating>() {
             @Override
             public void onObjectChanged(Rating rating) {
-                ratedPostList.set(postPosition, rating);
+                itemList.set(postPosition, rating);
                 notifyItemChanged(postPosition);
             }
         };
@@ -116,42 +125,74 @@ public class RatedPostsByUserAdapter extends RecyclerView.Adapter<RecyclerView.V
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        ((RatedPostViewHolder) holder).bindData(ratedPostList.get(position));
+        if (position >= getItemCount() - 1 && isMoreDataAvailable && !isLoading) {
+            android.os.Handler mHandler = activity.getWindow().getDecorView().getHandler();
+            mHandler.post(new Runnable() {
+                public void run() {
+                    //change adapter contents
+                    if (activity.hasInternetConnection()) {
+                        isLoading = true;
+                        itemList.add(new Rating(ItemType.LOAD));
+                        notifyItemInserted(itemList.size());
+                        loadNext(lastLoadedItemCreatedDate - 1);
+                    } else {
+                        activity.showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
+                    }
+                }
+            });
+        }
+
+        if (getItemViewType(position) != ItemType.LOAD.getTypeCode()) {
+            ((RatedPostViewHolder) holder).bindData((Rating) itemList.get(position));
+        }
     }
 
-    private void setList(List<Rating> list) {
-        ratedPostList.clear();
-        ratedPostList.addAll(list);
-        notifyDataSetChanged();
-    }
+    public void loadNext(final long nextItemCreatedDate) {
 
-    public void loadPosts() {
         if (!activity.hasInternetConnection()) {
-            activity.showSnackBar(R.string.internet_connection_failed);
-            callBack.onPostLoadingCanceled();
+            activity.showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
+            hideProgress();
+            callBack.onListLoadingFinished();
             return;
         }
 
-        OnDataChangedListener<Rating> onPostsDataChangedListener = new OnDataChangedListener<Rating>() {
+        OnObjectChangedListener<ItemListResult> onUserRatingsChangedListener = new OnObjectChangedListener<ItemListResult>() {
             @Override
-            public void onListChanged(List<Rating> list) {
-                setList(list);
-                callBack.onPostsListChanged(list.size());
+            public void onObjectChanged(ItemListResult result) {
+                lastLoadedItemCreatedDate = result.getLastItemCreatedDate();
+                isMoreDataAvailable = result.isMoreDataAvailable();
+                List list = result.getItems();
+
+                if (nextItemCreatedDate == 0) {
+                    itemList.clear();
+                    notifyDataSetChanged();
+                    swipeContainer.setRefreshing(false);
+                }
+
+                hideProgress();
+
+                if (!list.isEmpty()) {
+                    addList(list);
+                } else {
+                    isLoading = false;
+                }
+
+                callBack.onListLoadingFinished();
             }
         };
 
-        PostManager.getInstance(activity).getRatingsListByUser(onPostsDataChangedListener, userId);
+        PostManager.getInstance(activity).getRatingsListByUser(onUserRatingsChangedListener, nextItemCreatedDate, userId);
     }
 
     public void removeSelectedPost() {
-        ratedPostList.remove(selectedPostPosition);
-        callBack.onPostsListChanged(ratedPostList.size());
+        itemList.remove(selectedPostPosition);
+        callBack.onPostsListChanged(itemList.size());
         notifyItemRemoved(selectedPostPosition);
     }
 
     public void updateSelectedPost() {
         if (selectedPostPosition != -1) {
-            Rating selectedRating = getItemByPosition(selectedPostPosition);
+            Rating selectedRating = (Rating) getItemByPosition(selectedPostPosition);
             if (selectedRating == null) return;
             FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
             // update rated post layout (rated value) only visited self profile
@@ -165,17 +206,15 @@ public class RatedPostsByUserAdapter extends RecyclerView.Adapter<RecyclerView.V
         }
     }
 
-    protected Rating getItemByPosition(int position) {
-        return ratedPostList.get(position);
-    }
-
     @Override
-    public int getItemCount() {
-        return ratedPostList.size();
+    public long getItemId(int position) {
+        if (getItemByPosition(position) == null) return -1;
+        return ((Rating)getItemByPosition(position)).getId().hashCode();
     }
 
     @Override
     public int getItemViewType(int position) {
-        return ItemType.ITEM.getTypeCode();
+        if (itemList.get(position) == null) return -1;
+        return ((Rating)itemList.get(position)).getItemType().getTypeCode();
     }
 }

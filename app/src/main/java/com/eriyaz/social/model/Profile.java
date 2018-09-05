@@ -38,7 +38,6 @@ public class Profile implements Serializable {
     private long lastPostCreatedDate;
     private int unseen;
     private ItemType itemType;
-    private int unseenMessageCount;
     private String registrationToken;
     private boolean admin;
     private String appVersion;

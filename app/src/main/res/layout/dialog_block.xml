@@ -21,12 +21,16 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <Spinner
-        android:id="@+id/complainSpinner"
-        android:layout_width="wrap_content"
+
+    <EditText
+        android:id="@+id/complainReasonEditText"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/large_intrinsic_padding"
-        android:padding="@dimen/large_intrinsic_padding"
-        android:entries="@array/report_arrays" />
+        android:maxLines="5"
+        android:hint="Tell us why you think this user is not genuine/disrepectful."
+        android:layout_margin="@dimen/intrinsic_padding"
+        android:inputType="textMultiLine"
+        android:focusable="true"
+        android:focusableInTouchMode="true"/>
 
 </LinearLayout>

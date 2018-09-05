@@ -5,7 +5,7 @@ package com.eriyaz.social.adapters;
  */
 
 public interface ProfileTabInterface {
-    void loadPosts();
+    void loadFirstPage();
     void setCallBack(PostsByUserAdapter.CallBack callBack);
     void removeSelectedPost();
     void updateSelectedPost();

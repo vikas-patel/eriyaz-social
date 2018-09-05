@@ -149,7 +149,7 @@ public class ProfileAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     private void loadNext(final int nextItemRank) {
 
-        if (!PreferencesUtil.isPostWasLoadedAtLeastOnce(activity) && !activity.hasInternetConnection()) {
+        if (!activity.hasInternetConnection()) {
             activity.showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
             hideProgress();
             callback.onListLoadingFinished();

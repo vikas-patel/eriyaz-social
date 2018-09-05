@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/countDownTimer"
         android:textSize="60sp"
-        android:text="00:45"
+        android:text="00:60"
         android:fontFamily="sans-serif-light"
         android:layout_alignBottom="@+id/recordProgressBar"
         android:layout_centerHorizontal="true"

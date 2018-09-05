@@ -1,5 +1,7 @@
 package com.eriyaz.social.model;
 
+import com.eriyaz.social.enums.ItemType;
+
 import java.io.Serializable;
 import java.util.Calendar;
 
@@ -18,6 +20,13 @@ public class Rating implements Serializable {
     // only for rated post
     private String postId;
     private boolean viewedByPostAuthor;
+
+    private ItemType itemType;
+
+    public Rating(ItemType itemType) {
+        this.itemType = itemType;
+        setId(itemType.toString());
+    }
 
     public Rating() {
         // Default constructor required for calls to DataSnapshot.getValue(Rating.class)
@@ -113,5 +122,13 @@ public class Rating implements Serializable {
         int result = id.hashCode();
         result = 31 * result + (rating != +0.0f ? Float.floatToIntBits(rating) : 0);
         return result;
+    }
+
+    public ItemType getItemType() {
+        if (itemType == null) {
+            return ItemType.ITEM;
+        } else {
+            return itemType;
+        }
     }
 }

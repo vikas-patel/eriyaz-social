@@ -27,7 +27,8 @@ import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseAlertDialogBuilder;
@@ -62,7 +63,8 @@ public class ComplainDialog extends DialogFragment {
         LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View view = layoutInflater.inflate(R.layout.dialog_complain, null);
 
-        final EditText editCommentEditText = (EditText) view.findViewById(R.id.complainReasonEditText);
+//        final EditText editCommentEditText = (EditText) view.findViewById(R.id.complainReasonEditText);
+        final Spinner complainSpinner = view.findViewById(R.id.complainSpinner);
 
         AlertDialog.Builder builder = new BaseAlertDialogBuilder(getActivity());
         builder.setView(view)
@@ -92,13 +94,13 @@ public class ComplainDialog extends DialogFragment {
                 b.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        String reason = editCommentEditText.getText().toString();
-                        if (reason != null && !reason.isEmpty()) {
+                        if (complainSpinner.getSelectedItemPosition() > 0) {
+                            String reason = complainSpinner.getSelectedItem().toString();
                             flag.setReason(reason);
                             callback.onFlagReason(flag);
                             dialog.dismiss();
                         } else {
-                            editCommentEditText.setError("must specify the reason");
+                            ((TextView)complainSpinner.getSelectedView()).setError("must specify the reason");
                         }
 
                     }

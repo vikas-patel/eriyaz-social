@@ -22,5 +22,5 @@ package com.eriyaz.social.managers.listeners;
 
 public interface OnPostCreatedListener {
 
-    public void onPostSaved(boolean success);
+    public void onPostSaved(boolean success, String error);
 }

@@ -3,7 +3,6 @@ package com.eriyaz.social.fragments;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -76,12 +75,6 @@ public class PostsByUserFragment extends BaseFragment {
         postsProgressBar = view.findViewById(R.id.postsProgressBar);
 
         swipeContainer = view.findViewById(R.id.swipeContainer);
-        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                onRefreshAction();
-            }
-        });
         loadPostsList(view);
         return view;
     }
@@ -91,9 +84,6 @@ public class PostsByUserFragment extends BaseFragment {
         super.onResume();
     }
 
-    private void onRefreshAction() {
-        ((ProfileTabInterface)postsAdapter).loadPosts();
-    }
 
     private void hideLoadingPostsProgressBar() {
         if (postsProgressBar.getVisibility() != View.GONE) {
@@ -106,7 +96,7 @@ public class PostsByUserFragment extends BaseFragment {
 
             recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
             if (typeValue.equals(RATED_POST_TYPE)) {
-                postsAdapter = new RatedPostsByUserAdapter((BaseActivity) getActivity(), userID);
+                postsAdapter = new RatedPostsByUserAdapter((BaseActivity) getActivity(), userID, swipeContainer);
             } else {
                 postsAdapter = new PostsByUserAdapter((BaseActivity) getActivity(), userID);
             }
@@ -124,6 +114,11 @@ public class PostsByUserFragment extends BaseFragment {
                             }
                         }
                     });
+                }
+
+                @Override
+                public void onListLoadingFinished() {
+                    postsProgressBar.setVisibility(View.GONE);
                 }
 
                 @Override
@@ -155,7 +150,7 @@ public class PostsByUserFragment extends BaseFragment {
             recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
             ((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
             recyclerView.setAdapter(postsAdapter);
-            ((ProfileTabInterface)postsAdapter).loadPosts();
+            ((ProfileTabInterface)postsAdapter).loadFirstPage();
         }
     }
 

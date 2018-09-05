@@ -28,6 +28,7 @@ import com.eriyaz.social.managers.listeners.OnTaskCompleteMessageListener;
 import com.eriyaz.social.model.Avatar;
 import com.eriyaz.social.model.BoughtFeedback;
 import com.eriyaz.social.model.Flag;
+import com.eriyaz.social.model.ItemListResult;
 import com.eriyaz.social.model.Message;
 import com.eriyaz.social.model.Notification;
 import com.eriyaz.social.model.Point;
@@ -259,7 +260,7 @@ public class DatabaseHelper {
                         DatabaseReference profileRef = database.getReference("profiles/" + post.getAuthorId());
                         incrementPostCount(profileRef);
                     } else {
-                        onPostCreatedListener.onPostSaved(false);
+                        onPostCreatedListener.onPostSaved(false, databaseError.getMessage());
                         LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
                     }
                 }
@@ -280,7 +281,7 @@ public class DatabaseHelper {
 
                         @Override
                         public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-                            onPostCreatedListener.onPostSaved(true);
+                            onPostCreatedListener.onPostSaved(true, "");
                             LogUtil.logInfo(TAG, "Updating post count transaction is completed.");
                         }
                     });
@@ -943,6 +944,58 @@ public class DatabaseHelper {
         });
     }
 
+    public void getNotificationsList(final String userId, final OnObjectChangedListener<ItemListResult> onDataChangedListener, long date) {
+        DatabaseReference databaseReference = database.getReference("user-notifications").child(userId);
+        Query notificationQuery;
+        if (date == 0) {
+            notificationQuery = databaseReference.limitToLast(Constants.Post.POST_AMOUNT_ON_PAGE).orderByChild("createdDate");
+        } else {
+            notificationQuery = databaseReference.limitToLast(Constants.Post.POST_AMOUNT_ON_PAGE).endAt(date).orderByChild("createdDate");
+        }
+        notificationQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ItemListResult result = parseNotificationList(dataSnapshot);
+                if (result.getItems().isEmpty() && result.isMoreDataAvailable()) {
+                    getNotificationsList(userId, onDataChangedListener, result.getLastItemCreatedDate() - 1);
+                } else {
+                    onDataChangedListener.onObjectChanged(result);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                LogUtil.logError(TAG, "getNotificationsList(), onCancelled", new Exception(databaseError.getMessage()));
+            }
+        });
+    }
+
+    public void getRatingListByUser(final OnObjectChangedListener<ItemListResult> onDataChangedListener, long date, final String userId) {
+        DatabaseReference databaseReference = database.getReference("user-ratings").child(userId);
+        Query userRatingsQuery;
+        if (date == 0) {
+            userRatingsQuery = databaseReference.limitToLast(Constants.Post.POST_AMOUNT_ON_PAGE).orderByChild("createdDate");
+        } else {
+            userRatingsQuery = databaseReference.limitToLast(Constants.Post.POST_AMOUNT_ON_PAGE).endAt(date).orderByChild("createdDate");
+        }
+        userRatingsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ItemListResult result = parseRatingList(dataSnapshot);
+                if (result.getItems().isEmpty() && result.isMoreDataAvailable()) {
+                    getRatingListByUser(onDataChangedListener, result.getLastItemCreatedDate() - 1, userId);
+                } else {
+                    onDataChangedListener.onObjectChanged(result);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                LogUtil.logError(TAG, "getRatingListByUser(), onCancelled", new Exception(databaseError.getMessage()));
+            }
+        });
+    }
+
     public void getProfilesByRank(final OnProfileListChangedListener<Profile> onDataChangedListener, int rank) {
         DatabaseReference databaseReference = database.getReference("profiles");
         Query profileQuery;
@@ -987,33 +1040,6 @@ public class DatabaseHelper {
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 LogUtil.logError(TAG, "getPostListByUser(), onCancelled", new Exception(databaseError.getMessage()));
-            }
-        });
-    }
-
-    public void getRatingListByUser(final OnDataChangedListener<Rating> onDataChangedListener, String userId) {
-        DatabaseReference databaseReference = database.getReference("user-ratings").child(userId);
-        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                List<Rating> list = new ArrayList<>();
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    Rating rating = snapshot.getValue(Rating.class);
-                    list.add(rating);
-                }
-
-                Collections.sort(list, new Comparator<Rating>() {
-                    @Override
-                    public int compare(Rating lhs, Rating rhs) {
-                        return ((Long) rhs.getCreatedDate()).compareTo((Long) lhs.getCreatedDate());
-                    }
-                });
-                onDataChangedListener.onListChanged(list);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                LogUtil.logError(TAG, "getRatingListByUser(), onCancelled", new Exception(databaseError.getMessage()));
             }
         });
     }
@@ -1212,6 +1238,59 @@ public class DatabaseHelper {
 
         result.setProfiles(list);
         result.setLastItemRank(lastItemRank);
+        result.setMoreDataAvailable(isMoreDataAvailable);
+        return result;
+    }
+
+    private ItemListResult parseNotificationList(DataSnapshot dataSnapshot) {
+        ItemListResult result = new ItemListResult();
+        List<Notification> list = new ArrayList<Notification>();
+        boolean isMoreDataAvailable = true;
+        long lastItemCreatedDate = 0;
+        isMoreDataAvailable = Constants.Post.POST_AMOUNT_ON_PAGE == dataSnapshot.getChildrenCount();
+        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+            Notification notification = snapshot.getValue(Notification.class);
+            notification.setId(snapshot.getKey());
+            list.add(notification);
+            if (lastItemCreatedDate == 0 || lastItemCreatedDate > notification.getCreatedDate()) {
+                lastItemCreatedDate = notification.getCreatedDate();
+            }
+        }
+
+        Collections.sort(list, new Comparator<Notification>() {
+            @Override
+            public int compare(Notification lhs, Notification rhs) {
+                return ((Long) rhs.getCreatedDate()).compareTo(lhs.getCreatedDate());
+            }
+        });
+        result.setItems(list);
+        result.setLastItemCreatedDate(lastItemCreatedDate);
+        result.setMoreDataAvailable(isMoreDataAvailable);
+        return result;
+    }
+
+    private ItemListResult parseRatingList(DataSnapshot dataSnapshot) {
+        ItemListResult result = new ItemListResult();
+        List<Rating> list = new ArrayList<Rating>();
+        boolean isMoreDataAvailable = true;
+        long lastItemCreatedDate = 0;
+        isMoreDataAvailable = Constants.Post.POST_AMOUNT_ON_PAGE == dataSnapshot.getChildrenCount();
+        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+            Rating rating = snapshot.getValue(Rating.class);
+            list.add(rating);
+            if (lastItemCreatedDate == 0 || lastItemCreatedDate > rating.getCreatedDate()) {
+                lastItemCreatedDate = rating.getCreatedDate();
+            }
+        }
+
+        Collections.sort(list, new Comparator<Rating>() {
+            @Override
+            public int compare(Rating lhs, Rating rhs) {
+                return ((Long) rhs.getCreatedDate()).compareTo(lhs.getCreatedDate());
+            }
+        });
+        result.setItems(list);
+        result.setLastItemCreatedDate(lastItemCreatedDate);
         result.setMoreDataAvailable(isMoreDataAvailable);
         return result;
     }
@@ -1434,34 +1513,6 @@ public class DatabaseHelper {
 
         activeListeners.put(valueEventListener, databaseReference);
         return valueEventListener;
-    }
-
-    public void getNotificationsList(String userId, final OnDataChangedListener<Notification> onDataChangedListener) {
-        DatabaseReference databaseReference = database.getReference("user-notifications").child(userId);
-        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                List<Notification> list = new ArrayList<>();
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    Notification notification = snapshot.getValue(Notification.class);
-                    notification.setId(snapshot.getKey());
-                    list.add(notification);
-                }
-
-                Collections.sort(list, new Comparator<Notification>() {
-                    @Override
-                    public int compare(Notification lhs, Notification rhs) {
-                        return ((Long) rhs.getCreatedDate()).compareTo((Long) lhs.getCreatedDate());
-                    }
-                });
-                onDataChangedListener.onListChanged(list);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                LogUtil.logError(TAG, "getNotificationsList(), onCancelled", new Exception(databaseError.getMessage()));
-            }
-        });
     }
 
     public void getAvatarList(final OnDataChangedListener<Avatar> onDataChangedListener) {

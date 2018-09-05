@@ -975,8 +975,8 @@ exports.appNotificationFlag = functions.database.ref('/flags/{flaggedUser}/{flag
         const flaggedName = flaggedSnap.val().username;
         const flaggedByName = flaggedBySnap.val().username;
         var emailMsg = `To ${flaggedName},\n${reason} \n From ${flaggedByName}`;
-        const emailTask = sendEmail("RateMySinging: New user complaint", emailMsg);
-        console.log("all flag tasks completed.");
+        console.log("emailMsg for blocked user.", emailMsg);
+        return sendEmail("RateMySinging: New user complaint", emailMsg);
     });
 });
 
@@ -985,10 +985,15 @@ exports.appNotificationBlock = functions.database.ref('/block-users/{blockedUser
 
     const blockedBy = event.params.blockedBy;
     const blockedUser = event.params.blockedUser;
-    admin.database().ref(`profiles/${blockedBy}`).once('value').then(function(profileSnap) {
+    const reason = event.data.val().reason;
+    return admin.database().ref(`profiles/${blockedBy}`).once('value').then(function(profileSnap) {
         var profile = profileSnap.val();
         const msg = `${profile.username} has blocked you. You cannot rate, comment or message him/her in future.`;
         const notificationTask = sendAppNotificationProfileAction(blockedUser, blockedBy, msg);
+        return admin.database().ref(`profiles/${blockedUser}`).once('value').then(function(profileBlockedSnap) {
+            var emailMsg = `Blocked ${profileBlockedSnap.val().username}, \n${reason} \n By ${profile.username}`;
+            return sendEmail("RateMySinging: Block user", emailMsg);
+        });
     });
 });
 

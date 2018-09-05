@@ -22,6 +22,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.eriyaz.social.model.Flag;
+import com.eriyaz.social.model.ItemListResult;
 import com.eriyaz.social.utils.Analytics;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -96,8 +97,8 @@ public class PostManager extends FirebaseListenersManager {
         ApplicationHelper.getDatabaseHelper().getPostListByUser(onDataChangedListener, userId);
     }
 
-    public void getRatingsListByUser(OnDataChangedListener<Rating> onDataChangedListener, String userId) {
-        ApplicationHelper.getDatabaseHelper().getRatingListByUser(onDataChangedListener, userId);
+    public void getRatingsListByUser(OnObjectChangedListener<ItemListResult> onObjectChangedListener, long date, String userId) {
+        ApplicationHelper.getDatabaseHelper().getRatingListByUser(onObjectChangedListener, date, userId);
     }
 
     public void getPost(Context context, String postId, OnPostChangedListener onPostChangedListener) {
@@ -124,7 +125,7 @@ public class PostManager extends FirebaseListenersManager {
                 @Override
                 public void onFailure(@NonNull Exception exception) {
                     // Handle unsuccessful uploads
-                    onPostCreatedListener.onPostSaved(false);
+                    onPostCreatedListener.onPostSaved(false, exception.getMessage());
 
                 }
             }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -159,7 +160,7 @@ public class PostManager extends FirebaseListenersManager {
                 @Override
                 public void onFailure(@NonNull Exception exception) {
                     // Handle unsuccessful uploads
-                    onPostCreatedListener.onPostSaved(false);
+                    onPostCreatedListener.onPostSaved(false, exception.getMessage());
 
                 }
             }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {

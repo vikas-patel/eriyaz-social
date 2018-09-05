@@ -23,6 +23,7 @@ public class Analytics {
     public static final String FEEDBACK = "feedback";
     public static final String MESSAGE = "message";
     public static final String POST = "Post";
+    public static final String POST_FAILED = "PostFailed";
     public static final String FIRST_POST = "FirstPost";
     public static final String FIRST_RECORD = "FirstRecord";
     public static final String OPEN_OTHER_AUDIO = "OpenOtherAudio";
@@ -125,6 +126,14 @@ public class Analytics {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) bundle.putString("UserName", currentUser.getDisplayName());
         firebase.logEvent(POST, bundle);
+    }
+
+    public void logPostFailed(String error) {
+        Bundle bundle = new Bundle();
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) bundle.putString("UserName", currentUser.getDisplayName());
+        bundle.putString("Error", error);
+        firebase.logEvent(POST_FAILED, bundle);
     }
 
     public void logFirstPost() {

@@ -59,7 +59,7 @@ public class BlockDialog extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View view = layoutInflater.inflate(R.layout.dialog_complain, null);
+        View view = layoutInflater.inflate(R.layout.dialog_block, null);
 
         final EditText editCommentEditText = (EditText) view.findViewById(R.id.complainReasonEditText);
         editCommentEditText.setHint(R.string.hint_block_dialog);

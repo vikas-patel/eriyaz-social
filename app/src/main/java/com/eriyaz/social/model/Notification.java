@@ -1,5 +1,7 @@
 package com.eriyaz.social.model;
 
+import com.eriyaz.social.enums.ItemType;
+
 /**
  * Created by vikas on 12/2/18.
  */
@@ -15,8 +17,14 @@ public class Notification {
     private boolean read;
     private boolean openPlayStore;
     private boolean fromSystem;
+    private ItemType itemType;
 
     public Notification() {
+    }
+
+    public Notification(ItemType itemType) {
+        this.itemType = itemType;
+        setId(itemType.toString());
     }
 
     public String getId() {
@@ -97,5 +105,13 @@ public class Notification {
 
     public void setFromSystem(boolean fromSystem) {
         this.fromSystem = fromSystem;
+    }
+
+    public ItemType getItemType() {
+        if (itemType == null) {
+            return ItemType.ITEM;
+        } else {
+            return itemType;
+        }
     }
 }

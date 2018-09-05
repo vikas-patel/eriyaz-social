@@ -112,7 +112,7 @@ public class CreatePostActivity extends BaseActivity implements OnRecordingEndLi
         Uri audioUri = Uri.fromFile(new File(audioFilePath));
         postManager.createOrUpdatePostWithAudio(audioUri, new OnPostCreatedListener() {
             @Override
-            public void onPostSaved(boolean success) {
+            public void onPostSaved(boolean success, String error) {
                 hideProgress();
                 if (success) {
                     setResult(RESULT_OK);
@@ -121,8 +121,9 @@ public class CreatePostActivity extends BaseActivity implements OnRecordingEndLi
                     LogUtil.logDebug(TAG, "Post was created");
                 } else {
                     creatingPost = false;
+                    showWarningDialog("Fail to create post: " + error);
                     showSnackBar(R.string.error_fail_create_post);
-                    LogUtil.logDebug(TAG, "Failed to create a post");
+                    analytics.logPostFailed(error);
                 }
             }
         }, post);

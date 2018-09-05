@@ -23,6 +23,7 @@ import android.support.annotation.NonNull;
 import com.eriyaz.social.managers.listeners.OnDataChangedListener;
 import com.eriyaz.social.managers.listeners.OnProfileListChangedListener;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
+import com.eriyaz.social.model.ItemListResult;
 import com.eriyaz.social.model.Message;
 import com.eriyaz.social.model.Notification;
 import com.eriyaz.social.model.Point;
@@ -185,8 +186,8 @@ public class ProfileManager extends FirebaseListenersManager {
         databaseHelper.getProfileSingleValue(id, listener);
     }
 
-    public void getNotificationsList(String userId, OnDataChangedListener<Notification> onDataChangedListener) {
-        ApplicationHelper.getDatabaseHelper().getNotificationsList(userId, onDataChangedListener);
+    public void getNotificationsList(String userId, OnObjectChangedListener<ItemListResult> onObjectChangedListener, long date) {
+        ApplicationHelper.getDatabaseHelper().getNotificationsList(userId, onObjectChangedListener, date);
     }
 
     public void getMessagesList(Context activityContext, String userId, OnDataChangedListener<Message> onDataChangedListener) {

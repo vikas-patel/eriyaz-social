@@ -32,6 +32,7 @@ import com.eriyaz.social.managers.listeners.OnDataChangedListener;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.model.RecordingItem;
+import com.eriyaz.social.utils.LogUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -47,6 +48,7 @@ public class PostsByUserAdapter extends BasePostsAdapter implements ProfileTabIn
 
     public PostsByUserAdapter(final BaseActivity activity, String userId) {
         super(activity);
+        LogUtil.logInfo(TAG, "loading user posts");
         this.userId = userId;
     }
 
@@ -95,7 +97,7 @@ public class PostsByUserAdapter extends BasePostsAdapter implements ProfileTabIn
         notifyDataSetChanged();
     }
 
-    public void loadPosts() {
+    public void loadFirstPage() {
         if (!activity.hasInternetConnection()) {
             activity.showSnackBar(R.string.internet_connection_failed);
             callBack.onPostLoadingCanceled();
@@ -129,6 +131,7 @@ public class PostsByUserAdapter extends BasePostsAdapter implements ProfileTabIn
 
     public interface CallBack {
         void onItemClick(Post post, View view);
+        void onListLoadingFinished();
         void onPostsListChanged(int postsCount);
         void onAuthorClick(String authorId, View view);
         void onPostLoadingCanceled();

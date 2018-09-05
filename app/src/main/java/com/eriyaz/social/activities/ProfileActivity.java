@@ -169,7 +169,7 @@ public class ProfileActivity extends BaseCurrentProfileActivity implements Googl
             switch (requestCode) {
                 case CreatePostActivity.CREATE_NEW_POST_REQUEST:
                     selectedFragment = tabAdapter.getSelectedFragment(profileTabViewPager.getCurrentItem());
-                    selectedFragment.getPostsAdapter().loadPosts();
+                    selectedFragment.getPostsAdapter().loadFirstPage();
                     showSnackBar(R.string.message_post_was_created);
                     setResult(RESULT_OK);
                     break;

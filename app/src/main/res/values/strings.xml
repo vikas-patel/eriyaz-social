@@ -353,6 +353,15 @@
         <item>20</item>
     </string-array>
 
+    <string-array name="report_arrays">
+        <item>---Select a reason---</item>
+        <item>extremely low ratings to everyone</item>
+        <item>same ratings to everyone</item>
+        <item>random ratings</item>
+        <item>disrespectful comments</item>
+        <item>leaving blank comments with ratings below 5</item>
+    </string-array>
+
 
     <string name="point_rule_html">
         <![CDATA[
