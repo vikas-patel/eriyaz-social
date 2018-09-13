@@ -129,6 +129,8 @@
     <string name="error_google_play_services">Google Play Services error.</string>
     <string name="button_login_with_facebook">Login with facebook</string>
     <string name="button_login_with_google">Login with google</string>
+    <string name="button_login_with_phone">Login with phone</string>
+    <string name="button_login_with_email">Login with RateMySinging Email Account (Old users only)</string>
 
 
     <string name="loading">Loading...</string>
@@ -174,7 +176,7 @@
     <string name="actual_rating_text"><![CDATA[Actual Rating : <font color=\'#17a1d7\'>%1$d</font>]]></string>
     <string name="average_rating_text"><![CDATA[<font color=\'#019B86\'><u>%1$s</u></font>\'s Average Rating : <font color=\'#17a1d7\'>%2$d</font>]]></string>
     <string name="comment_reward_points"><![CDATA[<font color=\'#019B86\'><u>+%1$d</u></font>]]></string>
-    <string name="reputation_ranking_coming_soon"><![CDATA[Reputation points awarded by Admin for informative/encouraging feedback. \nComing Soon : Reputation ranking of <b>feedbackers.</b>]]></string>
+    <string name="reputation_ranking_coming_soon"><u>Check out reputation ranking of feedbackers</u></string>
     <string name="average_rating_link"><![CDATA[<u>%1$d</u>]]></string>
     <string name="aggregate_post_percentile"><![CDATA[<u>%1$s</u>]]></string>
     <string name="percentile_text"><![CDATA[Percentile : <font color=\'#17a1d7\'>%1$s</font>]]></string>
@@ -189,9 +191,9 @@
     <string name="confirm_longer_recording"><![CDATA[Statistics suggests people decide on rating after listening to just 30 secs on an average. So it is best to put shorter recordings to get more accurate evaluation. Shorter recordings also load faster and consume less data. \nIf you still want to proceed with longer recording <font color=\'#17a1d7\'>you will need to spend 10 points.</font>]]></string>
     <string name="rating_benchmark">Congrats on your first recording. This is a hard to please audience of all singers. So, don\'t lose hope.</string>
     <string name="first_rating_message">You just rated %1$d/20.\nNote : Be fair and genuine in your ratings, or you might be blacklisted by other members.</string>
-    <string name="new_user_restriction_below_10">Until you have posted your recording and gave 10 ratings.\nYou cannot rate 10 or below.</string>
-    <string name="new_user_restriction_below_average">Avg rating on this post is above 15 you can\'t rate below 14 until you have posted your recording and gave 10 ratings.</string>
-    <string name="first_post_rating_restriction">This is %1$s\'s first post. You cannot rate him 10 or below.</string>
+    <string name="new_user_restriction_below_10"><![CDATA[<font color=\'#17a1d7\'>You cannot rate 10 or below</font> for this reason : You need to post your own recording and rate 10 other people first.]]></string>
+    <string name="new_user_restriction_below_average"><![CDATA[<font color=\'#17a1d7\'>You can\'t rate below 14</font> on this post for the reason: Avg rating on this post is above 15 and you need to post your own recording and rate 10 other people first.]]></string>
+    <string name="first_post_rating_restriction"><![CDATA[<font color=\'#17a1d7\'>You cannot rate him 10 or below</font> for this reason: This is %1$s\'s first post.]]></string>
     <plurals name="posts_counter_format">
         <item quantity="one">post</item>
         <item quantity="other">posts</item>

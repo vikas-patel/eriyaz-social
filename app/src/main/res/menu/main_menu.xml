@@ -21,7 +21,7 @@
         android:orderInCategory="1" />
     <item
         android:id="@+id/leaderboard_menu_item"
-        android:title="Top Critics"
+        android:title="Top Feedbackers"
         app:showAsAction="never"
         android:orderInCategory="1" />
     <item

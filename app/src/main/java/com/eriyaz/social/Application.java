@@ -19,6 +19,7 @@ package com.eriyaz.social;
 
 import android.support.annotation.NonNull;
 
+import com.crashlytics.android.Crashlytics;
 import com.eriyaz.social.managers.DatabaseHelper;
 import com.eriyaz.social.utils.LogUtil;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -27,6 +28,8 @@ import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import io.fabric.sdk.android.Fabric;
 
 public class Application extends android.app.Application {
 
@@ -38,7 +41,7 @@ public class Application extends android.app.Application {
     @Override
     public void onCreate() {
         super.onCreate();
-
+        Fabric.with(this, new Crashlytics());
         ApplicationHelper.initDatabaseHelper(this);
         DatabaseHelper.getInstance(this).subscribeToNewPosts();
         mFirebaseRemoteConfig = FirebaseRemoteConfig.getInstance();

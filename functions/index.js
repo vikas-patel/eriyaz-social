@@ -168,7 +168,7 @@ function sendPushNotification(senderId, receiverId, postId, body) {
     });
 }
 
-function sendChatPushNotification(senderId, receiverId, body, extraKeyValue) {
+function sendChatPushNotification(senderId, receiverId, body, clickActivity, extraKeyValue) {
     // Get the list of device notification tokens.
     const getDeviceTokensTask = admin.database().ref(`/profiles/${receiverId}/notificationTokens`).once('value');
     console.log('getDeviceTokensTask path: ', `/profiles/${receiverId}/notificationTokens`)
@@ -194,7 +194,7 @@ function sendChatPushNotification(senderId, receiverId, body, extraKeyValue) {
                 title: notificationTitle,
                 body: body,
                 sound: "default",
-                click_action:"MESSAGE_ACTIVITY"
+                click_action: clickActivity
             },
             data : {
                 'ProfileActivity.USER_ID_EXTRA_KEY' : extraKeyValue
@@ -1131,10 +1131,10 @@ exports.appNotificationMessages = functions.database.ref('/user-messages/{userId
 
 function sendChatPushAppNotification(authorId, fromUserId, msg, extraKeyValue) {
     var promises = [];
-    promises.push(sendChatPushNotification(fromUserId, authorId, msg, extraKeyValue));
+    promises.push(sendChatPushNotification(fromUserId, authorId, msg, "MESSAGE_ACTIVITY", extraKeyValue));
     promises.push(sendAppMessageNotification(authorId, fromUserId, msg, extraKeyValue));
     return Promise.all(promises).then(results => {
-        console.log("task completed");
+        console.log("chat push notification task completed");
     });
 }
 
@@ -1152,6 +1152,30 @@ function sendAppMessageNotification(authorId, fromUserId, msg, extraKeyValue) {
         'createdDate': admin.database.ServerValue.TIMESTAMP
     });
 }
+
+function sendFeedbackPushAppNotification(authorId, fromUserId, msg) {
+    var promises = [];
+    promises.push(sendChatPushNotification(fromUserId, authorId, msg, "FEEDBACK_ACTIVITY", ""));
+    promises.push(sendAppFeedbackNotification(authorId, fromUserId, msg));
+    return Promise.all(promises).then(results => {
+        console.log("feedback push notification task completed");
+    });
+}
+
+function sendAppFeedbackNotification(authorId, fromUserId, msg) {
+    // Get user notification ref
+    const userNotificationsRef = admin.database().ref(`/user-notifications/${authorId}`);
+    var newNotificationRef = userNotificationsRef.push();
+    return newNotificationRef.set({
+            'action': 'com.eriyaz.social.activities.FeedbackActivity',
+            'fromUserId' : fromUserId,
+            'message': msg,
+            'createdDate': admin.database.ServerValue.TIMESTAMP
+        }).then(() => {
+            console.log('sent new feedback reply notification on feedback you replied to ', authorId);
+        });
+}
+
 
 function sendAppNotificationProfileAction(authorId, fromUserId, msg) {
     console.log("sending profile action notification:", msg);
@@ -1206,20 +1230,6 @@ function sendUserMessage(authorId, fromUserId, msg) {
     });
 }
 
-function sendAppFeedbackNotification(authorId, fromUserId, msg) {
-    // Get user notification ref
-    const userNotificationsRef = admin.database().ref(`/user-notifications/${authorId}`);
-    var newNotificationRef = userNotificationsRef.push();
-    return newNotificationRef.set({
-            'action': 'com.eriyaz.social.activities.FeedbackActivity',
-            'fromUserId' : fromUserId,
-            'message': msg,
-            'createdDate': admin.database.ServerValue.TIMESTAMP
-        }).then(() => {
-            console.log('sent new feedback reply notification on feedback you replied to ', authorId);
-        });
-}
-
 exports.appNotificationFeedbackConversation = functions.database.ref('/feedbacks/{feedbackId}').onCreate(event => {
     console.log('App notification for new feedback in conversation');
 
@@ -1230,7 +1240,12 @@ exports.appNotificationFeedbackConversation = functions.database.ref('/feedbacks
     const parentFeedbackId = feedback.parentId;
 
     if (parentFeedbackId == null) {
-        return console.log("stand alone feedback: don't send any notification, ", feedbackId);
+        console.log("stand alone feedback: notify admin, feedback id", feedbackId);
+        const getFeedbackAuthorProfileTask = admin.database().ref(`/profiles/${feedbackAuthorId}`).once('value');
+        return getFeedbackAuthorProfileTask.then(profile => {
+            var msg = "New feedback by " + profile.val().username + " in Contact Us screen.";
+            return sendFeedbackPushAppNotification(WELCOME_ADMIN, feedbackAuthorId, msg);
+        });
     }
 
     // Get parent feedback.
@@ -1263,13 +1278,13 @@ exports.appNotificationFeedbackConversation = functions.database.ref('/feedbacks
                 const promisePool = new PromisePool(() => {
                     if (sentParentAuthorNotification) {
                         sentParentAuthorNotification = false;
-                        var msg = profile.val().username + " replied on your feedback.";
-                        return sendAppFeedbackNotification(parentFeedbackAuthorId, feedbackAuthorId, msg);
+                        var msg = profile.val().username + " replied on your feedback in Contact Us screen.";
+                        return sendFeedbackPushAppNotification(parentFeedbackAuthorId, feedbackAuthorId, msg);
                     }
                   if (authorToNotify.length > 0) {
                     const authorId = authorToNotify.pop();
-                    var msg = profile.val().username + " replied on the feedback on which you also replied.";
-                    return sendAppFeedbackNotification(authorId, feedbackAuthorId, msg);
+                    var msg = profile.val().username + " replied on the feedback on which you also replied in Contact Us screen.";
+                    return sendFeedbackPushAppNotification(authorId, feedbackAuthorId, msg);
                   }
                   return null;
                 }, MAX_CONCURRENT);
@@ -1694,7 +1709,6 @@ exports.rankTaskRunner = functions.https.onRequest((req, res) => {
         // return in asc order by reputation points
         profiles.forEach( profileSnap => {
             let key = profileSnap.key;
-            console.log("key, rank", key, rank);
             let previousRank = profileSnap.val().rank;
             if (!previousRank || previousRank != rank) {
                 updateProfiles[`${key}/rank`] = rank;
@@ -1702,7 +1716,7 @@ exports.rankTaskRunner = functions.https.onRequest((req, res) => {
             }
             rank--;
         });
-        console.log("updates", updateProfiles);
+        console.log("updated profiles", updated);
         res.status(200).send(`updated profiles ${updated}`);
         return profileRef.update(updateProfiles);
     });

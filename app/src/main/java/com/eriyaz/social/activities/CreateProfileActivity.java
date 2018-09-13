@@ -83,7 +83,7 @@ public class CreateProfileActivity extends PickImageActivity implements OnProfil
 
         nameEditText.setText(profile.getUsername());
 
-        if (profile.getPhotoUrl() != null) {
+        if (profile.getPhotoUrl() != null || profile.getEmail() == null || profile.getEmail().isEmpty()) {
             Glide.with(this)
                     .load(profile.getPhotoUrl())
                     .diskCacheStrategy(DiskCacheStrategy.SOURCE)

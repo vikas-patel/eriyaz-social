@@ -46,6 +46,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.eriyaz.social.Application;
 import com.eriyaz.social.BuildConfig;
 import com.eriyaz.social.Constants;
@@ -60,7 +61,6 @@ import com.eriyaz.social.managers.DatabaseHelper;
 import com.eriyaz.social.managers.PostManager;
 import com.eriyaz.social.managers.listeners.OnDataChangedListener;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
-import com.eriyaz.social.managers.listeners.OnObjectExistListener;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.AnimationUtils;
@@ -105,6 +105,7 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Crashlytics.log("MainActivity");
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -346,21 +347,22 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
             postsAdapter = new PostsAdapter(this, swipeContainer);
             postsAdapter.setCallback(new PostsAdapter.Callback() {
                 @Override
-                public void onItemClick(final Post post, final View view) {
+                public void onItemClick(Post post, View view) {
                     if (!hasInternetConnection()) {
                         showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
                         return;
                     }
-                    PostManager.getInstance(MainActivity.this).isPostExistSingleValue(post.getId(), new OnObjectExistListener<Post>() {
-                        @Override
-                        public void onDataChanged(boolean exist) {
-                            if (exist) {
-                                openPostDetailsActivity(post, view);
-                            } else {
-                                showFloatButtonRelatedSnackBar(R.string.error_post_was_removed);
-                            }
-                        }
-                    });
+                    openPostDetailsActivity(post, view);
+//                    PostManager.getInstance(MainActivity.this).isPostExistSingleValue(post.getId(), new OnObjectExistListener<Post>() {
+//                        @Override
+//                        public void onDataChanged(boolean exist) {
+//                            if (exist) {
+//                                openPostDetailsActivity(post, view);
+//                            } else {
+//                                showFloatButtonRelatedSnackBar(R.string.error_post_was_removed);
+//                            }
+//                        }
+//                    });
                 }
 
                 @Override
@@ -372,6 +374,10 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
                 public void onAuthorClick(Post post, View view) {
                     if (post.isAnonymous() && (currentProfile == null || !currentProfile.isAdmin())) {
                         showSnackBar("Post is anonymous");
+                        return;
+                    }
+                    if (!hasInternetConnection()) {
+                        showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
                         return;
                     }
                     openProfileActivity(post.getAuthorId(), view);
@@ -510,6 +516,7 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
     }
 
     private void openFeedbackActivity() {
+        Crashlytics.getInstance().crash(); // Force a crash
         Intent intent = new Intent(MainActivity.this, FeedbackActivity.class);
         startActivityForResult(intent, FeedbackActivity.CREATE_FEEDBACK);
     }

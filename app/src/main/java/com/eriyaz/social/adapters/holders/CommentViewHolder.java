@@ -19,6 +19,7 @@
 package com.eriyaz.social.adapters.holders;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
@@ -26,6 +27,7 @@ import android.text.Html;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -40,6 +42,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
 import com.eriyaz.social.activities.BaseAlertDialogBuilder;
+import com.eriyaz.social.activities.LeaderboardActivity;
 import com.eriyaz.social.adapters.CommentsAdapter;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
@@ -208,7 +211,7 @@ CommentViewHolder extends RecyclerView.ViewHolder {
             rewardTextView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    showDialog(R.string.reputation_ranking_coming_soon);
+                    showReputationDialog();
                 }
             });
         } else {
@@ -216,9 +219,21 @@ CommentViewHolder extends RecyclerView.ViewHolder {
         }
     }
 
-    private void showDialog(int messageId) {
+    private void showReputationDialog() {
+        LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View view = layoutInflater.inflate(R.layout.dialog_reputation_points_about, null);
+
+        final TextView reputationLinkTextView = view.findViewById(R.id.reputationLinkTextView);
+        reputationLinkTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // open profile activity
+                Intent intent = new Intent(context, LeaderboardActivity.class);
+                context.startActivity(intent);
+            }
+        });
         AlertDialog.Builder builder = new BaseAlertDialogBuilder(context);
-        builder.setMessage(Html.fromHtml(context.getString(messageId)));
+        builder.setView(view);
         builder.setPositiveButton(R.string.button_ok, null);
         builder.show();
     }

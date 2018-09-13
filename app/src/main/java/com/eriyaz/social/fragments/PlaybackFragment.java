@@ -614,30 +614,31 @@ public class PlaybackFragment extends BaseDialogFragment {
                         ratingBar.setProgress(rating.getRating());
                         return;
                     }
-                    // if new user, check limits
-                    if (((BaseCurrentProfileActivity) getActivity()).isNewUser()) {
-                        // post no rating, can't rate below 10
-                        // post has rating avg
-                        if (post.getRatingsCount() == 0 && progress <= 10) {
-                            showDialog(R.string.new_user_restriction_below_10);
-                            ratingBar.setProgress(rating.getRating());
-                            return;
-                        } else if (post.getAverageRating() > 15 && progress < 14) {
-                            showDialog(R.string.new_user_restriction_below_average);
-                            ratingBar.setProgress(rating.getRating());
-                            return;
-                        }
-                    }
-
-                    if (post.isAuthorFirstPost() && progress <= 10) {
-                        showDialog(String.format(getResources().getString(R.string.first_post_rating_restriction), authorName));
-                        ratingBar.setProgress(rating.getRating());
-                        return;
-                    }
 
                     if (!PreferencesUtil.isUserRatedMany(getActivity())) {
                         PreferencesUtil.incrementUserRatingCount(getActivity());
                     }
+                }
+
+                // if new user, check limits
+                if (((BaseCurrentProfileActivity) getActivity()).isNewUser()) {
+                    // post has rating avg
+                    if (post.getAverageRating() > 15 && progress < 14) {
+                        showDialog(R.string.new_user_restriction_below_average);
+                        ratingBar.setProgress(rating.getRating());
+                        return;
+                    } else if (progress <= 10) {
+                        // post no rating, can't rate below 10
+                        showDialog(R.string.new_user_restriction_below_10);
+                        ratingBar.setProgress(rating.getRating());
+                        return;
+                    }
+                }
+
+                if (post.isAuthorFirstPost() && progress <= 10) {
+                    showDialog(String.format(getString(R.string.first_post_rating_restriction), authorName));
+                    ratingBar.setProgress(rating.getRating());
+                    return;
                 }
 
                 ratingController.setUpdatingRatingCounter(false);
@@ -702,7 +703,7 @@ public class PlaybackFragment extends BaseDialogFragment {
 
     private void showDialog(String msg) {
         AlertDialog.Builder builder = new BaseAlertDialogBuilder(this.getActivity());
-        builder.setMessage(msg);
+        builder.setMessage(Html.fromHtml(msg));
         builder.setPositiveButton(R.string.button_ok, null);
         builder.show();
     }

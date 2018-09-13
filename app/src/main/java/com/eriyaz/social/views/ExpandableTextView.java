@@ -182,6 +182,7 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
 
     @Override
     protected void onFinishInflate() {
+        super.onFinishInflate();
         findViews();
     }
 
@@ -241,6 +242,7 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
         mRelayout = true;
         mTv.setText(text);
         setVisibility(TextUtils.isEmpty(text) ? View.GONE : View.VISIBLE);
+        requestLayout();
     }
 
     public void setText(@Nullable CharSequence text, @NonNull SparseBooleanArray collapsedStatus, int position) {
@@ -252,7 +254,6 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
         mButton.setText(mCollapsed ? mExpandText : mCollapseText);
         setText(text);
         getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        requestLayout();
     }
 
     @Nullable

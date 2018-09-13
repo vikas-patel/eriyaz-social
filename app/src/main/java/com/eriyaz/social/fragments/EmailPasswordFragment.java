@@ -65,12 +65,12 @@ public class EmailPasswordFragment extends BaseDialogFragment {
                 signIn(mEmailField.getText().toString(), mPasswordField.getText().toString());
             }
         });
-        v.findViewById(R.id.email_create_account_button).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                createAccount(mEmailField.getText().toString(), mPasswordField.getText().toString());
-            }
-        });
+//        v.findViewById(R.id.email_create_account_button).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                createAccount(mEmailField.getText().toString(), mPasswordField.getText().toString());
+//            }
+//        });
         v.findViewById(R.id.btn_forgot_password).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

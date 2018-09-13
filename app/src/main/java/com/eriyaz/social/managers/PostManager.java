@@ -21,6 +21,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.crashlytics.android.Crashlytics;
 import com.eriyaz.social.model.Flag;
 import com.eriyaz.social.model.ItemListResult;
 import com.eriyaz.social.utils.Analytics;
@@ -77,6 +78,7 @@ public class PostManager extends FirebaseListenersManager {
             ApplicationHelper.getDatabaseHelper().createOrUpdatePost(post, onPostCreatedListener);
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
+            Crashlytics.logException(e);
         }
     }
 
@@ -126,7 +128,7 @@ public class PostManager extends FirebaseListenersManager {
                 public void onFailure(@NonNull Exception exception) {
                     // Handle unsuccessful uploads
                     onPostCreatedListener.onPostSaved(false, exception.getMessage());
-
+                    Crashlytics.logException(exception);
                 }
             }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override

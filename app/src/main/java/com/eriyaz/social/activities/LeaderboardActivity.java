@@ -38,11 +38,12 @@ public class LeaderboardActivity extends BaseActivity {
         profileAdapter = new ProfileAdapter(this, swipeContainer);
         profileAdapter.setCallback(new ProfileAdapter.Callback() {
             @Override
-            public void onItemClick(final Profile post, final View view) {
+            public void onItemClick(final Profile profile, final View view) {
                 if (!hasInternetConnection()) {
                     showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
                     return;
                 }
+                openProfileActivity(profile.getId(), view);
             }
 
             @Override
@@ -74,17 +75,9 @@ public class LeaderboardActivity extends BaseActivity {
             showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
     }
 
-
-    private void openPostDetailsActivity(Post post, View v) {
-        Intent intent = new Intent(LeaderboardActivity.this, PostDetailsActivity.class);
-        intent.putExtra(PostDetailsActivity.POST_ID_EXTRA_KEY, post.getId());
-        intent.putExtra(PostDetailsActivity.IS_ADMIN_EXTRA_KEY, true);
-        startActivityForResult(intent, PostDetailsActivity.UPDATE_POST_REQUEST);
-    }
-
     private void openProfileActivity(String userId, View view) {
         Intent intent = new Intent(LeaderboardActivity.this, ProfileActivity.class);
         intent.putExtra(ProfileActivity.USER_ID_EXTRA_KEY, userId);
-        startActivityForResult(intent, ProfileActivity.CREATE_POST_FROM_PROFILE_REQUEST);
+        startActivity(intent);
     }
 }

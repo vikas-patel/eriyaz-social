@@ -30,6 +30,8 @@ import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
+import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.auth.IdpResponse;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
@@ -56,10 +58,12 @@ import com.eriyaz.social.utils.LogoutHelper;
 import com.eriyaz.social.utils.PreferencesUtil;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class LoginActivity extends BaseActivity implements GoogleApiClient.OnConnectionFailedListener {
     private static final String TAG = LoginActivity.class.getSimpleName();
     private static final int SIGN_IN_GOOGLE = 9001;
+    private static final int SIGN_IN_PHONE = 9002;
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -83,6 +87,12 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
             @Override
             public void onClick(View view) {
                 signInWithGoogle();
+            }
+        });
+        findViewById(R.id.phoneSignInButton).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                signInWithPhone();
             }
         });
 
@@ -189,6 +199,19 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                 LogUtil.logDebug(TAG, "SIGN_IN_GOOGLE failed :" + result);
                 // Google Sign In failed, update UI appropriately
                 hideProgress();
+            }
+        } else if (requestCode == SIGN_IN_GOOGLE) {
+            IdpResponse response = IdpResponse.fromResultIntent(data);
+
+            if (resultCode == RESULT_OK) {
+                // Successfully signed in
+                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                // ...
+            } else {
+                // Sign in failed. If response is null the user canceled the
+                // sign-in flow using the back button. Otherwise check
+                // response.getError().getErrorCode() and handle the error.
+                // ...
             }
         }
     }
@@ -301,6 +324,24 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
         if (hasInternetConnection()) {
             Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
             startActivityForResult(signInIntent, SIGN_IN_GOOGLE);
+        } else {
+            showSnackBar(R.string.internet_connection_failed);
+        }
+    }
+
+    private void signInWithPhone() {
+        if (hasInternetConnection()) {
+            // Choose authentication providers
+            List<AuthUI.IdpConfig> providers = Arrays.asList(
+                    new AuthUI.IdpConfig.PhoneBuilder().build());
+
+// Create and launch sign-in intent
+            startActivityForResult(
+                    AuthUI.getInstance()
+                            .createSignInIntentBuilder()
+                            .setAvailableProviders(providers)
+                            .build(),
+                    SIGN_IN_PHONE);
         } else {
             showSnackBar(R.string.internet_connection_failed);
         }

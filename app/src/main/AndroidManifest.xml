@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.eriyaz.social">
+    package="com.eriyaz.social"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.READ_LOGS" />
 
     <application
         android:name=".Application"
@@ -16,6 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <meta-data
+            tools:replace="android:value"
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/facebook_app_id" />
         <meta-data
@@ -85,7 +86,12 @@
         <activity
             android:name=".activities.FeedbackActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/title_activity_feedback" />
+            android:label="@string/title_activity_feedback">
+            <intent-filter>
+                <action android:name="FEEDBACK_ACTIVITY" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".activities.TnCActivity"
             android:configChanges="orientation|screenSize"
@@ -134,7 +140,7 @@
 
         <meta-data
             android:name="io.fabric.ApiKey"
-            android:value="84e05e27c9fcba7e1de6a47e355a1aa247264a46" />
+            android:value="382d3faa99c03e81316e358612178043fd6e985a" />
 
         <service android:name=".services.MyFirebaseMessagingService">
             <intent-filter>
@@ -161,7 +167,7 @@
         <activity
             android:name=".activities.LeaderboardActivity"
             android:configChanges="orientation|screenSize"
-            android:label="Top Critics" />
+            android:label="Top Feedbackers" />
         <activity
             android:name=".activities.ResetPasswordActivity"
             android:label="Reset Password" />

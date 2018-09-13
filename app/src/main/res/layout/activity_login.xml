@@ -88,9 +88,8 @@
                 android:textColor="@drawable/login_button_text_selector" />
 
         </RelativeLayout>
-
         <RelativeLayout
-            android:id="@+id/localSignInButton"
+            android:id="@+id/phoneSignInButton"
             android:layout_width="@dimen/base_login_button_width"
             android:layout_height="@dimen/base_login_button_height"
             android:layout_gravity="center_horizontal"
@@ -105,17 +104,29 @@
                 android:layout_centerVertical="true"
                 android:paddingLeft="@dimen/large_intrinsic_padding"
                 android:paddingRight="@dimen/large_intrinsic_padding"
-                app:srcCompat="@drawable/ratemysinging_24"
+                app:srcCompat="@drawable/ic_phone"
                 android:layout_alignParentLeft="true" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
-                android:text="RateMySinging Account"
+                android:text="@string/button_login_with_phone"
                 android:textColor="@drawable/login_button_text_selector" />
 
         </RelativeLayout>
+
     </LinearLayout>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/localSignInButton"
+        android:text="@string/button_login_with_email"
+        android:textSize="12sp"
+        android:layout_marginBottom="@dimen/large_intrinsic_padding"
+        android:textColor="@android:color/white"
+        android:fontFamily="sans-serif-condensed"
+        android:layout_gravity="bottom"
+        android:textAlignment="center" />
 </FrameLayout>
 

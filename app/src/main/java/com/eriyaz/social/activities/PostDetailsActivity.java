@@ -61,6 +61,7 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.crashlytics.android.Crashlytics;
 import com.eriyaz.social.Application;
 import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.CommentsAdapter;
@@ -189,6 +190,7 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Crashlytics.log("PostDetailsActivity");
         setContentView(R.layout.activity_post_details);
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
