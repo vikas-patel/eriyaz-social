@@ -257,20 +257,11 @@ public class RatingController {
     }
 
     public void handleRatingClickAction(final BaseActivity baseActivity, final Post post, final float ratingValue) {
-        PostManager.getInstance(baseActivity.getApplicationContext()).isPostExistSingleValue(post.getId(), new OnObjectExistListener<Post>() {
-            @Override
-            public void onDataChanged(boolean exist) {
-                if (exist) {
-                    if (baseActivity.hasInternetConnection()) {
-                        doHandleRatingClickAction(baseActivity, post, ratingValue);
-                    } else {
-                        showWarningMessage(baseActivity, R.string.internet_connection_failed);
-                    }
-                } else {
-                    showWarningMessage(baseActivity, R.string.message_post_was_removed);
-                }
-            }
-        });
+        if (baseActivity.hasInternetConnection()) {
+            doHandleRatingClickAction(baseActivity, post, ratingValue);
+        } else {
+            showWarningMessage(baseActivity, R.string.internet_connection_failed);
+        }
     }
 
     private void showWarningMessage(BaseActivity baseActivity, int messageId) {

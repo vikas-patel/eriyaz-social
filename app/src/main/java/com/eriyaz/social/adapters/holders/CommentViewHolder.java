@@ -25,11 +25,14 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.text.Spannable;
+import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
+import android.text.style.UnderlineSpan;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -44,6 +47,7 @@ import com.eriyaz.social.activities.BaseActivity;
 import com.eriyaz.social.activities.BaseAlertDialogBuilder;
 import com.eriyaz.social.activities.LeaderboardActivity;
 import com.eriyaz.social.adapters.CommentsAdapter;
+import com.eriyaz.social.controllers.LikeController;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.model.Comment;
@@ -72,6 +76,10 @@ CommentViewHolder extends RecyclerView.ViewHolder {
     protected Spinner rewardSpinner;
     private TextView rewardTextView;
     private ImageView playImageView;
+    private TextView likeCounterTextView;
+    private ImageView likesImageView;
+    private ViewGroup likeViewGroup;
+    private LikeController likeController;
     private String mUserName = "";
     private final ProfileManager profileManager;
     private CommentsAdapter.Callback callback;
@@ -88,6 +96,9 @@ CommentViewHolder extends RecyclerView.ViewHolder {
         this.context = itemView.getContext();
         profileManager = ProfileManager.getInstance(itemView.getContext().getApplicationContext());
 
+        likeCounterTextView = itemView.findViewById(R.id.likeCounterTextView);
+        likesImageView = itemView.findViewById(R.id.likesImageView);
+        likeViewGroup = itemView.findViewById(R.id.likesContainer);
         avatarImageView = (ImageView) itemView.findViewById(R.id.avatarImageView);
         commentTextView = (ExpandableTextView) itemView.findViewById(R.id.commentText);
         expandableTextView = itemView.findViewById(R.id.expandable_text);
@@ -97,6 +108,16 @@ CommentViewHolder extends RecyclerView.ViewHolder {
         rewardSpinner = itemView.findViewById(R.id.rewardSpinner);
         rewardTextView = itemView.findViewById(R.id.rewardText);
         isAdmin = aIsAdmin;
+
+        likeViewGroup.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int position = getAdapterPosition();
+                if (callback != null && position != RecyclerView.NO_POSITION) {
+                    callback.onLikeClick(likeController, position);
+                }
+            }
+        });
 
         mistakesTextHashTagHelper = HashTagHelper.Creator.create(itemView.getResources().getColor(R.color.red), new HashTagHelper.OnHashTagClickListener() {
             @Override
@@ -113,6 +134,7 @@ CommentViewHolder extends RecyclerView.ViewHolder {
     }
 
     public void bindData(final Comment comment, final Post post) {
+        likeController = new LikeController(context, post, comment, likeCounterTextView, likesImageView, true);
         final String authorId = comment.getAuthorId();
         if (authorId != null)
             profileManager.getProfileSingleValue(authorId, createOnProfileChangeListener(commentTextView,
@@ -123,6 +145,19 @@ CommentViewHolder extends RecyclerView.ViewHolder {
         } else {
             expandableTextView.setVisibility(View.VISIBLE);
             commentTextView.setText(comment.getText());
+        }
+
+        if (comment.getLikesCount() > 0) {
+            String heartLabel = context.getResources().getQuantityString(R.plurals.likes_counter_format, comment.getLikesCount(), comment.getLikesCount());
+            String likeCounterText = comment.getLikesCount() + " " + heartLabel;
+            SpannableString underlineLikeCounterText = new SpannableString(likeCounterText);
+            underlineLikeCounterText.setSpan(new UnderlineSpan(), 0, underlineLikeCounterText.length(), 0);
+            likeCounterTextView.setText(underlineLikeCounterText);
+            likeCounterTextView.setOnClickListener((v)-> {
+                callback.onLikeUserListClick(getAdapterPosition());
+            });
+        } else {
+            likeCounterTextView.setText("");
         }
 
         CharSequence date = FormatterUtil.getRelativeTimeSpanString(context, comment.getCreatedDate());
@@ -279,5 +314,9 @@ CommentViewHolder extends RecyclerView.ViewHolder {
     private boolean hasAccessToModifyPost(Post post) {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         return currentUser != null && post != null && post.getAuthorId().equals(currentUser.getUid());
+    }
+
+    public void initLike(boolean isLiked) {
+        likeController.initLike(isLiked);
     }
 }

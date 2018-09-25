@@ -165,6 +165,14 @@
                             android:layout_height="wrap_content"
                             android:gravity="center"
                             android:textAppearance="@style/TextAppearance.Title" />
+                        <TextView
+                            android:id="@+id/likesCountTextView"
+                            android:paddingTop="@dimen/small_intrinsic_padding"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/likes_label"
+                            android:gravity="center"
+                            android:textAppearance="@style/TextAppearance.Title" />
 
                     </LinearLayout>
 

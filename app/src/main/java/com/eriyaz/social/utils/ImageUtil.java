@@ -17,11 +17,13 @@
 package com.eriyaz.social.utils;
 
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
+import android.widget.ImageView;
 
 import com.amulyakhare.textdrawable.TextDrawable;
 import com.amulyakhare.textdrawable.util.ColorGenerator;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.eriyaz.social.R;
 import com.eriyaz.social.enums.UploadImagePrefix;
 import com.eriyaz.social.views.BadgeDrawable;
@@ -64,5 +66,17 @@ public class ImageUtil {
                 .endConfig()
                 .buildRect(initialChar, color);
         return drawable;
+    }
+
+    public static void loadImage(Context context, String url, ImageView imageView) {
+        loadImage(context, url, imageView, DiskCacheStrategy.ALL);
+    }
+
+    public static void loadImage(Context context, String url, ImageView imageView, DiskCacheStrategy diskCacheStrategy) {
+        Glide.with(context)
+                .load(url)
+                .diskCacheStrategy(diskCacheStrategy)
+                .error(R.drawable.ic_stub)
+                .into(imageView);
     }
 }

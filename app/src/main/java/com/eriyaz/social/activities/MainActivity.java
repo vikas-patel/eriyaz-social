@@ -45,8 +45,6 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.crashlytics.android.Crashlytics;
 import com.eriyaz.social.Application;
 import com.eriyaz.social.BuildConfig;
 import com.eriyaz.social.Constants;
@@ -105,7 +103,6 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Crashlytics.log("MainActivity");
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -516,7 +513,6 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
     }
 
     private void openFeedbackActivity() {
-        Crashlytics.getInstance().crash(); // Force a crash
         Intent intent = new Intent(MainActivity.this, FeedbackActivity.class);
         startActivityForResult(intent, FeedbackActivity.CREATE_FEEDBACK);
     }
@@ -576,7 +572,7 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
         mainHandler.post(new Runnable() {
             @Override
             public void run() {
-                int newPostsQuantity = postManager.getNewPostsCounter();
+                    int newPostsQuantity = postManager.getNewPostsCounter();
 
                 if (newPostsCounterTextView != null) {
                     if (newPostsQuantity > 0) {

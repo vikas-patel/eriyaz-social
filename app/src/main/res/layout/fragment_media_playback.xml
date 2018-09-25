@@ -24,8 +24,8 @@
                 app:controller_layout_id="@layout/custom_playback_control"
                 app:show_timeout="0"
                 android:layout_marginBottom="@dimen/large_intrinsic_padding"
-                app:fastforward_increment="5000"
-                app:rewind_increment="5000"
+                app:fastforward_increment="2000"
+                app:rewind_increment="2000"
                 android:layout_height="80dp"/>
             <TextView
                 android:text="Rate Below:"

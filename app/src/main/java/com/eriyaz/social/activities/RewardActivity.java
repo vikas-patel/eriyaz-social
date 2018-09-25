@@ -46,16 +46,11 @@ public class RewardActivity extends BaseActivity {
         postsAdapter.setCallback(new PostsAdapter.Callback() {
             @Override
             public void onItemClick(final Post post, final View view) {
-                PostManager.getInstance(RewardActivity.this).isPostExistSingleValue(post.getId(), new OnObjectExistListener<Post>() {
-                    @Override
-                    public void onDataChanged(boolean exist) {
-                        if (exist) {
-                            openPostDetailsActivity(post, view);
-                        } else {
-                            showFloatButtonRelatedSnackBar(R.string.error_post_was_removed);
-                        }
-                    }
-                });
+                if (!hasInternetConnection()) {
+                    showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
+                    return;
+                }
+                openPostDetailsActivity(post, view);
             }
 
             @Override

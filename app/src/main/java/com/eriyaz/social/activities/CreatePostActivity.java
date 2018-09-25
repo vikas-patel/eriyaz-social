@@ -60,6 +60,8 @@ public class CreatePostActivity extends BaseActivity implements OnRecordingEndLi
     private RecordingTabAdapter tabAdapter;
     private Profile profile;
     protected ProfileManager profileManager;
+    //Boolean variable to mark if the transaction is safe
+    private boolean isTransactionSafe;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -199,7 +201,20 @@ public class CreatePostActivity extends BaseActivity implements OnRecordingEndLi
         }
 
         public void replaceFragment(Fragment fragment) {
-            hostFragment.replaceFragment(fragment, false);
+            if (isTransactionSafe) {
+                hostFragment.replaceFragment(fragment, false);
+            }
         }
+    }
+
+    @Override
+    public void onPostResume() {
+        super.onPostResume();
+        isTransactionSafe = true;
+    }
+
+    public void onPause() {
+        super.onPause();
+        isTransactionSafe = false;
     }
 }

@@ -101,6 +101,12 @@ public class DatabaseHelper {
     private Analytics analytics;
     private Map<ValueEventListener, DatabaseReference> activeListeners = new HashMap<>();
     private Map<ChildEventListener, DatabaseReference> activeChildListeners = new HashMap<>();
+    public static final String POSTS_DB_KEY = "posts";
+    public static final String PROFILES_DB_KEY = "profiles";
+    public static final String POST_COMMENTS_DB_KEY = "post-comments";
+    public static final String POST_LIKES_DB_KEY = "post-likes";
+    public static final String LIKE_USER_DB_KEY = "like-user";
+    public static final String COMMENT_LIKES_DB_KEY = "comment-likes";
 
     public static DatabaseHelper getInstance(Context context) {
         if (instance == null) {
@@ -682,57 +688,6 @@ public class DatabaseHelper {
         databaseReference.setValue(notification);
     }
 
-    public void createOrUpdateLike(final String postId, final String postAuthorId) {
-        try {
-            String authorId = firebaseAuth.getCurrentUser().getUid();
-            DatabaseReference mLikesReference = database.getReference().child("post-likes").child(postId).child(authorId);
-            mLikesReference.push();
-            String id = mLikesReference.push().getKey();
-            Like like = new Like(authorId);
-            like.setId(id);
-
-            mLikesReference.child(id).setValue(like, new DatabaseReference.CompletionListener() {
-                @Override
-                public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                    if (databaseError == null) {
-                        DatabaseReference postRef = database.getReference("posts/" + postId + "/likesCount");
-                        incrementLikesCount(postRef);
-
-                        DatabaseReference profileRef = database.getReference("profiles/" + postAuthorId + "/likesCount");
-                        incrementLikesCount(profileRef);
-                    } else {
-                        LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
-                    }
-                }
-
-                private void incrementLikesCount(DatabaseReference postRef) {
-                    postRef.runTransaction(new Transaction.Handler() {
-                        @Override
-                        public Transaction.Result doTransaction(MutableData mutableData) {
-                            Integer currentValue = mutableData.getValue(Integer.class);
-                            if (currentValue == null) {
-                                mutableData.setValue(1);
-                            } else {
-                                mutableData.setValue(currentValue + 1);
-                            }
-
-                            return Transaction.success(mutableData);
-                        }
-
-                        @Override
-                        public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-                            LogUtil.logInfo(TAG, "Updating likes count transaction is completed.");
-                        }
-                    });
-                }
-
-            });
-        } catch (Exception e) {
-            LogUtil.logError(TAG, "createOrUpdateLike()", e);
-        }
-
-    }
-
     public void incrementWatchersCount(String postId) {
         DatabaseReference postRef = database.getReference("posts/" + postId + "/watchersCount");
         postRef.runTransaction(new Transaction.Handler() {
@@ -781,46 +736,6 @@ public class DatabaseHelper {
          DatabaseReference unseenCountRef = database.getReference("profiles/" + userId + "/unseen");
          unseenCountRef.setValue(0);
      }
-
-    public void removeLike(final String postId, final String postAuthorId) {
-        String authorId = firebaseAuth.getCurrentUser().getUid();
-        DatabaseReference mLikesReference = database.getReference().child("post-likes").child(postId).child(authorId);
-        mLikesReference.removeValue(new DatabaseReference.CompletionListener() {
-            @Override
-            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                if (databaseError == null) {
-                    DatabaseReference postRef = database.getReference("posts/" + postId + "/likesCount");
-                    decrementLikesCount(postRef);
-
-                    DatabaseReference profileRef = database.getReference("profiles/" + postAuthorId + "/likesCount");
-                    decrementLikesCount(profileRef);
-                } else {
-                    LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
-                }
-            }
-
-            private void decrementLikesCount(DatabaseReference postRef) {
-                postRef.runTransaction(new Transaction.Handler() {
-                    @Override
-                    public Transaction.Result doTransaction(MutableData mutableData) {
-                        Long currentValue = mutableData.getValue(Long.class);
-                        if (currentValue == null) {
-                            mutableData.setValue(0);
-                        } else {
-                            mutableData.setValue(currentValue - 1);
-                        }
-
-                        return Transaction.success(mutableData);
-                    }
-
-                    @Override
-                    public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-                        LogUtil.logInfo(TAG, "Updating likes count transaction is completed.");
-                    }
-                });
-            }
-        });
-    }
 
     public void removeRating(final String postId, final Rating rating) {
         if (rating.getId() == null) return;

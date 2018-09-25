@@ -24,7 +24,6 @@ import android.util.Log;
 import com.crashlytics.android.Crashlytics;
 import com.eriyaz.social.model.Flag;
 import com.eriyaz.social.model.ItemListResult;
-import com.eriyaz.social.utils.Analytics;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;

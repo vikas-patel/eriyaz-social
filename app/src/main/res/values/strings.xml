@@ -41,6 +41,7 @@
     <string name="title_activity_feedback">Contact Us</string>
     <string name="title_activity_tnc">Term &amp; Conditions</string>
     <string name="title_activity_ratings_chart">Ratings Chart</string>
+    <string name="title_comment_like_users">Comment Loved By</string>
     <string name="post_limit_error">1 post allowed in 2 hours, you can create next post after %1$s. You can save this recording for later.</string>
 
     <string name="text_take_photo">Take photo</string>
@@ -184,6 +185,7 @@
     <string name="posted_by_label">Posted by:</string>
     <string name="score_label">contribution score</string>
     <string name="reputation_label">reputation score</string>
+    <string name="likes_label">hearts "\u2665"</string>
     <string name="insufficient_points_view_rating">Dear %1$s, this is a rating for rating exchange platform. You need 1 point to view this rating. Please rate others to earn points.</string>
     <string name="point_spent_view_rating">1 point spent to view rating.</string>
     <string name="rating_self_recording">This is your own recording so your rating is not considered. Please wait for others to rate you.</string>
@@ -203,8 +205,8 @@
         <item quantity="other">You have %1$d points right now. Please rate others to earn points.</item>
     </plurals>
     <plurals name="likes_counter_format">
-        <item quantity="one">like</item>
-        <item quantity="other">likes</item>
+        <item quantity="one">heart</item>
+        <item quantity="other">hearts</item>
     </plurals>
 
     <plurals name="points_needed_text">

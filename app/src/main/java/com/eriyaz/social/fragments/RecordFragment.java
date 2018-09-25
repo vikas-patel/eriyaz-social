@@ -35,6 +35,7 @@ import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.services.RecordingService;
 import com.eriyaz.social.utils.FormatterUtil;
 import com.eriyaz.social.utils.PermissionsUtil;
+import com.google.android.exoplayer2.util.Util;
 import com.melnykov.fab.FloatingActionButton;
 
 import java.io.File;
@@ -185,7 +186,7 @@ public class RecordFragment extends BaseFragment implements RecordingService.Rec
                 } else {
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
-                    Toast.makeText(getActivity(), "Permissions Denied to record audio", Toast.LENGTH_LONG).show();
+                    showWarningDialog("Permissions Denied to record audio. Please try again.");
                 }
                 return;
             }
@@ -265,14 +266,28 @@ public class RecordFragment extends BaseFragment implements RecordingService.Rec
     }
 
     @Override
-    public void onDestroy() {
+    public void onPause() {
+        super.onPause();
+        if (Util.SDK_INT <= 23) {
+            resetRecording();
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (Util.SDK_INT > 23) {
+            resetRecording();
+        }
+    }
+
+    private void resetRecording() {
         if (mConnection != null && !mStartRecording) {
             Intent intent = new Intent(getActivity(), RecordingService.class);
-            getActivity().stopService(intent);
-            getActivity().unbindService(mConnection);
-            if (countDownTimer != null) countDownTimer.cancel();
+            stopRecording(intent);
+            mCountDownText.setText(Constants.RECORDING.DEFAULT_RECORDING_TEXT);
+            mStartRecording = !mStartRecording;
         }
-        super.onDestroy();
     }
 
     // Recording Start/Stop

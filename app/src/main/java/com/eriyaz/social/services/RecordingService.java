@@ -79,7 +79,8 @@ public class RecordingService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        boolean isLowQuality = intent.getBooleanExtra(LOW_QUALITY_EXTRA_KEY, false);
+        boolean isLowQuality = false;
+        if (intent != null) isLowQuality = intent.getBooleanExtra(LOW_QUALITY_EXTRA_KEY, false);
         startRecording(isLowQuality);
         return START_STICKY;
     }

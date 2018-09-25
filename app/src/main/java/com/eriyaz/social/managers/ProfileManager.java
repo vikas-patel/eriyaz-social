@@ -83,6 +83,7 @@ public class ProfileManager extends FirebaseListenersManager {
     public Profile buildProfile(FirebaseUser firebaseUser, String largeAvatarURL) {
         Profile profile = new Profile(firebaseUser.getUid());
         profile.setEmail(firebaseUser.getEmail());
+        profile.setPhone(firebaseUser.getPhoneNumber());
         profile.setUsername(firebaseUser.getDisplayName());
         if (largeAvatarURL == null && firebaseUser.getPhotoUrl() != null) {
             largeAvatarURL = firebaseUser.getPhotoUrl().toString();

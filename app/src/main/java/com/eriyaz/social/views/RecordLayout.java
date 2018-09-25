@@ -21,6 +21,7 @@ import android.widget.Toast;
 import com.eriyaz.social.R;
 import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.services.RecordingService;
+import com.eriyaz.social.utils.LogUtil;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -44,6 +45,8 @@ public class RecordLayout extends LinearLayout implements RecordingService.Recor
     // Recorder
     private TextView mRecordingPrompt;
     private int mRecordPromptCount = 0;
+    private int currentWindow = 0;
+    private long playbackPosition = 0;
     private Chronometer mChronometer = null;
     private RecordingService recordingService;
     private SimpleExoPlayerView commentPlayerView;
@@ -184,15 +187,17 @@ public class RecordLayout extends LinearLayout implements RecordingService.Recor
 //        commentPlayer.addListener(componentListener);
 
         commentPlayer.setPlayWhenReady(false);
-        commentPlayer.seekTo(0, 0);
+        commentPlayer.seekTo(currentWindow, playbackPosition);
         Uri uri = Uri.parse(commentRecordItem.getFilePath());
         // play from fileSystem
         MediaSource mediaSource = buildMediaSourceFromFileUrl(uri);
-        commentPlayer.prepare(mediaSource, true, false);
+        commentPlayer.prepare(mediaSource, false, false);
     }
 
     public void releasePlayer() {
         if (commentPlayer != null) {
+            playbackPosition = commentPlayer.getCurrentPosition();
+            currentWindow = commentPlayer.getCurrentWindowIndex();
             commentPlayer.release();
             commentPlayer = null;
         }

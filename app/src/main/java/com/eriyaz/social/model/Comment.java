@@ -29,7 +29,7 @@ public class Comment {
     private long createdDate;
     private boolean detailedFeedback;
     private int reputationPoints;
-
+    private int likesCount;
 
     public Comment() {
         // Default constructor required for calls to DataSnapshot.getValue(Comment.class)
@@ -103,5 +103,13 @@ public class Comment {
 
     public void setReputationPoints(int reputationPoints) {
         this.reputationPoints = reputationPoints;
+    }
+
+    public int getLikesCount() {
+        return likesCount;
+    }
+
+    public void setLikesCount(int likesCount) {
+        this.likesCount = likesCount;
     }
 }

@@ -61,11 +61,12 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.crashlytics.android.Crashlytics;
 import com.eriyaz.social.Application;
 import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.CommentsAdapter;
 import com.eriyaz.social.adapters.RatingsAdapter;
+import com.eriyaz.social.adapters.holders.CommentViewHolder;
+import com.eriyaz.social.controllers.LikeController;
 import com.eriyaz.social.dialogs.BlockDialog;
 import com.eriyaz.social.dialogs.ComplainDialog;
 import com.eriyaz.social.dialogs.EditCommentDialog;
@@ -80,6 +81,7 @@ import com.eriyaz.social.fragments.RecordPlayFragment;
 import com.eriyaz.social.listeners.CustomTransitionListener;
 import com.eriyaz.social.managers.BoughtFeedbackManager;
 import com.eriyaz.social.managers.CommentManager;
+import com.eriyaz.social.managers.LikeManager;
 import com.eriyaz.social.managers.PostManager;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnDataChangedListener;
@@ -89,6 +91,7 @@ import com.eriyaz.social.managers.listeners.OnPostChangedListener;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
 import com.eriyaz.social.model.Comment;
 import com.eriyaz.social.model.Flag;
+import com.eriyaz.social.model.Like;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.Rating;
@@ -190,7 +193,6 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Crashlytics.log("PostDetailsActivity");
         setContentView(R.layout.activity_post_details);
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -400,6 +402,7 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
         request.create(new OnPaymentCompleteListener() {
             @Override
             public void onTaskComplete(PaymentStatus status) {
+                if (isActivityDestroyed()) return;
                 if (status.equals(PaymentStatus.SUCCESS)) {
                     showSnackBar("Payment Successful.");
                 } else if (status.equals(PaymentStatus.PENDING)) {
@@ -432,6 +435,7 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
         super.onPause();
         if (Util.SDK_INT <= 23) {
             commentRecordLayout.releasePlayer();
+            if (!mStartRecording) stopRecording();
         }
     }
 
@@ -440,6 +444,7 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
         super.onStop();
         if (Util.SDK_INT > 23) {
             commentRecordLayout.releasePlayer();
+            if (!mStartRecording) stopRecording();
         }
     }
 
@@ -492,6 +497,12 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
             public void onDeleteClick(View view, int position) {
                 Comment comment = commentsAdapter.getItemByPosition(position);
                 removeComment(comment);
+            }
+
+            @Override
+            public void onLikeClick(LikeController likeController, int position) {
+                Comment comment = commentsAdapter.getItemByPosition(position);
+                likeController.handleLikeClickAction(PostDetailsActivity.this, comment);
             }
 
             @Override
@@ -554,6 +565,12 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
             @Override
             public void onAuthorClick(String authorId, View view) {
                 openProfileActivity(authorId, view);
+            }
+
+            @Override
+            public void onLikeUserListClick(int position) {
+                Comment comment = commentsAdapter.getItemByPosition(position);
+                openLikeUserListActivity(comment.getId());
             }
 
             @Override
@@ -993,6 +1010,20 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
                 commentsRecyclerView.setVisibility(View.VISIBLE);
                 warningCommentsTextView.setVisibility(View.GONE);
                 commentsAdapter.setList(list);
+                initCommentLikeButtonState();
+            }
+        };
+    }
+
+    private OnDataChangedListener<Like> createOnCommentLikeChangedDataListener() {
+
+        return new OnDataChangedListener<Like>() {
+            @Override
+            public void onListChanged(List<Like> list) {
+                for (Like like:list) {
+                    CommentViewHolder viewHolder = (CommentViewHolder) commentsRecyclerView.findViewHolderForItemId(like.getId().hashCode());
+                    if (viewHolder != null)viewHolder.initLike(true);
+                }
             }
         };
     }
@@ -1003,6 +1034,12 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
             intent.putExtra(ImageDetailActivity.IMAGE_URL_EXTRA_KEY, post.getImagePath());
             startActivity(intent);
         }
+    }
+
+    private void openLikeUserListActivity(String commentId) {
+        Intent intent = new Intent(PostDetailsActivity.this, UsersListActivity.class);
+        intent.putExtra(UsersListActivity.COMMENT_ID_EXTRA_KEY, commentId);
+        startActivity(intent);
     }
 
     private void openProfileActivity(String userId, View view) {
@@ -1050,6 +1087,14 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
         if (firebaseUser != null && post != null) {
 //            postManager.hasCurrentUserLike(this, post.getId(), firebaseUser.getUid(), createOnLikeObjectExistListener());
             postManager.getCurrentUserRating(this, post.getId(), firebaseUser.getUid(), createOnRatingObjectChangedListener());
+        }
+    }
+
+    private void initCommentLikeButtonState() {
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (firebaseUser != null && post != null) {
+//            postManager.hasCurrentUserLike(this, post.getId(), firebaseUser.getUid(), createOnLikeObjectExistListener());
+            LikeManager.getInstance(this).getCurrentUserCommentLikeListSingleValue(post.getId(), firebaseUser.getUid(), createOnCommentLikeChangedDataListener());
         }
     }
 
@@ -1569,12 +1614,17 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
             if (mStartRecording) {
                 mRecordButton.setImageResource(R.drawable.ic_media_stop);
                 commentRecordLayout.startRecording();
+                mStartRecording = !mStartRecording;
             } else {
-                sendButton.setVisibility(View.VISIBLE);
-                mRecordButton.setImageResource(R.drawable.ic_mic_white_36dp);
-                commentRecordLayout.stopRecording();
+                stopRecording();
             }
-            mStartRecording = !mStartRecording;
         }
+    }
+
+    private void stopRecording() {
+        sendButton.setVisibility(View.VISIBLE);
+        mRecordButton.setImageResource(R.drawable.ic_mic_white_36dp);
+        commentRecordLayout.stopRecording();
+        mStartRecording = !mStartRecording;
     }
 }

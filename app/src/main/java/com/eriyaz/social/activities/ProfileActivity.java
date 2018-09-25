@@ -77,6 +77,7 @@ public class ProfileActivity extends BaseCurrentProfileActivity implements Googl
     private String userID;
     private int userPoints;
     private int reputationsPoints;
+    private int likesCount;
     private boolean isRatingTabDefault;
 
     private TabLayout tabLayout;
@@ -84,6 +85,7 @@ public class ProfileActivity extends BaseCurrentProfileActivity implements Googl
 
     private TextView pointsCountersTextView;
     private TextView reputationsCountersTextView;
+    private TextView likesCountTextView;
     private ProfileManager profileManager;
     final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
 
@@ -115,6 +117,7 @@ public class ProfileActivity extends BaseCurrentProfileActivity implements Googl
         messageTextLayout = findViewById(R.id.messageTextLayout);
         pointsCountersTextView = (TextView) findViewById(R.id.pointsCountersTextView);
         reputationsCountersTextView = findViewById(R.id.reputationsCountersTextView);
+        likesCountTextView = findViewById(R.id.likesCountTextView);
 //        postsLabelTextView = (TextView) findViewById(R.id.postsLabelTextView);
 
         profileTabViewPager = findViewById(R.id.profileTabPager);
@@ -197,13 +200,13 @@ public class ProfileActivity extends BaseCurrentProfileActivity implements Googl
 //        contentString.append("\n");
         int start = contentString.length();
         contentString.append(String.valueOf(value));
-        contentString.setSpan(new TextAppearanceSpan(this, R.style.TextAppearance_Title_White), start, contentString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+//        contentString.setSpan(new TextAppearanceSpan(this, R.style.TextAppearance_Title_White), start, contentString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         contentString.setSpan(new TextAppearanceSpan(this, R.style.TextAppearance_Second_Light), 0, start, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        if (value > 0) {
-            contentString.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.light_green)), start, contentString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        } else {
-            contentString.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.red)), start, contentString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        }
+//        if (value > 0) {
+//            contentString.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.light_green)), start, contentString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+//        } else {
+//            contentString.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.red)), start, contentString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+//        }
         return contentString;
     }
 
@@ -258,10 +261,13 @@ public class ProfileActivity extends BaseCurrentProfileActivity implements Googl
 
             userPoints = (int) profile.getPoints();
             reputationsPoints = (int) profile.getReputationPoints();
+            likesCount = profile.getLikesCount();
             String pointsLabel = getResources().getString(R.string.score_label);
             pointsCountersTextView.setText(buildCounterSpannable(pointsLabel, userPoints));
             String reputationsLabel = getResources().getString(R.string.reputation_label);
             reputationsCountersTextView.setText(buildCounterSpannable(reputationsLabel, reputationsPoints));
+            String likesLabel = getResources().getString(R.string.likes_label);
+            likesCountTextView.setText(buildCounterSpannable(likesLabel, likesCount));
         }
     }
 

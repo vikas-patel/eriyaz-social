@@ -138,10 +138,6 @@
             android:name=".activities.RatingsChartActivity"
             android:label="@string/title_activity_ratings_chart" />
 
-        <meta-data
-            android:name="io.fabric.ApiKey"
-            android:value="382d3faa99c03e81316e358612178043fd6e985a" />
-
         <service android:name=".services.MyFirebaseMessagingService">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
@@ -174,6 +170,10 @@
         <activity
             android:name=".activities.RateCelebrityActivity"
             android:exported="true" />
+        <activity android:name=".activities.UsersListActivity"
+            android:theme="@style/AppCompat.NoActionBar"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/title_comment_like_users"/>
     </application>
 
 </manifest>

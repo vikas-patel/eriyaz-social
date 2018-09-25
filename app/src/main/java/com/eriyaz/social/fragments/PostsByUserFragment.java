@@ -103,17 +103,12 @@ public class PostsByUserFragment extends BaseFragment {
             ((ProfileTabInterface)postsAdapter).setCallBack(new PostsByUserAdapter.CallBack() {
                 @Override
                 public void onItemClick(final Post post, final View view) {
-                    PostManager.getInstance(getActivity()).isPostExistSingleValue(post.getId(), new OnObjectExistListener<Post>() {
-                        @Override
-                        public void onDataChanged(boolean exist) {
-                            if (exist) {
-                                openPostDetailsActivity(post, view);
-                            } else {
-                                BaseActivity baseActivity = (BaseActivity) getActivity();
-                                baseActivity.showSnackBar(R.string.error_post_was_removed);
-                            }
-                        }
-                    });
+                    BaseActivity activity = (BaseActivity) getActivity();
+                    if (!activity.hasInternetConnection()) {
+                        activity.showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
+                        return;
+                    }
+                    openPostDetailsActivity(post, view);
                 }
 
                 @Override

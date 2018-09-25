@@ -72,4 +72,7 @@
     <dimen name="detailed_feedback_text_size">11dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
 
+    <dimen name="refresh_layout_end_offset">24dp</dimen>
+    <dimen name="refresh_layout_start_offset">-24dp</dimen>
+
 </resources>

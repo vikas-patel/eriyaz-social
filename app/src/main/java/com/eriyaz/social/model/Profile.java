@@ -30,6 +30,7 @@ public class Profile implements Serializable {
     private String id;
     private String username;
     private String email;
+    private String phone;
     private String photoUrl;
     private long points;
     private long reputationPoints;
@@ -42,6 +43,7 @@ public class Profile implements Serializable {
     private boolean admin;
     private String appVersion;
     private int rank;
+    private int likesCount;
 
     public Profile() {
         // Default constructor required for calls to DataSnapshot.getValue(Profile.class)
@@ -78,6 +80,14 @@ public class Profile implements Serializable {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     public String getPhotoUrl() {
@@ -168,6 +178,14 @@ public class Profile implements Serializable {
         this.appVersion = appVersion;
     }
 
+    public int getLikesCount() {
+        return likesCount;
+    }
+
+    public void setLikesCount(int likesCount) {
+        this.likesCount = likesCount;
+    }
+
     public ItemType getItemType() {
         if (itemType == null) {
             return ItemType.ITEM;
@@ -184,6 +202,7 @@ public class Profile implements Serializable {
         result.put("photoUrl", photoUrl);
         result.put("points", points);
         result.put("appVersion", appVersion);
+        result.put("phone", phone);
         return result;
     }
 

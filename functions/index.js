@@ -486,6 +486,8 @@ exports.rewardReputationPointsUpdate = functions.database.ref('/post-comments/{p
     const commentRef = event.data.ref.parent;
     const newPoints = event.data.val();
     const previousPoints = event.data.previous.val();
+    // don't show notification if points decremented
+    if (newPoints <= previousPoints) return;
     return commentRef.once('value').then(snapshot => {
         let comment = snapshot.val();
         const commentAuthorId = comment.authorId;
@@ -703,8 +705,8 @@ function updateUserReputationPoints(authorId, points, postId, isUpdate) {
         var newNotificationRef = userNotificationsRef.push();
         var msg;
         if (isUpdate) {
-            const change = points > 0 ? "incremented" : "decremented";
-            msg = `Admin has ${change} reputation points by ${Math.abs(points)} for your feedback on "${post.val().title}" recording.`;
+            // const change = points > 0 ? "incremented" : "decremented";
+            msg = `Admin has incremented reputation points by ${Math.abs(points)} for your feedback on "${post.val().title}" recording.`;
         } else {
             msg = `You have been awarded +${points} reputation points by the admin for your feedback on "${post.val().title}" recording.`;
         }
@@ -735,6 +737,73 @@ function updateUserReputationPoints(authorId, points, postId, isUpdate) {
     });
 }
 
+function addCommentLikeUser(commentId, profile) {
+    console.log("add comment like user", profile.id)
+    const likeUserRef = admin.database().ref(`/like-user/${commentId}/${profile.id}`);
+    const photoUrl = (profile.photoUrl || "");
+    return likeUserRef.set({
+        'photoUrl': photoUrl,
+        'username': profile.username,
+        'createdDate': admin.database.ServerValue.TIMESTAMP
+    });
+}
+
+exports.deleteCommentLikes = functions.database.ref('/comment-likes/{authorId}/{postId}/{commentId}').onDelete(event => {
+    const likeAuthorId = event.params.authorId;
+    const commentId = event.params.commentId;
+    console.log("delete comment like", commentId, likeAuthorId);
+    const likeUserRef = admin.database().ref(`/like-user/${commentId}/${likeAuthorId}`);
+    return likeUserRef.remove();
+});
+
+exports.appNotificationLikes = functions.database.ref('/comment-likes/{authorId}/{postId}/{commentId}').onCreate(event => {
+    console.log('App notification for new like');
+
+    const likeAuthorId = event.params.authorId;
+    const postId = event.params.postId;
+    const commentId = event.params.commentId;
+
+    // Get liked comment  /post-comments/{postId}/{commentId}
+    return admin.database().ref(`/post-comments/${postId}/${commentId}`).once('value').then(comment => {
+        var commentAuthorId = comment.val().authorId;
+        return admin.database().ref(`/posts/${postId}`).once('value').then(post => {
+            // Get rating author.
+            return admin.database().ref(`/profiles/${likeAuthorId}`).once('value').then(profile => {
+                if (likeAuthorId == commentAuthorId) {
+                    console.log('no notification: user liked own comment');
+                    return addCommentLikeUser(commentId, profile.val());
+                } else {
+                    addCommentLikeUser(commentId, profile.val());
+                }
+                // Get user notification
+                return admin.database().ref(`/user-notifications/${commentAuthorId}/${commentId}`).once('value').then(notificationSnap => {
+                    if (notificationSnap.exists()) {
+                        const userNotificationsRef = admin.database().ref(`/user-notifications/${commentAuthorId}/${commentId}`).transaction(current => {
+                            if (current != null) {
+                                const count = (current.count || 1);
+                                const msg = `${profile.val().username} and ${count} more loved your comment on post '${post.val().title}'`;
+                                current.count = (current.count || 0) + 1;
+                                current.createdDate = admin.database.ServerValue.TIMESTAMP;
+                                current.fromUserId = likeAuthorId;
+                                current.message = msg;
+                            } else {
+                                console.log('cache object null for notification ');
+                                return false;
+                            }
+                            return current;
+                        }).then(() => {
+                            console.log('like app notification updated.');
+                        });
+                    } else {
+                        const msg = `${profile.val().username} loved your comment on post '${post.val().title}'`;
+                        return sendAppNotificationPostAction(commentAuthorId, likeAuthorId, msg, commentId, postId);
+                    }
+                });
+            });
+        });
+    });
+});
+
 exports.appNotificationRatings = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onCreate(event => {
     console.log('App notification for new rating');
 
@@ -753,20 +822,82 @@ exports.appNotificationRatings = functions.database.ref('/post-ratings/{postId}/
         const getRatingAuthorProfileTask = admin.database().ref(`/profiles/${ratingAuthorId}`).once('value');
 
         return getRatingAuthorProfileTask.then(profile => {
-            // Get user notification ref
-            const userNotificationsRef = admin.database().ref(`/user-notifications/${postAuthorId}`);
-            var newNotificationRef = userNotificationsRef.push();
-            var msg = profile.val().username + " rated your post '" + post.val().title + "'";
-            return newNotificationRef.set({
-                'action': 'com.eriyaz.social.activities.PostDetailsActivity',
-                'fromUserId' : ratingAuthorId,
-                'message': msg,
-                'extraKey' : 'PostDetailsActivity.POST_ID_EXTRA_KEY',
-                'extraKeyValue' : postId,
-                'createdDate': admin.database.ServerValue.TIMESTAMP
+            // Get user notification
+            const userNotificationsTask = admin.database().ref(`/user-notifications/${postAuthorId}/${postId}`+`-rate`).once('value');
+            return userNotificationsTask.then(notificationSnap => {
+                if (notificationSnap.exists()) {
+                    const userNotificationsRef = admin.database().ref(`/user-notifications/${postAuthorId}/${postId}`+`-rate`).transaction(current => {
+                        if (current != null) {
+                            const count = (current.count || 1);
+                            const msg = `${profile.val().username} and ${count} more rated your post '${post.val().title}'`;
+                            current.count = (current.count || 0) + 1;
+                            current.createdDate = admin.database.ServerValue.TIMESTAMP;
+                            current.fromUserId = ratingAuthorId;
+                            current.message = msg;
+                        } else {
+                            console.log('cache object null for notification ');
+                            return false;
+                        }
+                        return current;
+                    }).then(() => {
+                        console.log('rating app notification updated.');
+                    });
+                } else {
+                    const msg = `${profile.val().username} rated your post '${post.val().title}'`;
+                    return sendAppNotificationPostAction(postAuthorId, ratingAuthorId, msg, postId + '-rate', postId);
+                }
             });
         });
     });
+});
+
+exports.appNotificationComments = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
+    console.log('App notification for new comment');
+
+    const commentId = event.params.commentId;
+    const postId = event.params.postId;
+    const comment = event.data.val();
+    const commentAuthorId = comment.authorId;
+
+    // Get rated post.
+    const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
+
+    return getPostTask.then(post => {
+        var postAuthorId = post.val().authorId;
+        if (commentAuthorId == postAuthorId) {
+            return console.log('User commented on own post');
+        }
+        // Get comment author.
+        const getCommentAuthorProfileTask = admin.database().ref(`/profiles/${commentAuthorId}`).once('value');
+
+        return getCommentAuthorProfileTask.then(profile => {
+            // Get user notification
+            const userNotificationsTask = admin.database().ref(`/user-notifications/${postAuthorId}/${postId}`+`-comment`).once('value');
+            return userNotificationsTask.then(notificationSnap => {
+                if (notificationSnap.exists()) {
+                    const userNotificationsRef = admin.database().ref(`/user-notifications/${postAuthorId}/${postId}`+`-comment`).transaction(current => {
+                        if (current != null) {
+                            const count = (current.count || 1);
+                            const msg = `${profile.val().username} and ${count} more commented on your post '${post.val().title}'`;
+                            current.count = (current.count || 0) + 1;
+                            current.createdDate = admin.database.ServerValue.TIMESTAMP;
+                            current.fromUserId = commentAuthorId;
+                            current.message = msg;
+                        } else {
+                            console.log('cache object null for notification ');
+                            return false;
+                        }
+                        return current;
+                    }).then(() => {
+                        console.log('comment app notification updated.');
+                    });
+                } else {
+                    const msg = `${profile.val().username} commented on your post '${post.val().title}'`;
+                    return sendAppNotificationPostAction(postAuthorId, commentAuthorId, msg, postId + '-comment', postId);
+                }
+            });
+        });
+    })
 });
 
 exports.normalizeRating = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}/rating').onWrite(event => {
@@ -899,55 +1030,22 @@ exports.voiceCommentAppUpdateNotification = functions.database.ref('/post-commen
         if (commentAuthorId == postAuthorId) {
             return console.log('User commented on own post');
         }
-        const appVersionTask = admin.database().ref(`/profiles/${postAuthorId}/appVersion`).once('value');
-        return appVersionTask.then(versionSnap => {
-            const versionStr = versionSnap.val();
-            if (!versionStr) return console.log("app version not set");
-            const version = parseFloat(versionStr);
-            console.log("user app version", version);
-            if (version < voiceVersion) {
-                const msg = "You have received a voice message on your post, but not visible on old versions of app. Tap to Update."
-                return sendAppUpdateNotification(postAuthorId, msg);
-            }
-        });
+        const msg = "You have received a voice message on your post, but not visible on old versions of app. Tap to Update."
+        return notifyAppUpdate(voiceVersion, postAuthorId, msg);
     });
 });
 
-exports.appNotificationComments = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
-    console.log('App notification for new comment');
-
-    const commentId = event.params.commentId;
-    const postId = event.params.postId;
-    const comment = event.data.val();
-    const commentAuthorId = comment.authorId;
-
-    // Get rated post.
-    const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
-
-    return getPostTask.then(post => {
-        var postAuthorId = post.val().authorId;
-        if (commentAuthorId == postAuthorId) {
-            return console.log('User commented on own post');
+function notifyAppUpdate(featureVersion, postAuthorId, msg) {
+    return admin.database().ref(`/profiles/${postAuthorId}/appVersion`).once('value').then(versionSnap => {
+        const versionStr = versionSnap.val();
+        if (!versionStr) return console.log("app version not set");
+        const version = parseFloat(versionStr);
+        console.log("user app version", version);
+        if (version < featureVersion) {
+            return sendAppUpdateNotification(postAuthorId, msg);
         }
-        // Get comment author.
-        const getCommentAuthorProfileTask = admin.database().ref(`/profiles/${commentAuthorId}`).once('value');
-
-        return getCommentAuthorProfileTask.then(profile => {
-            // Get user notification ref
-            const userNotificationsRef = admin.database().ref(`/user-notifications/${postAuthorId}`);
-            var newNotificationRef = userNotificationsRef.push();
-            var msg = profile.val().username + " commented on your post '" + post.val().title + "'";
-            newNotificationRef.set({
-                'action': 'com.eriyaz.social.activities.PostDetailsActivity',
-                'fromUserId' : commentAuthorId,
-                'message': msg,
-                'extraKey' : 'PostDetailsActivity.POST_ID_EXTRA_KEY',
-                'extraKeyValue' : postId,
-                'createdDate': admin.database.ServerValue.TIMESTAMP
-            });
-        });
-    })
-});
+    });
+}
 
 exports.appNotificationFlag = functions.database.ref('/flags/{flaggedUser}/{flagId}').onCreate(event => {
     console.log('App notification for new flag');
@@ -956,29 +1054,42 @@ exports.appNotificationFlag = functions.database.ref('/flags/{flaggedUser}/{flag
     const flag = event.data.val();
     const flaggedUser = event.params.flaggedUser;
     const flaggedBy = flag.flaggedBy;
-    const reason = flag.reason;
+    var reason = flag.reason;
 
-    const userNotificationsRef = admin.database().ref(`/user-notifications/${flaggedUser}`);
-    var newNotificationRef = userNotificationsRef.push();
-    var msg = `RateMySinging: Received following complaint against you. "${reason}". Nothing to worry, but if too many complaints then we may need to take action.`;
-    const notificationTask = newNotificationRef.set({
-        'fromSystem' : true,
-        'message': msg,
-        'createdDate': admin.database.ServerValue.TIMESTAMP
-    });
     const getFlaggedProfileTask = admin.database().ref(`/profiles/${flaggedUser}`).once('value');
     const getFlaggedByProfileTask = admin.database().ref(`/profiles/${flaggedBy}`).once('value');
     
-    return Promise.all([getFlaggedProfileTask, getFlaggedByProfileTask, notificationTask]).then(results => {
+    return Promise.all([getFlaggedProfileTask, getFlaggedByProfileTask]).then(results => {
         const flaggedSnap = results[0];
         const flaggedBySnap = results[1];
         const flaggedName = flaggedSnap.val().username;
         const flaggedByName = flaggedBySnap.val().username;
+        const reportVersion = 3.2;
+        const userVersion = flaggedBySnap.val().appVersion;
+        if (userVersion < reportVersion) {
+            // don't show text message
+            reason = "low ratings to everyone";
+        }
         var emailMsg = `To ${flaggedName},\n${reason} \n From ${flaggedByName}`;
         console.log("emailMsg for blocked user.", emailMsg);
-        return sendEmail("RateMySinging: New user complaint", emailMsg);
+        const notificationTask = sendComplainAppNotification(flaggedUser, reason);
+        const emailTask = sendEmail("RateMySinging: New user complaint", emailMsg);
+        return Promise.all([notificationTask, emailTask]).then(results => {
+            console.log("all complain task completed");
+        });
     });
 });
+
+function sendComplainAppNotification(flaggedUser, reason) {
+    const userNotificationsRef = admin.database().ref(`/user-notifications/${flaggedUser}`);
+    var newNotificationRef = userNotificationsRef.push();
+    var msg = `RateMySinging: Received following complaint against you. "${reason}". Nothing to worry, but if too many complaints then we may need to take action.`;
+    return newNotificationRef.set({
+        'fromSystem' : true,
+        'message': msg,
+        'createdDate': admin.database.ServerValue.TIMESTAMP
+    });
+}
 
 exports.appNotificationBlock = functions.database.ref('/block-users/{blockedUser}/{blockedBy}').onCreate(event => {
     console.log('App notification for new block');
@@ -1192,6 +1303,21 @@ function sendAppNotificationProfileAction(authorId, fromUserId, msg) {
     });
 }
 
+function sendAppNotificationPostAction(authorId, fromUserId, msg, notificationId, postId) {
+    console.log("sending profile action notification:", msg);
+    // Get user notification ref
+    const userNotificationsRef = admin.database().ref(`/user-notifications/${authorId}/${notificationId}`);
+    return userNotificationsRef.set({
+                'action': 'com.eriyaz.social.activities.PostDetailsActivity',
+                'fromUserId' : fromUserId,
+                'message': msg,
+                'count' : 1,
+                'extraKey' : 'PostDetailsActivity.POST_ID_EXTRA_KEY',
+                'extraKeyValue' : postId,
+                'createdDate': admin.database.ServerValue.TIMESTAMP
+            });
+}
+
 function sendAppUpdateNotification(authorId, msg) {
     const userNotificationsRef = admin.database().ref(`/user-notifications/${authorId}`);
     var newNotificationRef = userNotificationsRef.push();
@@ -1297,7 +1423,7 @@ exports.appNotificationFeedbackConversation = functions.database.ref('/feedbacks
     });
 });
 
-exports.incrementUserUnseenNotification = functions.database.ref('/user-notifications/{authorId}/{notificationId}').onCreate(event => {
+exports.incrementUserUnseenNotification = functions.database.ref('/user-notifications/{authorId}/{notificationId}').onWrite(event => {
     const authorId = event.params.authorId;
     const authorProfileUnseenRef = admin.database().ref(`/profiles/${authorId}/unseen`);
     return authorProfileUnseenRef.transaction(current => {
@@ -1468,7 +1594,7 @@ exports.grantSignupReward = functions.database.ref('/profiles/{uid}/id').onCreat
           var profile = profileSnap.val();
           console.log("referred_by", profile.referred_by);
           const WELCOME_MSG = `Hi ${profile.username}. Welcome to ${notificationTitle} community. I am the Developer and a Moderator here. Feel free to reach out to me for any questions/help. \nImportant : Be fair and genuine in your ratings, or you might be blacklisted by other members.`;
-          const GIFT_JOINING_MSG = 'Vikas Patel gifted you 4 points.';
+          const GIFT_JOINING_MSG = "Vikas Patel gifted you 4 points. Please rate others' recordings to earn more points";
           const welcomeMsgTask = sendUserMessage(uid, WELCOME_ADMIN, WELCOME_MSG);
           // const addPointsTask =  addPoints(uid, 3);
           const giftJoiningMsgTask = sendAppNotificationNoAction(uid, WELCOME_ADMIN, GIFT_JOINING_MSG);
@@ -1532,6 +1658,14 @@ exports.appUninstall = functions.analytics.event('app_remove').onLog(event => {
     console.log("app uninstall detected for uid ",uid);
     // Get profile of user and set user details
     if (uid) {
+        admin.database().ref(`/profiles/${uid}`).once('value').then(snapshot => {
+            const profile = snapshot.val();
+            if (profile.phone) {
+                console.log("uninstall user with phone", profile);
+                sendEmail("RateMySinging: unInstalled User", JSON.stringify(profile));
+            }
+
+        });
         const profileUninstallRef = admin.database().ref(`profiles/${uid}/unInstalled`);
         return profileUninstallRef.transaction(current => {
               return true;

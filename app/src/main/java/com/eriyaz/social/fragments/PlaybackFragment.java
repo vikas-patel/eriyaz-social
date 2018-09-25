@@ -148,8 +148,11 @@ public class PlaybackFragment extends BaseDialogFragment {
     @Override
     public void onDismiss(DialogInterface dialog) {
         super.onDismiss(dialog);
+        // post deleted
+        if (getActivity() == null) return;
+        BaseActivity activity = (BaseActivity) getActivity();
+        if (activity.isActivityDestroyed()) return;
         if (post != null) {
-            BaseActivity activity = (BaseActivity) getActivity();
             if (player != null && player.getPlayWhenReady() && player.getPlaybackState() == Player.STATE_READY) {
                 markPlayerPositions();
             }
@@ -541,7 +544,7 @@ public class PlaybackFragment extends BaseDialogFragment {
         // play from fileSystem
         MediaSource mediaSource;
         mediaSource = buildMediaSource(uri);
-        player.prepare(mediaSource, true, false);
+        player.prepare(mediaSource, false, false);
     }
 
     private MediaSource buildMediaSource(Uri uri) {

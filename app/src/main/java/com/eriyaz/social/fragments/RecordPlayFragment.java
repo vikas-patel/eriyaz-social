@@ -202,7 +202,7 @@ public class RecordPlayFragment extends BaseDialogFragment {
         } else {
             mediaSource = buildMediaSourceFromFileUrl(uri);
         }
-        player.prepare(mediaSource, true, false);
+        player.prepare(mediaSource, false, false);
     }
 
     private MediaSource buildMediaSourceFromFileUrl(Uri uri){

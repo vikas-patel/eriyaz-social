@@ -25,6 +25,7 @@ import android.view.ViewGroup;
 
 import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.holders.CommentViewHolder;
+import com.eriyaz.social.controllers.LikeController;
 import com.eriyaz.social.model.Comment;
 import com.eriyaz.social.model.Post;
 
@@ -44,6 +45,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentViewHolder> {
     public CommentsAdapter(Post aPost, boolean aIsAdmin) {
         post = aPost;
         isAdmin = aIsAdmin;
+        setHasStableIds(true);
     }
 
     @Override
@@ -73,12 +75,20 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentViewHolder> {
     }
 
     @Override
+    public long getItemId(int position) {
+        if (getItemByPosition(position) == null) return -1;
+        return getItemByPosition(position).getId().hashCode();
+    }
+
+    @Override
     public int getItemCount() {
         return list.size();
     }
 
     public interface Callback {
         void onDeleteClick(View view, int position);
+
+        void onLikeClick(LikeController likeController, int position);
 
         void onEditClick(View view, int position);
 
@@ -91,6 +101,8 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentViewHolder> {
         void onBlockClick(View view, int position);
 
         void onAuthorClick(String authorId, View view);
+
+        void onLikeUserListClick(int position);
 
         void onTimeStampClick(String comment, String timestamp);
     }
