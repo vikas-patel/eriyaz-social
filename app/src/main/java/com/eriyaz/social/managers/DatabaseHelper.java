@@ -35,6 +35,7 @@ import com.eriyaz.social.model.Point;
 import com.eriyaz.social.model.ProfileListResult;
 import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.utils.Analytics;
+import com.eriyaz.social.utils.ValidationUtil;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -965,7 +966,7 @@ public class DatabaseHelper {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.getValue() != null) {
-                    if (isPostValid((Map<String, Object>) dataSnapshot.getValue())) {
+                    if (ValidationUtil.isPostValid((Map<String, Object>) dataSnapshot.getValue())) {
                         Post post = dataSnapshot.getValue(Post.class);
                         if (post != null) {
                             post.setId(id);
@@ -998,7 +999,7 @@ public class DatabaseHelper {
                     listener.onObjectChanged(null);
                     return;
                 }
-                if (isPostValid((Map<String, Object>) dataSnapshot.getValue())) {
+                if (ValidationUtil.isPostValid((Map<String, Object>) dataSnapshot.getValue())) {
                     Post post = dataSnapshot.getValue(Post.class);
                     post.setId(id);
                     listener.onObjectChanged(post);
@@ -1037,7 +1038,7 @@ public class DatabaseHelper {
                 if (obj instanceof Map) {
                     Map<String, Object> mapObj = (Map<String, Object>) obj;
 
-                    if (!isPostValid(mapObj)) {
+                    if (!ValidationUtil.isPostValid(mapObj)) {
                         LogUtil.logDebug(TAG, "Invalid post, id: " + key);
                         continue;
                     }
@@ -1210,13 +1211,6 @@ public class DatabaseHelper {
         return result;
     }
 
-    private boolean isPostValid(Map<String, Object> post) {
-        return post.containsKey("title")
-                && post.containsKey("imagePath")
-                && post.containsKey("imageTitle")
-                && post.containsKey("authorId");
-//                && post.containsKey("description");
-    }
 
     public void getProfileSingleValue(String id, final OnObjectChangedListener<Profile> listener) {
         DatabaseReference databaseReference = getDatabaseReference().child("profiles").child(id);

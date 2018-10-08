@@ -22,6 +22,8 @@ import android.net.Uri;
 
 import com.eriyaz.social.Constants;
 
+import java.util.Map;
+
 /**
  * Created by Kristina on 8/8/15.
  */
@@ -59,6 +61,14 @@ public class ValidationUtil {
             }
         }
         return false;
+    }
+
+    public static boolean isPostValid(Map<String, Object> post) {
+        return post.containsKey("title")
+                && post.containsKey("imagePath")
+                && post.containsKey("imageTitle")
+                && post.containsKey("authorId");
+//                && post.containsKey("description");
     }
 
     public static boolean isPostTitleValid(String name) {

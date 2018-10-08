@@ -22,16 +22,6 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
-import com.eriyaz.social.model.Flag;
-import com.eriyaz.social.model.ItemListResult;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.UploadTask;
 import com.eriyaz.social.ApplicationHelper;
 import com.eriyaz.social.enums.UploadImagePrefix;
 import com.eriyaz.social.managers.listeners.OnDataChangedListener;
@@ -41,11 +31,30 @@ import com.eriyaz.social.managers.listeners.OnPostChangedListener;
 import com.eriyaz.social.managers.listeners.OnPostCreatedListener;
 import com.eriyaz.social.managers.listeners.OnPostListChangedListener;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
+import com.eriyaz.social.model.Flag;
+import com.eriyaz.social.model.ItemListResult;
 import com.eriyaz.social.model.Like;
 import com.eriyaz.social.model.Post;
+import com.eriyaz.social.model.PostListResult;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.utils.ImageUtil;
 import com.eriyaz.social.utils.LogUtil;
+import com.eriyaz.social.utils.ValidationUtil;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.functions.FirebaseFunctions;
+import com.google.firebase.functions.HttpsCallableResult;
+import com.google.firebase.storage.UploadTask;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Kristina on 10/28/16.
@@ -57,6 +66,7 @@ public class PostManager extends FirebaseListenersManager {
     private static PostManager instance;
     private int newPostsCounter = 0;
     private PostCounterWatcher postCounterWatcher;
+    private FirebaseFunctions mFunctions = FirebaseFunctions.getInstance();
 
     private Context context;
 
@@ -81,13 +91,38 @@ public class PostManager extends FirebaseListenersManager {
         }
     }
 
-    public void getPostsList(OnPostListChangedListener<Post> onDataChangedListener, long date) {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null) {
-            ApplicationHelper.getDatabaseHelper().getPostList(onDataChangedListener, false, date);
-        } else {
-            ApplicationHelper.getDatabaseHelper().getFilteredPostList(user.getUid(), onDataChangedListener, date);
+    private PostListResult parsePostResult(HashMap<String, Object> data) {
+        PostListResult result = new PostListResult();
+        List<Post> list = new ArrayList<Post>();
+        if (data.get("lastRecentDate") != null) result.setLastItemCreatedDate((long) data.get("lastRecentDate"));
+        if (data.get("lastFriendDate") != null) result.setLastFriendItemDate((long) data.get("lastFriendDate"));
+        ArrayList<HashMap> postMapList = (ArrayList<HashMap>) data.get("result");
+        Iterator iter = postMapList.iterator();
+        while (iter.hasNext()) {
+            HashMap postMap = (HashMap) iter.next();
+            if (ValidationUtil.isPostValid(postMap)) {
+                list.add(new Post(postMap));
+            }
         }
+        result.setPosts(list);
+        result.setMoreDataAvailable(true);
+        return result;
+    }
+
+    public Task<PostListResult> getPostsList(long lastRecentDate, long lastFriendDate) {
+        Map<String, Object> data = new HashMap<>();
+        if (lastRecentDate > 0) data.put("lastRecentDate", lastRecentDate);
+        if (lastFriendDate > 0) data.put("lastFriendDate", lastFriendDate);
+        return mFunctions
+                .getHttpsCallable("postList")
+                .call(data)
+                .continueWith(new Continuation<HttpsCallableResult, PostListResult>() {
+                    @Override
+                    public PostListResult then(@NonNull Task<HttpsCallableResult> task) throws Exception {
+                        Object data = task.getResult().getData();
+                        return parsePostResult((HashMap<String, Object>) data);
+                    }
+                });
     }
 
     public void getPostsByComment(OnPostListChangedListener<Post> onDataChangedListener, long date) {

@@ -109,7 +109,7 @@ CommentViewHolder extends RecyclerView.ViewHolder {
         rewardTextView = itemView.findViewById(R.id.rewardText);
         isAdmin = aIsAdmin;
 
-        likeViewGroup.setOnClickListener(new View.OnClickListener() {
+        likesImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 int position = getAdapterPosition();

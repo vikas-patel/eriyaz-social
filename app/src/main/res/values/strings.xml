@@ -44,6 +44,10 @@
     <string name="title_comment_like_users">Comment Loved By</string>
     <string name="post_limit_error">1 post allowed in 2 hours, you can create next post after %1$s. You can save this recording for later.</string>
 
+    <!--Notifications-->
+    <string name="new_like_channel_name">New Like</string>
+    <string name="new_comment_channel_name">New Comment</string>
+
     <string name="text_take_photo">Take photo</string>
     <string name="text_pick_photo">Pick from Gallery</string>
     <string name="button_title_cancel">Cancel</string>

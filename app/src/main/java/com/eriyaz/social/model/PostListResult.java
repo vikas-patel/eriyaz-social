@@ -24,6 +24,7 @@ public class PostListResult {
     boolean isMoreDataAvailable;
     List<Post> posts = new ArrayList<>();
     long lastItemCreatedDate;
+    long lastFriendItemDate;
 
     public boolean isMoreDataAvailable() {
         return isMoreDataAvailable;
@@ -47,5 +48,13 @@ public class PostListResult {
 
     public void setLastItemCreatedDate(long lastItemCreatedDate) {
         this.lastItemCreatedDate = lastItemCreatedDate;
+    }
+
+    public long getLastFriendItemDate() {
+        return lastFriendItemDate;
+    }
+
+    public void setLastFriendItemDate(long lastFriendItemDate) {
+        this.lastFriendItemDate = lastFriendItemDate;
     }
 }

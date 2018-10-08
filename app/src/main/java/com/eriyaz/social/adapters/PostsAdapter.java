@@ -25,11 +25,9 @@ import android.view.ViewGroup;
 
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
-import com.eriyaz.social.activities.MainActivity;
 import com.eriyaz.social.activities.RewardActivity;
 import com.eriyaz.social.adapters.holders.LoadViewHolder;
 import com.eriyaz.social.adapters.holders.PostViewHolder;
-import com.eriyaz.social.controllers.RatingController;
 import com.eriyaz.social.enums.ItemType;
 import com.eriyaz.social.managers.PostManager;
 import com.eriyaz.social.managers.listeners.OnPostListChangedListener;
@@ -51,6 +49,7 @@ public class PostsAdapter extends BasePostsAdapter {
     private boolean isLoading = false;
     private boolean isMoreDataAvailable = true;
     private long lastLoadedItemCreatedDate;
+    private long lastFriendItemDate;
     private SwipeRefreshLayout swipeContainer;
     private BaseActivity mainActivity;
 
@@ -133,7 +132,7 @@ public class PostsAdapter extends BasePostsAdapter {
                         isLoading = true;
                         postList.add(new Post(ItemType.LOAD));
                         notifyItemInserted(postList.size());
-                        loadNext(lastLoadedItemCreatedDate - 1);
+                        loadNext(lastLoadedItemCreatedDate - 1, lastFriendItemDate - 1);
                     } else {
                         mainActivity.showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
                     }
@@ -155,11 +154,11 @@ public class PostsAdapter extends BasePostsAdapter {
     }
 
     public void loadFirstPage() {
-        loadNext(0);
+        loadNext(0, 0);
         PostManager.getInstance(mainActivity.getApplicationContext()).clearNewPostsCounter();
     }
 
-    private void loadNext(final long nextItemCreatedDate) {
+    private void loadNext(final long nextItemCreatedDate, final long nextFriendItemDate) {
 
         if (!PreferencesUtil.isPostWasLoadedAtLeastOnce(mainActivity) && !activity.hasInternetConnection()) {
             mainActivity.showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
@@ -205,7 +204,35 @@ public class PostsAdapter extends BasePostsAdapter {
         if (mainActivity instanceof RewardActivity) {
             PostManager.getInstance(activity).getPostsByComment(onPostsDataChangedListener, nextItemCreatedDate);
         } else {
-            PostManager.getInstance(activity).getPostsList(onPostsDataChangedListener, nextItemCreatedDate);
+            PostManager.getInstance(activity).getPostsList(nextItemCreatedDate, nextFriendItemDate)
+                    .addOnSuccessListener(result -> {
+                        lastLoadedItemCreatedDate = result.getLastItemCreatedDate();
+                        lastFriendItemDate = result.getLastFriendItemDate();
+                        isMoreDataAvailable = result.isMoreDataAvailable();
+                        List<Post> list = result.getPosts();
+
+                        if (nextItemCreatedDate == 0) {
+                            postList.clear();
+                            notifyDataSetChanged();
+                            swipeContainer.setRefreshing(false);
+                        }
+
+                        hideProgress();
+
+                        if (!list.isEmpty()) {
+                            addList(list);
+
+                            if (!PreferencesUtil.isPostWasLoadedAtLeastOnce(mainActivity)) {
+                                PreferencesUtil.setPostWasLoadedAtLeastOnce(mainActivity, true);
+                            }
+                        } else {
+                            isLoading = false;
+                        }
+
+                        callback.onListLoadingFinished();
+                    }).addOnFailureListener(e -> {
+                        callback.onCanceled(e.getMessage());
+                    });
         }
     }
 

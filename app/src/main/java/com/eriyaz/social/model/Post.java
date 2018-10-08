@@ -323,4 +323,48 @@ public class Post implements Serializable, LazyLoading {
                 ", itemType=" + itemType +
                 '}';
     }
+
+    public Post(HashMap mapObj) {
+        itemType = ItemType.ITEM;
+        setId((String) mapObj.get("id"));
+        setTitle((String) mapObj.get("title"));
+        setDescription((String) mapObj.get("description"));
+        setImagePath((String) mapObj.get("imagePath"));
+        setImageTitle((String) mapObj.get("imageTitle"));
+        setAuthorId((String) mapObj.get("authorId"));
+        setCreatedDate((long) mapObj.get("createdDate"));
+        if (mapObj.containsKey("commentsCount")) {
+            setCommentsCount( ((Integer) mapObj.get("commentsCount")).longValue());
+        }
+        if (mapObj.containsKey("ratingsCount")) {
+            setRatingsCount(((Integer)mapObj.get("ratingsCount")).longValue());
+        }
+        if (mapObj.containsKey("audioDuration")) {
+            setAudioDuration( ((Integer)mapObj.get("audioDuration")).longValue());
+        }
+        if (mapObj.containsKey("averageRating")) {
+            setAverageRating(Float.parseFloat("" + mapObj.get("averageRating")));
+        }
+        if (mapObj.containsKey("watchersCount")) {
+            setWatchersCount(((Integer)mapObj.get("watchersCount")).longValue());
+        }
+        if (mapObj.containsKey("anonymous")) {
+            setAnonymous((boolean) mapObj.get("anonymous"));
+        }
+        if (mapObj.containsKey("nickName")) {
+            setNickName((String) mapObj.get("nickName"));
+        }
+        if (mapObj.containsKey("celebrityName")) {
+            setCelebrityName((String) mapObj.get("celebrityName"));
+        }
+        if (mapObj.containsKey("avatarImageUrl")) {
+            setAvatarImageUrl((String) mapObj.get("avatarImageUrl"));
+        }
+        if (mapObj.containsKey("lastCommentDate")) {
+            setLastCommentDate((long) mapObj.get("lastCommentDate"));
+        }
+        if (mapObj.containsKey("isAuthorFirstPost")) {
+            setAuthorFirstPost((boolean) mapObj.get("isAuthorFirstPost"));
+        }
+    }
 }

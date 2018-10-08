@@ -27,6 +27,8 @@ const MAX_RATING_MINUTE = 120;
 const db = admin.database();
 var supportingAuthorIds;
 var masterAuthorIds;
+// var recentPosts;
+const cacheDays = 30*24*60*60*1000;
 const WELCOME_ADMIN = functions.config().app.environment === 'dev' ? 'dsUhfoavcLUH4xsisgWW30N5v1u1' : 'eOaCAHXB8qfPKx1ZEKqSZXqrnXi2';
 
 const gmailEmail = functions.config().gmail.email;
@@ -368,7 +370,8 @@ function sendEmail(subject, body) {
 // Keeps track of the length of the 'likes' child list in a separate property.
 exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}/normalizedRating').onWrite(event => {
     if (event.data.exists() && !event.data.previous.exists() && event.data.val() == 0) {
-        return console.log("ignore: normalizedRating hasn't set yet.");
+        console.log("ignore: normalizedRating hasn't set yet.");
+        return 0;
     }
     const postRatingRef = event.data.ref.parent.parent.parent;
     const postId = event.params.postId;
@@ -407,7 +410,10 @@ exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{aut
 exports.updatePostBoughtFeedbackStatus = functions.database.ref('/bought-feedbacks/{postId}').onWrite(event => {
     const postId = event.params.postId;
     const feedback = event.data.val();
-    if (feedback.paymentStatus != "TXN_SUCCESS" && feedback.paymentStatus != "PENDING") return console.log("paymentStatus is ", feedback, ". So just exit.");
+    if (feedback.paymentStatus != "TXN_SUCCESS" && feedback.paymentStatus != "PENDING") {
+        console.log("paymentStatus is ", feedback, ". So just exit.");
+        return 0;
+    }
     const isResolved = feedback.resolved;
     console.log('bought feedback status changed on post', postId, isResolved);
 
@@ -468,7 +474,7 @@ exports.updatePostLastCommentDate = functions.database.ref('/post-comments/{post
 
 exports.rewardReputationPoints = functions.database.ref('/post-comments/{postId}/{commentId}/reputationPoints').onCreate(event => {
     const newPoints = event.data.val();
-    if (!newPoints) return;
+    if (!newPoints) return 0;
     const commentId = event.params.commentId;
     const postId = event.params.postId;
     const commentRef = event.data.ref.parent;
@@ -501,7 +507,7 @@ exports.detailedFeedbackPoints = functions.database.ref('/post-comments/{postId}
     const commentAuthorId = comment.authorId;
     const commentListRef = event.data.ref.parent;
     const comment_points = 1;
-    if (!comment.detailedFeedback) return;
+    if (!comment.detailedFeedback) return 0;
     console.log("reward extra points for detailed feedback");
     // Get all feedback with same parent feedback
     const getChildrenCommentTask = commentListRef.orderByChild('authorId').equalTo(commentAuthorId).once('value');
@@ -606,6 +612,15 @@ function addPoints(profileId, points) {
     });
 }
 
+function updateFriendConnection(friend1, friend2, points) {
+    const friendConectionRef = admin.database().ref(`/friends/${friend1}/${friend2}/points`);
+    return friendConectionRef.transaction(current => {
+          return (current || 0) + points;
+    }).then(() => {
+        console.log('updated friend connection', friend1, friend2, points);
+    });
+}
+
 // exports.postDeletePoints = functions.database.ref('/posts/{postId}').onDelete(event => {
 //     const postId = event.params.postId;
 //     const post = event.data.previous.val();
@@ -654,6 +669,45 @@ exports.addRatingPoints = functions.database.ref('/post-ratings/{postId}/{author
     const postId = event.params.postId;
     var point = 1;
     return updateUserRatingPoints(ratingAuthorId, point);
+});
+
+exports.updateFriendConnectionRating = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onCreate(event => {
+    const ratingAuthorId = event.params.authorId;
+    const postId = event.params.postId;
+    var point = 1;
+    const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
+
+    return getPostTask.then(post => {
+        var postAuthorId = post.val().authorId;
+        if (ratingAuthorId == postAuthorId) {
+            return console.log('User rated own post');
+        }
+        const friend1Task = updateFriendConnection(ratingAuthorId, postAuthorId, point);
+        const friend2Task = updateFriendConnection(postAuthorId, ratingAuthorId, point);
+        return Promise.all([friend1Task, friend2Task]).then(results => {
+            console.log("friend connection tasks on rating completed");
+        });
+    });
+});
+
+exports.updateFriendConnectionComment = functions.database.ref('/post-comments/{postId}/{commentId}/authorId').onCreate(event => {
+    const commentAuthorId = event.data.val();
+    const postId = event.params.postId;
+    const points = 2;
+
+    const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
+
+    return getPostTask.then(post => {
+        var postAuthorId = post.val().authorId;
+        if (commentAuthorId == postAuthorId) {
+            return console.log('User commented on own post');
+        }
+        const friend1Task = updateFriendConnection(commentAuthorId, postAuthorId, points);
+        const friend2Task = updateFriendConnection(postAuthorId, commentAuthorId, points);
+        return Promise.all([friend1Task, friend2Task]).then(results => {
+            console.log("friend connection tasks on comment completed");
+        });
+    });
 });
 
 exports.deleteRatingPoints = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onDelete(event => {
@@ -786,6 +840,7 @@ exports.appNotificationLikes = functions.database.ref('/comment-likes/{authorId}
                                 current.createdDate = admin.database.ServerValue.TIMESTAMP;
                                 current.fromUserId = likeAuthorId;
                                 current.message = msg;
+                                current.read = false;
                             } else {
                                 console.log('cache object null for notification ');
                                 return false;
@@ -834,6 +889,7 @@ exports.appNotificationRatings = functions.database.ref('/post-ratings/{postId}/
                             current.createdDate = admin.database.ServerValue.TIMESTAMP;
                             current.fromUserId = ratingAuthorId;
                             current.message = msg;
+                            current.read = false;
                         } else {
                             console.log('cache object null for notification ');
                             return false;
@@ -883,6 +939,7 @@ exports.appNotificationComments = functions.database.ref('/post-comments/{postId
                             current.createdDate = admin.database.ServerValue.TIMESTAMP;
                             current.fromUserId = commentAuthorId;
                             current.message = msg;
+                            current.read = false;
                         } else {
                             console.log('cache object null for notification ');
                             return false;
@@ -904,7 +961,8 @@ exports.normalizeRating = functions.database.ref('/post-ratings/{postId}/{author
     console.log("calculate normalizeRating");
     // todo: exit for delete
     if (!event.data.exists()) {
-        return console.log("exit: rating removed");
+        console.log("exit: rating removed");
+        return 0;
     }
     const raterId = event.params.authorId;
     const postId = event.params.postId;
@@ -986,14 +1044,17 @@ exports.enqueueSupportingRatingTask = functions.database.ref('/post-ratings/{pos
 
 function enqueueSupportRating(ratingAuthorId, rating, postId) {
     // Get author, check if master rater
-    if(masterAuthorIds.indexOf(ratingAuthorId) < 0 || rating.rating < 8) return console.log("exit: user is not a master rater");
+    if(masterAuthorIds.indexOf(ratingAuthorId) < 0 || rating.rating < 8) {
+        console.log("exit: user is not a master rater");
+        return 0;
+    }
 
     const ratingCount = random(MAX_SUPPORTING_RATINGS, MIN_SUPPORTING_RATINGS);
     var indexRatingAuthors = randomGroup(ratingCount, supportingAuthorIds.length);
     var promises = [];
     for (var i = 0; i < indexRatingAuthors.length; i++) {
         const authorId = supportingAuthorIds[indexRatingAuthors[i]];
-        let randomRating = random(rating.rating + 2, rating.rating - 2);
+        let randomRating = random(rating.rating + 1, rating.rating - 1);
         if (randomRating > 20) randomRating = 20;
         if (randomRating < 1) randomRating = 1;
         var randomMinutes = random(MAX_RATING_MINUTE, MIN_RATING_MINUTE);
@@ -1023,9 +1084,12 @@ exports.voiceCommentAppUpdateNotification = functions.database.ref('/post-commen
     const postId = event.params.postId;
     const comment = event.data.val();
     const commentAuthorId = comment.authorId;
-    if (!comment.audioPath) return console.log("comment has no audio");
+    if (!comment.audioPath) {
+        console.log("comment has no audio");
+        return 0;
+    }
     const voiceVersion = 2.9;
-    admin.database().ref(`/posts/${postId}`).once('value').then(post => {
+    return admin.database().ref(`/posts/${postId}`).once('value').then(post => {
         var postAuthorId = post.val().authorId;
         if (commentAuthorId == postAuthorId) {
             return console.log('User commented on own post');
@@ -1423,7 +1487,7 @@ exports.appNotificationFeedbackConversation = functions.database.ref('/feedbacks
     });
 });
 
-exports.incrementUserUnseenNotification = functions.database.ref('/user-notifications/{authorId}/{notificationId}').onWrite(event => {
+exports.incrementUserUnseenNotification = functions.database.ref('/user-notifications/{authorId}/{notificationId}/message').onWrite(event => {
     const authorId = event.params.authorId;
     const authorProfileUnseenRef = admin.database().ref(`/profiles/${authorId}/unseen`);
     return authorProfileUnseenRef.transaction(current => {
@@ -1594,7 +1658,7 @@ exports.grantSignupReward = functions.database.ref('/profiles/{uid}/id').onCreat
           var profile = profileSnap.val();
           console.log("referred_by", profile.referred_by);
           const WELCOME_MSG = `Hi ${profile.username}. Welcome to ${notificationTitle} community. I am the Developer and a Moderator here. Feel free to reach out to me for any questions/help. \nImportant : Be fair and genuine in your ratings, or you might be blacklisted by other members.`;
-          const GIFT_JOINING_MSG = "Vikas Patel gifted you 4 points. Please rate others' recordings to earn more points";
+          const GIFT_JOINING_MSG = "Vikas Patel gifted you 4 points. Please rate others' recordings to earn more points.";
           const welcomeMsgTask = sendUserMessage(uid, WELCOME_ADMIN, WELCOME_MSG);
           // const addPointsTask =  addPoints(uid, 3);
           const giftJoiningMsgTask = sendAppNotificationNoAction(uid, WELCOME_ADMIN, GIFT_JOINING_MSG);
@@ -1803,6 +1867,212 @@ exports.profileSearch = functions.https.onRequest((req, res) => {
 
     });
 });
+
+// function removeOldPostsFromCache() {
+//     while(recentPosts[recentPosts.length-1].createdDate < Date.now() - cacheDays){
+//         recentPosts.pop();
+//     }
+// }
+
+// exports.updatePostCache = functions.database.ref('/posts/{postId}').onWrite(event => {
+//     const postId = event.params.postId;
+//     console.log("recentPosts", recentPosts);
+//     if (!recentPosts) {
+//         console.log("empty cache");
+//         return 0;
+//     }
+//     // Add
+//     if (event.data.exists() && !event.data.previous.exists()) {
+//         const post = event.data.val();
+//         recentPosts.unshift(post);
+//         removeOldPostsFromCache();
+//         console.log("new post created");
+//         return 0;
+//     }
+
+//     // Update
+//     if (event.data.exists() && event.data.previous.exists()) {
+//         const post = event.data.val();
+//         if (post.createdDate < Date.now() - cacheDays) return console.log("no need to update the cache");
+//         for( var i = 0; i < recentPosts.length-1; i++){ 
+//            if (recentPosts[i].id == postId) {
+//              recentPosts.splice(i, 1, post); 
+//            }
+//         }
+//         console.log("post updated");
+//         return 0;
+//     }
+
+//     // Delete
+//     if (!event.data.exists()) {
+//         const post = event.data.previous.val();
+//         if (post.createdDate < Date.now() - cacheDays) return console.log("no need to delete from the cache");
+//         for( var i = 0; i < recentPosts.length-1; i++){ 
+//            if (recentPosts[i].id == postId) {
+//              recentPosts.splice(i, 1); 
+//            }
+//         }
+//         console.log("post deleted from cache", postId);
+//         return 0;
+//     }
+
+// });
+
+exports.postList = functions.https.onCall((data, context) => {
+    const lastRecentDate = data.lastRecentDate;
+    const lastFriendDate = data.lastFriendDate;
+    console.log("lastRecentDate, lastFriendDate", lastRecentDate, lastFriendDate);
+    return getRecentPostList().then(postList => {
+        if (!context.auth || !context.auth.uid) {
+            return filterPostList(postList, lastRecentDate, lastFriendDate);
+        }
+        const uid = context.auth.uid;
+        let yesterday = Date.now() - cacheDays;
+        return Promise.all([getFriends(uid), getRatedPosts(uid, yesterday)]).then(results => {
+            const friends = results[0];
+            const ratedPosts = results[1];
+            return filterPostList(postList, lastRecentDate, lastFriendDate, friends, ratedPosts, uid);
+        });
+    });
+});
+
+function filterPostList(recentPosts, lastRecentDate = Date.now(), lastFriendDate = Date.now(), friends = [], ratedPosts = [], uid) {
+    const result_size = 10;
+    let friendPosts = [];
+    let newPosts = [];
+    let resultPosts = [];
+
+    newPosts = recentPosts.filter(post => {
+        if (post.createdDate <= lastRecentDate && !friends.includes(post.authorId)) return true;
+        return false;
+    });
+
+    friendPosts = recentPosts.filter(post => {
+        if (post.createdDate <= lastFriendDate && friends.includes(post.authorId) && !ratedPosts.includes(post.id)) return true;
+        return false;
+    });
+
+    for (var i = 0; i < result_size; i++) {
+        if (i < newPosts.length) {
+            resultPosts.push(newPosts[i]);
+            if (newPosts[i].createdDate < lastRecentDate) lastRecentDate = newPosts[i].createdDate;
+        }
+        if (i < friendPosts.length) {
+            resultPosts.push(friendPosts[i]);
+            if (friendPosts[i].createdDate < lastFriendDate) lastFriendDate = friendPosts[i].createdDate;
+        }
+        if (resultPosts.length >= result_size) break;
+    }
+    if (resultPosts.length >= result_size) {
+        return {
+          lastRecentDate: lastRecentDate,
+          lastFriendDate: lastFriendDate,
+          result: resultPosts
+        };
+    } else {
+        return getYesterdayPostList(Math.min(lastRecentDate, lastFriendDate), result_size - resultPosts.length).then(yesterdayPosts => {
+            lastRecentDate = yesterdayPosts[yesterdayPosts.length - 1].createdDate;
+            // filter removed and complained posts
+            yesterdayPosts = yesterdayPosts.filter(post => {
+                return !post.removed && !post.hasComplain;
+            });
+            if (uid) {
+                return getRatedPosts(uid).then(ratedPostsAll => {
+                    yesterdayPosts = yesterdayPosts.filter(post => {
+                        if (!ratedPostsAll.includes(post.id)) return true;
+                        return false;
+                    });
+                    resultPosts = resultPosts.concat(yesterdayPosts);
+                    return {
+                      lastRecentDate: lastRecentDate,
+                      lastFriendDate: lastFriendDate,
+                      result: resultPosts
+                    };
+                });
+            } else {
+                resultPosts = resultPosts.concat(yesterdayPosts);
+                return {
+                  lastRecentDate: lastRecentDate,
+                  lastFriendDate: lastFriendDate,
+                  result: resultPosts
+                };
+            }
+        });
+    }
+}
+
+function getYesterdayPostList(lastDate, limit) {
+    const postRef = db.ref('posts');
+    const yesterdayPosts = [];
+    console.log("fetching yesterday posts from database");
+    return postRef.orderByChild('createdDate').endAt(lastDate - 1).limitToLast(limit).once('value').then(postListSnap => {
+        postListSnap.forEach( postSnap => {
+            const post = postSnap.val();
+            post.id = postSnap.key;
+            yesterdayPosts.push(post);
+        });
+        yesterdayPosts.reverse();
+        return yesterdayPosts;
+    });
+}
+
+function getRecentPostList() {
+    // if (recentPosts) {
+    //     console.log("return from results", recentPosts.length);
+    //     return Promise.resolve(recentPosts);
+    // }
+    const postRef = db.ref('posts');
+    let yesterday = Date.now() - cacheDays;
+    console.log("fetching posts from database");
+    return postRef.orderByChild('createdDate').startAt(yesterday).once('value').then(postListSnap => {
+        recentPosts = [];
+        postListSnap.forEach( postSnap => {
+            const post = postSnap.val();
+            post.id = postSnap.key;
+            recentPosts.push(post);
+        });
+        console.log("return from db", recentPosts.length);
+        recentPosts = recentPosts.filter(post => {
+            return !post.removed && !post.hasComplain;
+        });
+        recentPosts.reverse();
+        console.log("return after filter", recentPosts.length);
+        return recentPosts;
+    });
+}
+
+function getFriends(userId) {
+    let friends = [];
+    const friendsRef = db.ref(`/friends/${userId}`);
+    return friendsRef.once('value').then(friendListSnap => {
+        friendListSnap.forEach(friendSnap => {
+            friends.push(friendSnap.key);
+        });
+        return friends;
+    });   
+}
+
+function getRatedPosts(userId, lastDate) {
+    let posts = [];
+    const ratedPostsRef = db.ref(`/user-ratings/${userId}`);
+    if (lastDate) {
+        return ratedPostsRef.orderByChild('createdDate').startAt(lastDate).once('value').then(postListSnap => {
+            postListSnap.forEach(postSnap => {
+                const post = postSnap.val();
+                posts.push(post.postId);
+            });
+            return posts;
+        });
+    } else {
+        return ratedPostsRef.once('value').then(postListSnap => {
+            postListSnap.forEach(postSnap => {
+                const post = postSnap.val();
+                posts.push(post.postId);
+            });
+            return posts;
+        });
+    }
+}
 
 exports.profileStats = functions.https.onRequest((req, res) => {
     const queryText = req.query.name;

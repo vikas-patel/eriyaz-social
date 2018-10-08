@@ -383,6 +383,7 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
                 @Override
                 public void onCanceled(String message) {
                     progressBar.setVisibility(View.GONE);
+                    showSnackBar("Error: "+message);
                     Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
                 }
             });

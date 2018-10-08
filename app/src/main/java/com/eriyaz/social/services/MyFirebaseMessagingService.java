@@ -17,6 +17,7 @@
 
 package com.eriyaz.social.services;
 
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -25,7 +26,9 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.support.annotation.StringRes;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.ContextCompat;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -80,12 +83,12 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         Analytics analytics;
         switch (receivedActionType) {
             case ACTION_TYPE_NEW_RATING:
-                parseCommentOrLike(remoteMessage);
+                parseCommentOrLike(Channel.NEW_LIKE, remoteMessage);
                 analytics = new Analytics(getApplicationContext());
                 analytics.receivedNotification("rating");
                 break;
             case ACTION_TYPE_NEW_COMMENT:
-                parseCommentOrLike(remoteMessage);
+                parseCommentOrLike(Channel.NEW_COMMENT, remoteMessage);
                 analytics = new Analytics(getApplicationContext());
                 analytics.receivedNotification("comment");
                 break;
@@ -126,7 +129,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         LogUtil.logDebug(TAG, "Message Notification Body: " + remoteMessage.getData().get(BODY_KEY));
     }
 
-    private void parseCommentOrLike(RemoteMessage remoteMessage) {
+    private void parseCommentOrLike(Channel channel, RemoteMessage remoteMessage) {
         String notificationTitle = remoteMessage.getData().get(TITLE_KEY);
         String notificationImageUrl = remoteMessage.getData().get(ICON_KEY);
         String postId = remoteMessage.getData().get(POST_ID_KEY);
@@ -141,7 +144,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         Bitmap bitmap = getBitmapFromUrl(notificationImageUrl);
 
-        sendNotification(notificationTitle, bitmap, intent, backIntent, postId, receivedActionType, authorName, postTitle);
+        sendNotification(channel, notificationTitle, bitmap, intent, backIntent, postId, receivedActionType, authorName, postTitle);
     }
 
     public Bitmap getBitmapFromUrl(String imageUrl) {
@@ -190,7 +193,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     }
 
-    private void sendNotification(String notificationTitle, Bitmap bitmap,
+    private void sendNotification(Channel channel, String notificationTitle, Bitmap bitmap,
                                   Intent intent, Intent backIntent, String postId, String actionType, String authorName, String postTitle) {
         int postIdInt = postId.hashCode();
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -222,8 +225,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
         editor.apply();
 
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        NotificationCompat.Builder notificationBuilder = (NotificationCompat.Builder) new NotificationCompat.Builder(this)
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, channel.id)
                 .setAutoCancel(true)   //Automatically delete the notification
                 .setSmallIcon(R.drawable.ic_push_notification_small) //Notification icon
                 .setContentIntent(pendingIntent)
@@ -232,6 +236,15 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 .setLargeIcon(bitmap)
                 .setSound(defaultSoundUri)
                 .setDeleteIntent(onCancelNotificationReceiverPendingIntent);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel notificationChannel = new NotificationChannel(channel.id, getString(channel.name), importance);
+            notificationChannel.enableLights(true);
+            notificationChannel.setLightColor(ContextCompat.getColor(this, R.color.primary));
+            notificationChannel.enableVibration(true);
+            notificationBuilder.setChannelId(channel.id);
+            notificationManager.createNotificationChannel(notificationChannel);
+        }
 
         manager.notify(postIdInt /* ID of notification */, notificationBuilder.build());
     }
@@ -264,5 +277,19 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             inbox.setBigContentTitle("Your post '" + postTitle + "'");
         }
         return inbox;
+    }
+
+    enum Channel {
+        NEW_LIKE("new_like_id", R.string.new_like_channel_name),
+        NEW_COMMENT("new_comment_id", R.string.new_comment_channel_name);
+
+        String id;
+        @StringRes
+        int name;
+
+        Channel(String id, @StringRes int name) {
+            this.id = id;
+            this.name = name;
+        }
     }
 }
