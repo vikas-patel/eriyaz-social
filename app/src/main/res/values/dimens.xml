@@ -75,4 +75,9 @@
     <dimen name="refresh_layout_end_offset">24dp</dimen>
     <dimen name="refresh_layout_start_offset">-24dp</dimen>
 
+    <!--photo movie-->
+    <dimen name="record_share_menu_height">130dp</dimen>
+    <dimen name="record_share_bottom_height">120dp</dimen>
+    <dimen name="record_share_menu_item_space">10dp</dimen>
+
 </resources>

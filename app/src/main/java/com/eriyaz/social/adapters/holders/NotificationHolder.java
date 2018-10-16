@@ -21,6 +21,7 @@ import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.model.Notification;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.FormatterUtil;
+import com.eriyaz.social.utils.GlideApp;
 import com.eriyaz.social.utils.ImageUtil;
 import com.eriyaz.social.utils.LogUtil;
 
@@ -104,12 +105,7 @@ public class NotificationHolder extends RecyclerView.ViewHolder {
             public void onObjectChanged(Profile obj) {
                 if (((BaseActivity)context).isActivityDestroyed()) return;
                 if (obj.getPhotoUrl() != null) {
-                    Glide.with(context)
-                            .load(obj.getPhotoUrl())
-                            .diskCacheStrategy(DiskCacheStrategy.ALL)
-                            .crossFade()
-                            .error(R.drawable.ic_stub)
-                            .into(avatarImageView);
+                    ImageUtil.loadImage(GlideApp.with(context), obj.getPhotoUrl(), avatarImageView);
                 } else {
                     avatarImageView.setImageDrawable(ImageUtil.getTextDrawable(obj.getUsername(),
                             context.getResources().getDimensionPixelSize(R.dimen.notification_list_avatar_height),

@@ -27,6 +27,7 @@ import android.widget.TextView;
 
 import com.eriyaz.social.R;
 import com.eriyaz.social.model.LikeUser;
+import com.eriyaz.social.utils.GlideApp;
 import com.eriyaz.social.utils.ImageUtil;
 
 /**
@@ -74,7 +75,7 @@ public class UserViewHolder extends RecyclerView.ViewHolder {
         nameTextView.setText(user.getUsername());
 
         if (user.getPhotoUrl() != null) {
-            ImageUtil.loadImage(activity, user.getPhotoUrl(), photoImageView);
+            ImageUtil.loadImage(GlideApp.with(context), user.getPhotoUrl(), photoImageView);
         }
     }
 

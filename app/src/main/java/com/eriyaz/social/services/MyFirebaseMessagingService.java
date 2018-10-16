@@ -34,6 +34,8 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.eriyaz.social.enums.PostOrigin;
 import com.eriyaz.social.utils.Analytics;
+import com.eriyaz.social.utils.GlideApp;
+import com.eriyaz.social.utils.ImageUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.messaging.FirebaseMessagingService;
@@ -149,14 +151,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     public Bitmap getBitmapFromUrl(String imageUrl) {
         try {
-            return Glide.with(this)
-                    .load(imageUrl)
-                    .asBitmap()
-                    .centerCrop()
-                    .diskCacheStrategy(DiskCacheStrategy.SOURCE)
-                    .into(Constants.PushNotification.LARGE_ICONE_SIZE, Constants.PushNotification.LARGE_ICONE_SIZE)
-                    .get();
-
+            return ImageUtil.loadBitmap(GlideApp.with(this), imageUrl, Constants.PushNotification.LARGE_ICONE_SIZE, Constants.PushNotification.LARGE_ICONE_SIZE);
         } catch (Exception e) {
             LogUtil.logError(TAG, "getBitmapfromUrl", e);
             return null;

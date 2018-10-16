@@ -42,6 +42,7 @@ import com.eriyaz.social.model.ListItem;
 import com.eriyaz.social.model.Message;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.FormatterUtil;
+import com.eriyaz.social.utils.GlideApp;
 import com.eriyaz.social.utils.ImageUtil;
 import com.eriyaz.social.views.ExpandableTextView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -163,12 +164,7 @@ public class MessageHolder extends ViewHolder {
                 fillMessage(userName, message, expandableTextView);
 
                 if (obj.getPhotoUrl() != null) {
-                    Glide.with(context)
-                            .load(obj.getPhotoUrl())
-                            .diskCacheStrategy(DiskCacheStrategy.ALL)
-                            .crossFade()
-                            .error(R.drawable.ic_stub)
-                            .into(avatarImageView);
+                    ImageUtil.loadImage(GlideApp.with(context), obj.getPhotoUrl(), avatarImageView);
                 } else {
                     avatarImageView.setImageDrawable(ImageUtil.getTextDrawable(userName,
                             context.getResources().getDimensionPixelSize(R.dimen.message_avatar_height),

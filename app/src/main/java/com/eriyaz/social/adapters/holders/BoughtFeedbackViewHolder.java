@@ -34,6 +34,7 @@ import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.model.BoughtFeedback;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.FormatterUtil;
+import com.eriyaz.social.utils.GlideApp;
 import com.eriyaz.social.utils.ImageUtil;
 
 /**
@@ -106,12 +107,7 @@ public class BoughtFeedbackViewHolder extends RecyclerView.ViewHolder {
             @Override
             public void onObjectChanged(Profile obj) {
                 if (obj.getPhotoUrl() != null) {
-                    Glide.with(context)
-                            .load(obj.getPhotoUrl())
-                            .diskCacheStrategy(DiskCacheStrategy.ALL)
-                            .crossFade()
-                            .error(R.drawable.ic_stub)
-                            .into(avatarImageView);
+                    ImageUtil.loadImage(GlideApp.with(context), obj.getPhotoUrl(), avatarImageView);
                 } else {
                     avatarImageView.setImageDrawable(ImageUtil.getTextDrawable(obj.getUsername(),
                             context.getResources().getDimensionPixelSize(R.dimen.bought_feedback_list_avatar_height),

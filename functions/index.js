@@ -1647,14 +1647,12 @@ exports.restoreReputationPoints = functions.database.ref('/profiles/{uid}/reputa
     }).then(() => {
         console.log('restored reputationPoints completed for profile', uid);
     });
-
 });
 
 exports.grantSignupReward = functions.database.ref('/profiles/{uid}/id').onCreate(event => {
     console.log("new user signed in");
-      var uid = event.params.uid;
-      admin.database().ref(`profiles/${uid}`)
-        .once('value').then(function(profileSnap) {
+    var uid = event.params.uid;
+    return admin.database().ref(`profiles/${uid}`).once('value').then(function(profileSnap) {
           var profile = profileSnap.val();
           console.log("referred_by", profile.referred_by);
           const WELCOME_MSG = `Hi ${profile.username}. Welcome to ${notificationTitle} community. I am the Developer and a Moderator here. Feel free to reach out to me for any questions/help. \nImportant : Be fair and genuine in your ratings, or you might be blacklisted by other members.`;
@@ -1670,11 +1668,11 @@ exports.grantSignupReward = functions.database.ref('/profiles/{uid}/id').onCreat
             const notificationTask = sendAppNotificationProfileAction(profile.referred_by, uid, msg);
             taskList.push(notificationTask);
           }
-          return Promise.all(taskList).then(results => {
-                console.log("all reward tasks completed.");
-            });
+        return Promise.all(taskList).then(results => {
+            console.log("all reward tasks completed.");
         });
     });
+});
 
 exports.appUpdateNotification = functions.https.onRequest((req, res) => {
     // check if security key is same
@@ -1737,6 +1735,8 @@ exports.appUninstall = functions.analytics.event('app_remove').onLog(event => {
             console.log('mark uninstall for profile ', uid);
             return markPostRemoved(uid, true);
         });
+    } else {
+        return 0;
     }
 });
 
@@ -1751,6 +1751,8 @@ exports.sessionStart = functions.analytics.event('session_start').onLog(event =>
         }).then(() => {
             console.log(`app version ${appVersion} set for profile ${uid}`);
         });
+    } else {
+        return 0;
     }
 });
 

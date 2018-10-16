@@ -28,6 +28,8 @@ import com.eriyaz.social.dialogs.AvatarDialog;
 import com.eriyaz.social.managers.DatabaseHelper;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteMessageListener;
 import com.eriyaz.social.model.RecordingItem;
+import com.eriyaz.social.utils.GlideApp;
+import com.eriyaz.social.utils.ImageUtil;
 import com.eriyaz.social.utils.ValidationUtil;
 
 import org.w3c.dom.Text;
@@ -154,11 +156,7 @@ public class SavePostFragment extends BaseFragment {
         if (resultCode == Activity.RESULT_OK) {
             // set image url
             avatarImageUrl = data.getStringExtra(AvatarDialog.AVATAR_IMAGE_URL_EXTRA_KEY);
-            Glide.with(getActivity())
-                    .load(avatarImageUrl)
-                    .diskCacheStrategy(DiskCacheStrategy.SOURCE)
-                    .crossFade()
-                    .into(avatarImageView);
+            ImageUtil.loadImage(GlideApp.with(getActivity()), avatarImageUrl, avatarImageView);
         }
     }
 

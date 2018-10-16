@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -22,6 +23,7 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.eriyaz.social.Application;
 import com.eriyaz.social.Constants;
@@ -751,14 +753,39 @@ public class PlaybackFragment extends BaseDialogFragment {
         if (PermissionsUtil.isExplicitPermissionRequired(getActivity())) {
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE}, PermissionsUtil.MY_PERMISSIONS_RECORD_AUDIO);
         } else {
-            if (mStartRecording) {
-                mRecordButton.setImageResource(R.drawable.ic_media_stop);
-                commentRecordLayout.startRecording();
-            } else {
-                mRecordButton.setImageResource(R.drawable.ic_mic_white_36dp);
-                commentRecordLayout.stopRecording();
+            startRecording();
+        }
+    }
+
+    private void startRecording() {
+        if (mStartRecording) {
+            mRecordButton.setImageResource(R.drawable.ic_media_stop);
+            commentRecordLayout.startRecording();
+        } else {
+            mRecordButton.setImageResource(R.drawable.ic_mic_white_36dp);
+            commentRecordLayout.stopRecording();
+        }
+        mStartRecording = !mStartRecording;
+    }
+
+    //Handling callback
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PermissionsUtil.MY_PERMISSIONS_RECORD_AUDIO: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay!
+                    Toast.makeText(getActivity(), "Permissions granted to record audio", Toast.LENGTH_LONG).show();
+                    startRecording();
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                    showDialog("Permissions Denied to record audio. Please try again.");
+                }
+                return;
             }
-            mStartRecording = !mStartRecording;
         }
     }
 }

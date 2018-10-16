@@ -26,6 +26,8 @@ public class Analytics {
     public static final String POST_FAILED = "PostFailed";
     public static final String FIRST_POST = "FirstPost";
     public static final String FIRST_RECORD = "FirstRecord";
+    public static final String RECORD_SHARE_ACTIVITY = "RecordShareActivity";
+    public static final String SHARE_VIDEO = "ShareVideo";
     public static final String OPEN_OTHER_AUDIO = "OpenOtherAudio";
     public static final String OPEN_SELF_AUDIO = "OpenSelfAudio";
     public static final String OPEN_RECORDED_AUDIO = "OpenRecordedAudio";
@@ -66,6 +68,29 @@ public class Analytics {
             bundle.putString("UserName", "Anonymous");
             firebase.logEvent(OPEN_OTHER_AUDIO, bundle);
         }
+    }
+
+    public void logOpenRecordShare(String postAuthorId) {
+        Bundle bundle = new Bundle();
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            bundle.putString("UserName", currentUser.getDisplayName());
+            if (currentUser.getUid().equals(postAuthorId)) {
+                bundle.putBoolean("Self", true);
+            } else {
+                bundle.putBoolean("Self", false);
+            }
+        }
+        firebase.logEvent(RECORD_SHARE_ACTIVITY, bundle);
+    }
+
+    public void logShareVideo() {
+        Bundle bundle = new Bundle();
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            bundle.putString("UserName", currentUser.getDisplayName());
+        }
+        firebase.logEvent(SHARE_VIDEO, bundle);
     }
 
     // log time only if played other author audio

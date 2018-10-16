@@ -90,14 +90,27 @@
                     </LinearLayout>
 
                 </LinearLayout>
-                <Button
-                    android:id="@+id/buy_feedback_button"
-                    android:layout_marginLeft="@dimen/large_intrinsic_padding"
+                <LinearLayout
                     android:layout_below="@+id/fileViewContainer"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:text="@string/get_official_feedback"/>
+                    android:orientation="horizontal">
+                    <Button
+                        android:id="@+id/record_share_button"
+                        android:layout_marginLeft="@dimen/intrinsic_padding"
+                        android:layout_width="wrap_content"
+                        style="@style/Widget.AppCompat.Button.Colored"
+                        android:layout_height="wrap_content"
+                        android:visibility="visible"
+                        android:text="@string/share_record"/>
+                    <Button
+                        android:id="@+id/buy_feedback_button"
+                        android:layout_marginLeft="@dimen/intrinsic_padding"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone"
+                        android:text="@string/get_official_feedback"/>
+                </LinearLayout>
             </RelativeLayout>
 
 
@@ -187,7 +200,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:visibility="gone"
-                    app:layoutManager="LinearLayoutManager"
+                    app:layoutManager="android.support.v7.widget.LinearLayoutManager"
                     tools:listitem="@layout/comment_list_item" />
 
                 <ProgressBar
@@ -234,7 +247,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:visibility="gone"
-                    app:layoutManager="LinearLayoutManager"
+                    app:layoutManager="android.support.v7.widget.LinearLayoutManager"
                     tools:listitem="@layout/comment_list_item" />
 
                 <ProgressBar

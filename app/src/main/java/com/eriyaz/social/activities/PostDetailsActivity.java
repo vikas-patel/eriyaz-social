@@ -24,6 +24,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
@@ -59,7 +60,6 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.eriyaz.social.Application;
 import com.eriyaz.social.R;
@@ -96,7 +96,10 @@ import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.model.RecordingItem;
+import com.eriyaz.social.photomovie.RecordShareActivity;
 import com.eriyaz.social.utils.FormatterUtil;
+import com.eriyaz.social.utils.GlideApp;
+import com.eriyaz.social.utils.ImageUtil;
 import com.eriyaz.social.utils.OfficialFeedbackRequest;
 import com.eriyaz.social.utils.PermissionsUtil;
 import com.eriyaz.social.utils.RatingUtil;
@@ -183,6 +186,7 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
     private boolean isEnterTransitionFinished = false;
     private Rating rating;
     private Button buyFeedbackButton;
+    private Button recordShareButton;
     final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
     private int paymentAmount = (int) remoteConfig.getLong("payment_amount");
     private RecordLayout commentRecordLayout;
@@ -367,14 +371,12 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
 
 
         buyFeedbackButton = findViewById(R.id.buy_feedback_button);
-        buyFeedbackButton.setOnClickListener(new View.OnClickListener() {
+
+        recordShareButton = findViewById(R.id.record_share_button);
+        recordShareButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (hasInternetConnection()) {
-                    openConfirmPaymentDialog();
-                } else {
-                    showSnackBar(R.string.internet_connection_failed);
-                }
+                requestRecordShareActivity();
             }
         });
     }
@@ -810,9 +812,9 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
             buyFeedbackButton.setVisibility(View.VISIBLE);
             return;
         }
-        if (hasAccessToModifyPost()) {
-            buyFeedbackButton.setVisibility(View.VISIBLE);
-        }
+//        if (hasAccessToModifyPost()) {
+//            buyFeedbackButton.setVisibility(View.VISIBLE);
+//        }
     }
 
 //    private void loadPostDetailsImage() {
@@ -951,11 +953,11 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
 
     private void showProfileDetails(String userName, String profileImageUrl) {
         if (profileImageUrl != null) {
-            Glide.with(PostDetailsActivity.this)
-                    .load(profileImageUrl)
-                    .diskCacheStrategy(DiskCacheStrategy.SOURCE)
-                    .crossFade()
-                    .into(authorImageView);
+            ImageUtil.loadImage(GlideApp.with(PostDetailsActivity.this), profileImageUrl, authorImageView, DiskCacheStrategy.DATA);
+        } else if (userName != null && !userName.isEmpty()){
+            authorImageView.setImageDrawable(ImageUtil.getTextDrawable(userName,
+                    getResources().getDimensionPixelSize(R.dimen.post_author_image_side),
+                    getResources().getDimensionPixelSize(R.dimen.post_author_image_side)));
         }
         authorTextView.setText(userName);
     }
@@ -1281,6 +1283,12 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
 
         // Handle item selection
         switch (item.getItemId()) {
+            case R.id.official_feedback_menu_item:
+                openConfirmPaymentDialog();
+                return true;
+            case R.id.share_record_menu_item:
+                requestRecordShareActivity();
+                return true;
             case R.id.complain_action:
                 doComplainAction();
                 return true;
@@ -1332,6 +1340,67 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
     private void openRatingsChartActivity() {
         Intent intent = new Intent(PostDetailsActivity.this, RatingsChartActivity.class);
         startActivity(intent);
+    }
+
+    @SuppressLint("NewApi")
+    private void requestRecordShareActivity() {
+        if (PermissionsUtil.isReadWritePermissionRequired(PostDetailsActivity.this)) {
+            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, PermissionsUtil.MY_PERMISSIONS_READ_EXTERNAL);
+        } else {
+            openRecordShareActivity();
+        }
+    }
+
+    private void openRecordShareActivity() {
+        if (!hasInternetConnection()) {
+            showSnackBar(R.string.internet_connection_failed);
+            return;
+        }
+        Intent intent = new Intent(PostDetailsActivity.this, RecordShareActivity.class);
+        RecordingItem item = new RecordingItem();
+        item.setName(post.getTitle());
+        item.setLength(post.getAudioDuration());
+        item.setFilePath(post.getImagePath());
+        intent.putExtra(RecordShareActivity.MUSIC_URI_EXTRA_KEY, post.getImagePath());
+        intent.putExtra(RecordShareActivity.PROFILE_URL_EXTRA_KEY, profile.getPhotoUrl());
+        intent.putExtra(RecordShareActivity.PROFILE_NAME_EXTRA_KEY, profile.getUsername());
+        intent.putExtra(RecordShareActivity.POST_TITLE_EXTRA_KEY, post.getTitle());
+        intent.putExtra(RecordShareActivity.AUDIO_DURATION_EXTRA_KEY, post.getAudioDuration());
+        startActivity(intent);
+    }
+
+    //Handling callback
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PermissionsUtil.MY_PERMISSIONS_READ_EXTERNAL: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay!
+                    Toast.makeText(this, "Permissions granted to save recording", Toast.LENGTH_LONG).show();
+                    openRecordShareActivity();
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                    showWarningDialog("Permissions Denied to save recording. Please try again.");
+                }
+                return;
+            }
+            case PermissionsUtil.MY_PERMISSIONS_RECORD_AUDIO: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay!
+                    Toast.makeText(this, "Permissions granted to record audio", Toast.LENGTH_LONG).show();
+                    startRecording();
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                    showWarningDialog("Permissions Denied to record audio. Please try again.");
+                }
+                return;
+            }
+        }
     }
 
     private void attemptToRemovePost() {
@@ -1404,6 +1473,10 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
     }
 
     private void openConfirmPaymentDialog() {
+        if (!hasInternetConnection()) {
+            showSnackBar(R.string.internet_connection_failed);
+            return;
+        }
         AlertDialog.Builder builder = new BaseAlertDialogBuilder(this);
         builder.setMessage(String.format(getString(R.string.confirm_continue_payment), paymentAmount))
                 .setNegativeButton(R.string.button_title_cancel, null)
@@ -1611,13 +1684,17 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
         if (PermissionsUtil.isExplicitPermissionRequired(PostDetailsActivity.this)) {
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE}, PermissionsUtil.MY_PERMISSIONS_RECORD_AUDIO);
         } else {
-            if (mStartRecording) {
-                mRecordButton.setImageResource(R.drawable.ic_media_stop);
-                commentRecordLayout.startRecording();
-                mStartRecording = !mStartRecording;
-            } else {
-                stopRecording();
-            }
+            startRecording();
+        }
+    }
+
+    private void startRecording() {
+        if (mStartRecording) {
+            mRecordButton.setImageResource(R.drawable.ic_media_stop);
+            commentRecordLayout.startRecording();
+            mStartRecording = !mStartRecording;
+        } else {
+            stopRecording();
         }
     }
 

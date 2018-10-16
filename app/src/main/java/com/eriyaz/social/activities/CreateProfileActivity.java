@@ -18,7 +18,9 @@ package com.eriyaz.social.activities;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -32,24 +34,24 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.resource.drawable.GlideDrawable;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.eriyaz.social.Constants;
-import com.eriyaz.social.utils.ImageUtil;
-import com.eriyaz.social.utils.Utils;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.iid.FirebaseInstanceId;
 import com.eriyaz.social.R;
 import com.eriyaz.social.managers.DatabaseHelper;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnProfileCreatedListener;
 import com.eriyaz.social.model.Profile;
+import com.eriyaz.social.utils.GlideApp;
+import com.eriyaz.social.utils.ImageUtil;
 import com.eriyaz.social.utils.PreferencesUtil;
+import com.eriyaz.social.utils.Utils;
 import com.eriyaz.social.utils.ValidationUtil;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 public class CreateProfileActivity extends PickImageActivity implements OnProfileCreatedListener {
     private static final String TAG = CreateProfileActivity.class.getSimpleName();
@@ -84,25 +86,19 @@ public class CreateProfileActivity extends PickImageActivity implements OnProfil
         nameEditText.setText(profile.getUsername());
 
         if (profile.getPhotoUrl() != null || profile.getEmail() == null || profile.getEmail().isEmpty()) {
-            Glide.with(this)
-                    .load(profile.getPhotoUrl())
-                    .diskCacheStrategy(DiskCacheStrategy.SOURCE)
-                    .crossFade()
-                    .error(R.drawable.ic_stub)
-                    .listener(new RequestListener<String, GlideDrawable>() {
-                        @Override
-                        public boolean onException(Exception e, String model, Target<GlideDrawable> target, boolean isFirstResource) {
-                            progressBar.setVisibility(View.GONE);
-                            return false;
-                        }
+            ImageUtil.loadImage(GlideApp.with(this), profile.getPhotoUrl(), imageView, new RequestListener<Drawable>() {
+                @Override
+                public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                    progressBar.setVisibility(View.GONE);
+                    return false;
+                }
 
-                        @Override
-                        public boolean onResourceReady(GlideDrawable resource, String model, Target<GlideDrawable> target, boolean isFromMemoryCache, boolean isFirstResource) {
-                            progressBar.setVisibility(View.GONE);
-                            return false;
-                        }
-                    })
-                    .into(imageView);
+                @Override
+                public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                    progressBar.setVisibility(View.GONE);
+                    return false;
+                }
+            });
         } else {
             progressBar.setVisibility(View.GONE);
             imageView.setImageDrawable(ImageUtil.getTextDrawable(profile.getEmail(),

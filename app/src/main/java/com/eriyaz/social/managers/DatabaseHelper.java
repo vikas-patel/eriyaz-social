@@ -54,6 +54,7 @@ import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
@@ -76,6 +77,7 @@ import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.utils.LogUtil;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -774,6 +776,11 @@ public class DatabaseHelper {
                 .build();
 
         return audioRef.putFile(uri, metadata);
+    }
+
+    public FileDownloadTask downloadAudio(File localFile, String url) {
+        StorageReference audioRef = storage.getReferenceFromUrl(url);
+        return audioRef.getFile(localFile);
     }
 
     public void getFilteredPostList(String userId, final OnPostListChangedListener<Post> onDataChangedListener, final long date) {

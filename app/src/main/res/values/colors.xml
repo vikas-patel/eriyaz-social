@@ -44,4 +44,6 @@
     <color name="highlight_bg">#FFEDD7</color>
     <color name="default_bg">#FAFAFA</color>
     <color name="default_link">#019B86</color>
+    <!--photo movie-->
+    <color name="movie_bottom_bg">#7F000000</color>
 </resources>

@@ -20,6 +20,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.view.View;
@@ -27,11 +29,11 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ProgressBar;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.eriyaz.social.R;
+import com.eriyaz.social.utils.GlideApp;
+import com.eriyaz.social.utils.ImageUtil;
 import com.eriyaz.social.views.TouchImageView;
 
 public class ImageDetailActivity extends BaseActivity {
@@ -78,25 +80,20 @@ public class ImageDetailActivity extends BaseActivity {
 
         int maxImageSide = calcMaxImageSide();
 
-        Glide.with(this)
-                .load(imageUrl)
-                .asBitmap()
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .fitCenter()
-                .into(new SimpleTarget<Bitmap>(maxImageSide, maxImageSide) {
-                    @Override
-                    public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
-                        progressBar.setVisibility(View.GONE);
-                        touchImageView.setImageBitmap(resource);
-                    }
+        ImageUtil.loadImageWithSimpleTarget(GlideApp.with(this), imageUrl, new SimpleTarget<Bitmap>(maxImageSide, maxImageSide) {
+            @Override
+            public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                progressBar.setVisibility(View.GONE);
+                touchImageView.setImageBitmap(resource);
+            }
 
-                    @Override
-                    public void onLoadFailed(Exception e, Drawable errorDrawable) {
-                        super.onLoadFailed(e, errorDrawable);
-                        progressBar.setVisibility(View.GONE);
-                        touchImageView.setImageResource(R.drawable.ic_stub);
-                    }
-                });
+            @Override
+            public void onLoadFailed(@Nullable Drawable errorDrawable) {
+                super.onLoadFailed(errorDrawable);
+                progressBar.setVisibility(View.GONE);
+                touchImageView.setImageResource(R.drawable.ic_stub);
+            }
+        });
 
         touchImageView.setOnClickListener(new View.OnClickListener() {
             @Override

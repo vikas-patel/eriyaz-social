@@ -14,6 +14,7 @@ import android.support.annotation.NonNull;
 public class PermissionsUtil {
 
     public static final int MY_PERMISSIONS_RECORD_AUDIO = 1;
+    public static final int MY_PERMISSIONS_READ_EXTERNAL = 2;
 
     public static boolean isExplicitPermissionRequired(@NonNull Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -22,6 +23,17 @@ public class PermissionsUtil {
             boolean storagePermission = hasPermissionInManifest(context, "android.permission.WRITE_EXTERNAL_STORAGE") &&
                     context.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED;
             return cameraPermission || storagePermission;
+        }
+        return false;
+    }
+
+    public static boolean isReadWritePermissionRequired(@NonNull Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            boolean readPermission = hasPermissionInManifest(context, "android.permission.READ_EXTERNAL_STORAGE") &&
+                    context.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED;
+            boolean storagePermission = hasPermissionInManifest(context, "android.permission.WRITE_EXTERNAL_STORAGE") &&
+                    context.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED;
+            return readPermission || storagePermission;
         }
         return false;
     }

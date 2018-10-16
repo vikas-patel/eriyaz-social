@@ -54,6 +54,7 @@ import com.eriyaz.social.model.Comment;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.FormatterUtil;
+import com.eriyaz.social.utils.GlideApp;
 import com.eriyaz.social.utils.ImageUtil;
 import com.eriyaz.social.utils.TimestampTagUtil;
 import com.eriyaz.social.views.ExpandableTextView;
@@ -282,12 +283,7 @@ CommentViewHolder extends RecyclerView.ViewHolder {
                 fillComment(mUserName, comment, expandableTextView);
 
                 if (obj.getPhotoUrl() != null) {
-                    Glide.with(context)
-                            .load(obj.getPhotoUrl())
-                            .diskCacheStrategy(DiskCacheStrategy.ALL)
-                            .crossFade()
-                            .error(R.drawable.ic_stub)
-                            .into(avatarImageView);
+                    ImageUtil.loadImage(GlideApp.with(context), obj.getPhotoUrl(), avatarImageView);
                 } else {
                     avatarImageView.setImageDrawable(ImageUtil.getTextDrawable(mUserName,
                             context.getResources().getDimensionPixelSize(R.dimen.comment_list_avatar_height),

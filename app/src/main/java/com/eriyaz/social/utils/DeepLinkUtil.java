@@ -162,8 +162,8 @@ public class DeepLinkUtil {
                     intentList.add(new LabeledIntent(intent, packageName, ri.loadLabel(pm), ri.icon));
                 }
             }
-            int reward_points = (int) remoteConfig.getLong("reward_points");
-            Intent chooserIntent = Intent.createChooser(intentList.get(0), Html.fromHtml(String.format(context.getString(R.string.app_share_popup_title), reward_points)));
+//            int reward_points = (int) remoteConfig.getLong("reward_points");
+            Intent chooserIntent = Intent.createChooser(intentList.get(0), context.getString(R.string.app_share_popup_title));
             intentList.remove(0);
             Parcelable[] targetedIntentsParcelable = intentList.toArray(new Parcelable[intentList.size()]);
             chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, targetedIntentsParcelable);

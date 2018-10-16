@@ -30,6 +30,7 @@ import com.amulyakhare.textdrawable.util.ColorGenerator;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.eriyaz.social.activities.BaseActivity;
+import com.eriyaz.social.utils.GlideApp;
 import com.eriyaz.social.utils.ImageUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -241,12 +242,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         authorName = userName;
         authorTextView.setText(userName);
         if (profileUrl != null) {
-            Glide.with(context)
-                    .load(profileUrl)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .centerCrop()
-                    .crossFade()
-                    .into(authorImageView);
+            ImageUtil.loadImage(GlideApp.with(context), profileUrl, authorImageView);
         } else if (userName != null && !userName.isEmpty()){
             authorImageView.setImageDrawable(ImageUtil.getTextDrawable(userName,
                     context.getResources().getDimensionPixelSize(R.dimen.post_list_item_author_image_side),

@@ -18,6 +18,7 @@ import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.model.ListItem;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.ReplyTextItem;
+import com.eriyaz.social.utils.GlideApp;
 import com.eriyaz.social.utils.ImageUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -105,12 +106,7 @@ public class ReplyTextViewHolder extends ViewHolder {
                 if (((BaseActivity)context).isActivityDestroyed()) return;
 
                 if (obj.getPhotoUrl() != null) {
-                    Glide.with(context)
-                            .load(obj.getPhotoUrl())
-                            .diskCacheStrategy(DiskCacheStrategy.ALL)
-                            .crossFade()
-                            .error(R.drawable.ic_stub)
-                            .into(avatarImageView);
+                    ImageUtil.loadImage(GlideApp.with(context), obj.getPhotoUrl(), avatarImageView);
                 } else {
                     avatarImageView.setImageDrawable(ImageUtil.getTextDrawable(obj.getUsername(),
                             context.getResources().getDimensionPixelSize(R.dimen.reply_avatar_height),

@@ -67,6 +67,8 @@ import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.utils.FormatterUtil;
+import com.eriyaz.social.utils.GlideApp;
+import com.eriyaz.social.utils.ImageUtil;
 import com.eriyaz.social.utils.RatingUtil;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
@@ -249,13 +251,7 @@ public class RateCelebrityActivity extends BaseActivity {
         });
 
         String avatarImageUrl = CELEBRITY_AVATAR_URL;
-        Glide.with(this)
-            .load(avatarImageUrl)
-            .diskCacheStrategy(DiskCacheStrategy.SOURCE)
-            .crossFade()
-            .into((ImageView)findViewById(R.id.celebrityAvatar));
-
-
+        ImageUtil.loadImage(GlideApp.with(this), avatarImageUrl, (ImageView)findViewById(R.id.celebrityAvatar));
     }
 
     private void updateRatingDetails() {

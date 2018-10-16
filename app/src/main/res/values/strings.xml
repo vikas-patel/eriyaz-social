@@ -18,7 +18,8 @@
 <resources>
     <string name="app_name">RateMySinging</string>
     <string name="app_subtitle">A Community Of Singers</string>
-    <string name="app_share_description">Connect with other singers and get their feedback on your singing. </string>
+    <string name="app_share_description">Connect with other singers and get their feedback on your singing.</string>
+    <string name="post_share_description">%1$s sings %2$s from RateMySinging app</string>
     <string name="app_share_banner">Earn %1$d points by sharing app.</string>
     <string name="app_update_banner">Please update the app.</string>
     <string name="app_share_title">RateMySinging - Android Play Store App</string>
@@ -164,10 +165,12 @@
     <string name="point_rule_menu_item">Points Rule</string>
     <string name="collapse_text_label">show less</string>
     <string name="expand_text_label">show more</string>
+    // post details menu label
     <string name="add_complain">Complain</string>
     <string name="make_public">Make public</string>
     <string name="edit_post_menu">Edit post</string>
     <string name="delete_post_menu">Delete post</string>
+    <string name="share_record">Download &amp; Share</string>
     <string name="tnc_menu_item">T&amp;C</string>
     <string name="complain_text">You can complain to this post if it contains violence,
         bullying and threats, hate speech, tragic events and sexually explicit contents.
@@ -276,6 +279,7 @@
     <string name="toggle_longer_recording">Want to upload longer recording?</string>
     <string name="toggle_shorter_recording">Back to shorter recording</string>
     <string name="record_in_progress">Recording</string>
+    <string name="progress_download_audio">Preparing...</string>
     <string name="notification_recording">Recording...</string>
     <string name="toast_recording_start">Recording started</string>
     <string name="toast_recording_finish">Recording saved to</string>
@@ -323,6 +327,13 @@
     <string name="dialog_action_no">No</string>
 
     <string name="no_saved_recordings_message">No saved recordings</string>
+
+    <!--photo movie-->
+    <string name="movie_filter">filter</string>
+    <string name="movie_transfer">transfer</string>
+    <string name="movie_music">music</string>
+    <string name="movie_next">next</string>
+    <string name="select_photos">add photos</string>
 
     <string-array name="attempt_arrays">
         <item>Attempt 1</item>

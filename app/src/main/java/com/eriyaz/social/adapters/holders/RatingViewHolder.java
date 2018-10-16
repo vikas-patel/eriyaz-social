@@ -52,6 +52,7 @@ import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.utils.FormatterUtil;
+import com.eriyaz.social.utils.GlideApp;
 import com.eriyaz.social.utils.ImageUtil;
 import com.eriyaz.social.utils.PreferencesUtil;
 import com.eriyaz.social.utils.RatingUtil;
@@ -216,12 +217,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                 mUserName = obj.getUsername();
                 fillRating(rating, expandableTextView);
                 if (obj.getPhotoUrl() != null) {
-                    Glide.with(context)
-                            .load(obj.getPhotoUrl())
-                            .diskCacheStrategy(DiskCacheStrategy.ALL)
-                            .crossFade()
-                            .error(R.drawable.ic_stub)
-                            .into(avatarImageView);
+                    ImageUtil.loadImage(GlideApp.with(context), obj.getPhotoUrl(), avatarImageView);
                 } else {
                     avatarImageView.setImageDrawable(ImageUtil.getTextDrawable(obj.getUsername(),
                             context.getResources().getDimensionPixelSize(R.dimen.rating_list_avatar_height),

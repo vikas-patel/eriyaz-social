@@ -9,13 +9,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.resource.drawable.GlideDrawable;
-import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.target.Target;
-import com.eriyaz.social.R;
 import com.eriyaz.social.model.Avatar;
+import com.eriyaz.social.utils.GlideApp;
+import com.eriyaz.social.utils.ImageUtil;
 import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
@@ -69,25 +65,7 @@ public class AvtarAdapter extends BaseAdapter {
 
         ImageView imageView = new ImageView(context);
 
-
-        Glide.with(context)
-                .load(list.get(position).getImageUrl())
-                .diskCacheStrategy(DiskCacheStrategy.SOURCE)
-                .crossFade()
-                .error(R.drawable.ic_stub)
-                .listener(new RequestListener<String, GlideDrawable>() {
-                    @Override
-                    public boolean onException(Exception e, String model, Target<GlideDrawable> target, boolean isFirstResource) {
-                        return false;
-                    }
-
-                    @Override
-                    public boolean onResourceReady(GlideDrawable resource, String model, Target<GlideDrawable> target, boolean isFromMemoryCache, boolean isFirstResource) {
-
-                        return false;
-                    }
-                })
-                .into(imageView);
+        ImageUtil.loadImage(GlideApp.with(context), list.get(position).getImageUrl(), imageView);
 
         //Creating a textview to show the title
         TextView textView = new TextView(context);

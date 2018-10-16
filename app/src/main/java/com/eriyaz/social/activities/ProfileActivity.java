@@ -17,15 +17,16 @@
 package com.eriyaz.social.activities;
 
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
-import android.text.style.BackgroundColorSpan;
 import android.text.style.TextAppearanceSpan;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -36,9 +37,8 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.resource.drawable.GlideDrawable;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.eriyaz.social.R;
@@ -48,6 +48,7 @@ import com.eriyaz.social.fragments.PostsByUserFragment;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.model.Profile;
+import com.eriyaz.social.utils.GlideApp;
 import com.eriyaz.social.utils.ImageUtil;
 import com.eriyaz.social.utils.LogUtil;
 import com.eriyaz.social.utils.LogoutHelper;
@@ -230,27 +231,21 @@ public class ProfileActivity extends BaseCurrentProfileActivity implements Googl
             nameEditText.setText(profile.getUsername());
 
             if (profile.getPhotoUrl() != null) {
-                Glide.with(this)
-                        .load(profile.getPhotoUrl())
-                        .diskCacheStrategy(DiskCacheStrategy.SOURCE)
-                        .crossFade()
-                        .error(R.drawable.ic_stub)
-                        .listener(new RequestListener<String, GlideDrawable>() {
-                            @Override
-                            public boolean onException(Exception e, String model, Target<GlideDrawable> target, boolean isFirstResource) {
-                                scheduleStartPostponedTransition(imageView);
-                                progressBar.setVisibility(View.GONE);
-                                return false;
-                            }
+                ImageUtil.loadImage(GlideApp.with(this), profile.getPhotoUrl(), imageView, new RequestListener<Drawable>() {
+                    @Override
+                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                        scheduleStartPostponedTransition(imageView);
+                        progressBar.setVisibility(View.GONE);
+                        return false;
+                    }
 
-                            @Override
-                            public boolean onResourceReady(GlideDrawable resource, String model, Target<GlideDrawable> target, boolean isFromMemoryCache, boolean isFirstResource) {
-                                scheduleStartPostponedTransition(imageView);
-                                progressBar.setVisibility(View.GONE);
-                                return false;
-                            }
-                        })
-                        .into(imageView);
+                    @Override
+                    public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                        scheduleStartPostponedTransition(imageView);
+                        progressBar.setVisibility(View.GONE);
+                        return false;
+                    }
+                });
             } else {
                 progressBar.setVisibility(View.GONE);
                 imageView.setImageDrawable(ImageUtil.getTextDrawable(profile.getUsername(),
