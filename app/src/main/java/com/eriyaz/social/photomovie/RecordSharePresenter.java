@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.support.v4.content.FileProvider;
 import android.widget.Toast;
 
 import com.eriyaz.social.R;
@@ -274,7 +275,9 @@ public class RecordSharePresenter implements MovieFilterView.FilterCallback, IMo
                     Toast.makeText(mRecordShareView.getActivity().getApplicationContext(), "Video save to path:" + outputFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
                     Intent sharingIntent = new Intent(Intent.ACTION_SEND);
                     sharingIntent.setType("video/mp4");
-                    Uri uri = Uri.fromFile(outputFile);
+                    Uri uri = FileProvider.getUriForFile(mRecordShareView.getActivity(),
+                            mRecordShareView.getActivity().getString(R.string.file_provider_authority),
+                            outputFile);
                     sharingIntent.putExtra(Intent.EXTRA_STREAM, uri);
                     sharingIntent.putExtra(Intent.EXTRA_TEXT, mRecordShareView.getActivity().getString(R.string.post_share_description, mProfileName, mPostTitle));
                     mRecordShareView.getActivity().startActivity(Intent.createChooser(sharingIntent, "Share Video!"));
@@ -345,6 +348,10 @@ public class RecordSharePresenter implements MovieFilterView.FilterCallback, IMo
 
                 @Override
                 public void onPrepared(PhotoMoviePlayer moviePlayer, int prepared, int total) {
+                    if (mRecordShareView.getActivity() == null) {
+                        // activity has destroyed
+                        return;
+                    }
                     mRecordShareView.getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {

@@ -41,8 +41,8 @@ android {
         minSdkVersion 16
         targetSdkVersion 27
         //Update remote config as well
-        versionCode 50
-        versionName "3.4"
+        versionCode 52
+        versionName "3.6"
         multiDexEnabled true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true

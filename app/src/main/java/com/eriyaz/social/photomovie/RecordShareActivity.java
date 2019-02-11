@@ -98,7 +98,6 @@ public class RecordShareActivity extends BaseActivity implements IRecordShareVie
         };
         mSelectView.setOnClickListener(onClickListener);
         mFloatAddView.setOnClickListener(onClickListener);
-        analytics.logFirstPost();
     }
 
     private void downloadAudioFile() {

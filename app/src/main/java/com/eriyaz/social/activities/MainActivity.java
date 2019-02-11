@@ -51,6 +51,8 @@ import com.eriyaz.social.Constants;
 import com.eriyaz.social.ForceUpdateChecker;
 import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.PostsAdapter;
+import com.eriyaz.social.apprater.AppRater;
+import com.eriyaz.social.apprater.AppRaterCallbackImp;
 import com.eriyaz.social.behaviors.MoveUpwardBehavior;
 import com.eriyaz.social.enums.PostStatus;
 import com.eriyaz.social.enums.ProfileStatus;
@@ -94,6 +96,7 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
     private long userPoints = 0;
     final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
     protected BlockUserManager blockUserManager;
+    private AppRater appRater;
 
     // private Snackbar karmaSnackbar;
     static {
@@ -135,6 +138,9 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
 
         getDynamicLink();
         ForceUpdateChecker.with(this).onUpdateNeeded(this).check();
+        appRater = new AppRater(this);
+        appRater.setAppRaterCallback(new AppRaterCallbackImp(MainActivity.this));
+        appRater.markAppLaunched();
     }
 
     @Override
@@ -265,6 +271,7 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
                 case CreatePostActivity.CREATE_NEW_POST_REQUEST:
                     refreshPostList();
                     showFloatButtonRelatedSnackBar(R.string.message_post_was_created);
+                    appRater.checkToShowRatingOnEvent();
                     profileManager.getProfileSingleValue(FirebaseAuth.getInstance().getCurrentUser().getUid(), createProfilePostCountListener());
                     break;
 
@@ -528,6 +535,11 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
         startActivity(intent);
     }
 
+    private void openFollowingPostsActivity() {
+        Intent intent = new Intent(MainActivity.this, FollowingPostsActivity.class);
+        startActivity(intent);
+    }
+
     private void openLeaderboardActivity() {
         Intent intent = new Intent(MainActivity.this, LeaderboardActivity.class);
         startActivity(intent);
@@ -646,6 +658,9 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
                 return true;
             case R.id.reward_menu_item:
                 openRewardActivity();
+                return true;
+            case R.id.following_posts_menu_item:
+                openFollowingPostsActivity();
                 return true;
             case R.id.tnc_menu_item:
                 openTnCActivity();

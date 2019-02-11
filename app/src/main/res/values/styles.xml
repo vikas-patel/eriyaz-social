@@ -31,6 +31,11 @@
         <item name="fontFamily">sans-serif</item>
     </style>
 
+    <style name="TextAppearance.Title.Light" parent="@android:style/TextAppearance">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/secondary_light</item>
+    </style>
+
     <style name="TextAppearance.Title.White" parent="@android:style/TextAppearance">
         <item name="android:textSize">18sp</item>
         <item name="android:textColor">@android:color/white</item>

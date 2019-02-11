@@ -28,7 +28,7 @@ const db = admin.database();
 var supportingAuthorIds;
 var masterAuthorIds;
 // var recentPosts;
-const cacheDays = 30*24*60*60*1000;
+const cacheDays = 2*24*60*60*1000;
 const WELCOME_ADMIN = functions.config().app.environment === 'dev' ? 'dsUhfoavcLUH4xsisgWW30N5v1u1' : 'eOaCAHXB8qfPKx1ZEKqSZXqrnXi2';
 
 const gmailEmail = functions.config().gmail.email;
@@ -1972,41 +1972,58 @@ function filterPostList(recentPosts, lastRecentDate = Date.now(), lastFriendDate
           result: resultPosts
         };
     } else {
-        return getYesterdayPostList(Math.min(lastRecentDate, lastFriendDate), result_size - resultPosts.length).then(yesterdayPosts => {
-            lastRecentDate = yesterdayPosts[yesterdayPosts.length - 1].createdDate;
-            // filter removed and complained posts
-            yesterdayPosts = yesterdayPosts.filter(post => {
-                return !post.removed && !post.hasComplain;
+        if (uid) {
+            return getRatedPosts(uid).then(ratedPostsAll => {
+                lastRecentDate = Math.min(lastRecentDate, lastFriendDate);
+                return getYesterdayFilteredPostList(resultPosts, ratedPostsAll, lastRecentDate, lastFriendDate, result_size);
             });
-            if (uid) {
-                return getRatedPosts(uid).then(ratedPostsAll => {
-                    yesterdayPosts = yesterdayPosts.filter(post => {
-                        if (!ratedPostsAll.includes(post.id)) return true;
-                        return false;
-                    });
-                    resultPosts = resultPosts.concat(yesterdayPosts);
-                    return {
-                      lastRecentDate: lastRecentDate,
-                      lastFriendDate: lastFriendDate,
-                      result: resultPosts
-                    };
-                });
-            } else {
-                resultPosts = resultPosts.concat(yesterdayPosts);
-                return {
-                  lastRecentDate: lastRecentDate,
-                  lastFriendDate: lastFriendDate,
-                  result: resultPosts
-                };
-            }
-        });
+        } else {
+            return getYesterdayFilteredPostList(resultPosts, [], lastRecentDate, lastFriendDate, result_size);
+        }
     }
+}
+
+function getYesterdayFilteredPostList(resultList, ratedPostList, lastRecentDate, lastFriendDate, limit) {
+    // get yesterday post list
+    // filter rated post
+    // if more than limit
+    // otherwise recursive function call
+    return getYesterdayPostList(lastRecentDate, limit).then(yesterdayPosts => {
+        if (!yesterdayPosts || yesterdayPosts.length == 0) {
+            console.log("end of posts");
+            return {
+              lastRecentDate: lastRecentDate,
+              lastFriendDate: lastFriendDate,
+              result: resultList
+            };
+        }
+        lastRecentDate = yesterdayPosts[yesterdayPosts.length - 1].createdDate;
+        // filter removed and complained posts
+        yesterdayPosts = yesterdayPosts.filter(post => {
+            return !post.removed && !post.hasComplain && post.ratingsCount <= 10;
+        });
+        yesterdayPosts = yesterdayPosts.filter(post => {
+            if (!ratedPostList.includes(post.id)) return true;
+            return false;
+        });
+        if (yesterdayPosts.length + resultList.length >= limit) {
+            let subArray = yesterdayPosts.slice(0, limit - resultList.length);
+            resultList = resultList.concat(subArray);
+            lastRecentDate = subArray[subArray.length - 1].createdDate;
+            return {
+              lastRecentDate: lastRecentDate,
+              lastFriendDate: lastFriendDate,
+              result: resultList
+            };
+        }
+        resultList = resultList.concat(yesterdayPosts);
+        return getYesterdayFilteredPostList(resultList, ratedPostList, lastRecentDate, lastFriendDate, limit);
+    });
 }
 
 function getYesterdayPostList(lastDate, limit) {
     const postRef = db.ref('posts');
     const yesterdayPosts = [];
-    console.log("fetching yesterday posts from database");
     return postRef.orderByChild('createdDate').endAt(lastDate - 1).limitToLast(limit).once('value').then(postListSnap => {
         postListSnap.forEach( postSnap => {
             const post = postSnap.val();
@@ -2025,7 +2042,6 @@ function getRecentPostList() {
     // }
     const postRef = db.ref('posts');
     let yesterday = Date.now() - cacheDays;
-    console.log("fetching posts from database");
     return postRef.orderByChild('createdDate').startAt(yesterday).once('value').then(postListSnap => {
         recentPosts = [];
         postListSnap.forEach( postSnap => {
@@ -2033,9 +2049,8 @@ function getRecentPostList() {
             post.id = postSnap.key;
             recentPosts.push(post);
         });
-        console.log("return from db", recentPosts.length);
         recentPosts = recentPosts.filter(post => {
-            return !post.removed && !post.hasComplain;
+            return !post.removed && !post.hasComplain && post.ratingsCount <= 10;
         });
         recentPosts.reverse();
         console.log("return after filter", recentPosts.length);

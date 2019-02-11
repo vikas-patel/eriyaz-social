@@ -110,6 +110,7 @@ public class DatabaseHelper {
     public static final String POST_LIKES_DB_KEY = "post-likes";
     public static final String LIKE_USER_DB_KEY = "like-user";
     public static final String COMMENT_LIKES_DB_KEY = "comment-likes";
+    public static final String BOOKMARK_POSTS_DB_KEY = "bookmark-posts";
 
     public static DatabaseHelper getInstance(Context context) {
         if (instance == null) {
@@ -1066,7 +1067,7 @@ public class DatabaseHelper {
                         }
                     }
 
-                    if (!hasComplain && !isRemoved && !filterPosts.contains(key)) {
+                    if (!filterPosts.contains(key)) {
                         Post post = new Post();
                         post.setId(key);
                         post.setTitle((String) mapObj.get("title"));

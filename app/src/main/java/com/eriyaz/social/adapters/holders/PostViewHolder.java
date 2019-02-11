@@ -30,6 +30,7 @@ import com.amulyakhare.textdrawable.util.ColorGenerator;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.eriyaz.social.activities.BaseActivity;
+import com.eriyaz.social.enums.FeedbackScope;
 import com.eriyaz.social.utils.GlideApp;
 import com.eriyaz.social.utils.ImageUtil;
 import com.google.firebase.auth.FirebaseAuth;
@@ -75,6 +76,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     protected ProfileManager profileManager;
     protected PostManager postManager;
     protected Rating ratingByCurrentUser;
+    private TextView feedbackStatusTextView;
 
     public PostViewHolder(View view, final OnClickListener onClickListener) {
         this(view, onClickListener, true);
@@ -99,6 +101,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         detailsTextView = (TextView) view.findViewById(R.id.detailsTextView);
         authorImageView = (ImageView) view.findViewById(R.id.authorImageView);
         authorImageContainerView = view.findViewById(R.id.authorImageContainer);
+        feedbackStatusTextView = view.findViewById(R.id.feedbackScopeTextView);
 //        likeViewGroup = (ViewGroup) view.findViewById(R.id.likesContainer);
 
         authorImageContainerView.setVisibility(isAuthorNeeded ? View.VISIBLE : View.GONE);
@@ -168,6 +171,18 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         } else {
             detailsTextView.setVisibility(View.VISIBLE);
             detailsTextView.setText(description);
+        }
+        if (post.getFeedbackScope() != null) {
+            feedbackStatusTextView.setVisibility(View.VISIBLE);
+            if (post.getFeedbackScope().equals(FeedbackScope.EXPERT)) {
+                feedbackStatusTextView.setText(R.string.feedback_short_scope_expert);
+                feedbackStatusTextView.setTextColor(context.getResources().getColor(R.color.red));
+            } else {
+                feedbackStatusTextView.setText(R.string.feedback_short_scope_all);
+                feedbackStatusTextView.setTextColor(context.getResources().getColor(R.color.dark_green));
+            }
+        } else {
+            feedbackStatusTextView.setVisibility(View.GONE);
         }
 //        String avgRatingText = "";
 //        if (post.getAverageRating() > 0) {

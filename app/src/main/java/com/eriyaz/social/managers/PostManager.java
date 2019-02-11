@@ -16,6 +16,7 @@
 
 package com.eriyaz.social.managers;
 
+import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
@@ -23,7 +24,9 @@ import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
 import com.eriyaz.social.ApplicationHelper;
+import com.eriyaz.social.Constants;
 import com.eriyaz.social.enums.UploadImagePrefix;
+import com.eriyaz.social.interactors.FollowInteractor;
 import com.eriyaz.social.managers.listeners.OnDataChangedListener;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.managers.listeners.OnObjectExistListener;
@@ -32,6 +35,7 @@ import com.eriyaz.social.managers.listeners.OnPostCreatedListener;
 import com.eriyaz.social.managers.listeners.OnPostListChangedListener;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
 import com.eriyaz.social.model.Flag;
+import com.eriyaz.social.model.FollowingPost;
 import com.eriyaz.social.model.ItemListResult;
 import com.eriyaz.social.model.Like;
 import com.eriyaz.social.model.Post;
@@ -105,7 +109,8 @@ public class PostManager extends FirebaseListenersManager {
             }
         }
         result.setPosts(list);
-        result.setMoreDataAvailable(true);
+        boolean isMoreDataAvailable = Constants.Post.POST_AMOUNT_ON_PAGE == list.size();
+        result.setMoreDataAvailable(isMoreDataAvailable);
         return result;
     }
 
@@ -123,6 +128,14 @@ public class PostManager extends FirebaseListenersManager {
                         return parsePostResult((HashMap<String, Object>) data);
                     }
                 });
+    }
+
+    public void getFollowingPosts(String userId, OnDataChangedListener<FollowingPost> listener) {
+        FollowInteractor.getInstance(context).getFollowingPosts(userId, listener);
+    }
+
+    public void followPost(Activity activity, String userId, String postId, OnTaskCompleteListener onTaskCompleteListener) {
+        FollowInteractor.getInstance(context).followPost(activity, userId, postId, onTaskCompleteListener);
     }
 
     public void getPostsByComment(OnPostListChangedListener<Post> onDataChangedListener, long date) {

@@ -3,17 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/official_feedback_menu_item"
-        android:title="@string/get_official_feedback"
-        app:showAsAction="never"
-        android:orderInCategory="1" />
-
-    <item
         android:id="@+id/share_record_menu_item"
         android:title="@string/share_record"
         app:showAsAction="never"
         android:orderInCategory="1" />
-
+    <item
+        android:id="@+id/follow_post_menu_item"
+        android:title="@string/follow_post_menu_item"
+        app:showAsAction="never"
+        android:orderInCategory="1" />
+    <item
+        android:id="@+id/official_feedback_menu_item"
+        android:title="@string/get_official_feedback"
+        app:showAsAction="never"
+        android:orderInCategory="1" />
     <item
         android:id="@+id/complain_action"
         android:title="@string/add_complain"

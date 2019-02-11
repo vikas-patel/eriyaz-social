@@ -66,11 +66,14 @@ import com.eriyaz.social.R;
 import com.eriyaz.social.adapters.CommentsAdapter;
 import com.eriyaz.social.adapters.RatingsAdapter;
 import com.eriyaz.social.adapters.holders.CommentViewHolder;
+import com.eriyaz.social.apprater.AppRater;
+import com.eriyaz.social.apprater.AppRaterCallbackImp;
 import com.eriyaz.social.controllers.LikeController;
 import com.eriyaz.social.dialogs.BlockDialog;
 import com.eriyaz.social.dialogs.ComplainDialog;
 import com.eriyaz.social.dialogs.EditCommentDialog;
 import com.eriyaz.social.enums.BoughtFeedbackStatus;
+import com.eriyaz.social.enums.FeedbackScope;
 import com.eriyaz.social.enums.PaymentStatus;
 import com.eriyaz.social.enums.PostOrigin;
 import com.eriyaz.social.enums.PostStatus;
@@ -151,6 +154,7 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
     private ProgressBar commentsProgressBar;
     private RecyclerView commentsRecyclerView;
     private TextView warningCommentsTextView;
+    private TextView feedbackStatusTextView;
 
     private TextView ratingsLabel;
     private ProgressBar ratingsProgressBar;
@@ -193,6 +197,7 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
     private ImageButton mRecordButton;
     private boolean mStartRecording = true;
     private Button sendButton;
+    private AppRater appRater;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -222,6 +227,7 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
         scrollView = (ScrollView) findViewById(R.id.scrollView);
         commentsLabel = (TextView) findViewById(R.id.commentsLabel);
         commentEditText = (EditText) findViewById(R.id.commentEditText);
+        feedbackStatusTextView = findViewById(R.id.feedbackScopeTextView);
 
         ratingsRecyclerView = (RecyclerView) findViewById(R.id.ratingsRecyclerView);
         ratingsLabel = (TextView) findViewById(R.id.ratingsLabel);
@@ -379,6 +385,8 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
                 requestRecordShareActivity();
             }
         });
+        appRater = new AppRater(this);
+        appRater.setAppRaterCallback(new AppRaterCallbackImp(PostDetailsActivity.this));
     }
 
     public boolean isAuthorized() {
@@ -505,6 +513,7 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
             public void onLikeClick(LikeController likeController, int position) {
                 Comment comment = commentsAdapter.getItemByPosition(position);
                 likeController.handleLikeClickAction(PostDetailsActivity.this, comment);
+                appRater.checkToShowRatingOnEvent();
             }
 
             @Override
@@ -791,6 +800,13 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
             long seconds = TimeUnit.MILLISECONDS.toSeconds(post.getAudioDuration())
                     - TimeUnit.MINUTES.toSeconds(minutes);
             audioLength.setText(String.format("%02d:%02d", minutes, seconds));
+            if (post.getFeedbackScope() != null) {
+                feedbackStatusTextView.setVisibility(View.VISIBLE);
+                if (post.getFeedbackScope().equals(FeedbackScope.EXPERT)) {
+                    feedbackStatusTextView.setText(R.string.feedback_scope_expert);
+                    feedbackStatusTextView.setTextColor(getResources().getColor(R.color.red));
+                }
+            }
             loadAuthorImage();
         }
     }
@@ -941,6 +957,8 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
             public void onObjectChanged(Profile obj) {
                 if (isActivityDestroyed()) return;
                 profile = obj;
+                // enable share recording button
+                recordShareButton.setEnabled(true);
                 invalidateOptionsMenu();
                 if (post.isAnonymous()) {
                     showProfileDetails(post.getNickName(), post.getAvatarImageUrl());
@@ -1289,6 +1307,9 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
             case R.id.share_record_menu_item:
                 requestRecordShareActivity();
                 return true;
+            case R.id.follow_post_menu_item:
+                attemptFollowPost();
+                return true;
             case R.id.complain_action:
                 doComplainAction();
                 return true;
@@ -1400,6 +1421,20 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
                 }
                 return;
             }
+        }
+    }
+
+    private void attemptFollowPost() {
+        if (hasInternetConnection()) {
+            postManager.followPost(PostDetailsActivity.this, getCurrentUserId(), post.getId(), success ->  {
+                    if (success) {
+                        showSnackBar(R.string.follow_post_success);
+                    } else {
+                        showSnackBar(R.string.error_fail_remove_post);
+                    }
+                });
+        } else {
+            showSnackBar(R.string.internet_connection_failed);
         }
     }
 

@@ -17,6 +17,7 @@
 
 <resources>
     <string name="app_name">RateMySinging</string>
+    <string name="file_provider_authority" translatable="false">com.eriyaz.social.fileprovider</string>
     <string name="app_subtitle">A Community Of Singers</string>
     <string name="app_share_description">Connect with other singers and get their feedback on your singing.</string>
     <string name="post_share_description">%1$s sings %2$s from RateMySinging app</string>
@@ -34,6 +35,7 @@
     <string name="label_image_detail_activity">Image</string>
     <string name="title_activity_login">Sign in</string>
     <string name="title_activity_create_profile">Create profile</string>
+    <string name="title_activity_following_posts">Favourite posts</string>
     <string name="title_activity_profile">Profile</string>
     <string name="title_activity_edit_profile">Edit profile</string>
     <string name="title_activity_edit_post">Edit post</string>
@@ -44,7 +46,10 @@
     <string name="title_activity_ratings_chart">Ratings Chart</string>
     <string name="title_comment_like_users">Comment Loved By</string>
     <string name="post_limit_error">1 post allowed in 2 hours, you can create next post after %1$s. You can save this recording for later.</string>
-
+    <string name="feedback_scope_all">All feedbacks are welcome, even if you are not sure or you are yourself a beginner.</string>
+    <string name="feedback_scope_expert">Only want feedbacks from good singers, if you are very sure.</string>
+    <string name="feedback_short_scope_all">All feedbacks are welcome</string>
+    <string name="feedback_short_scope_expert">Feedbacks from good singers only</string>
     <!--Notifications-->
     <string name="new_like_channel_name">New Like</string>
     <string name="new_comment_channel_name">New Comment</string>
@@ -91,9 +96,10 @@
     <string name="confirm_deletion_message">Delete this message?</string>
     <string name="confirm_close_play_popup">Your recording will be lost. Are you sure want to close?</string>
     <string name="rating_lost_popup">Your rating will also be removed on close and no points will be earned.\nAre you sure you want to close?</string>
-    <string name="mandatory_detailed_feedback_popup">\'Voice feedback\' is mandatory for \'Not Ok\' rating.</string>
+    <string name="mandatory_detailed_feedback_popup">\'Voice feedback\' is mandatory for \'Ok\' or \'Not Ok\' rating.</string>
     <string name="voice_feedback_hint">Don\'t simply sing, talk.</string>
-    <string name="mandatory_voice_feedback_error">Press \'mic icon\' to record.</string>
+    <string name="mandatory_voice_feedback_error">Press \'mic icon\' to record</string>
+    <string name="detailed_feedback_error">Press \'mic icon\' to record or enter your text comment below.</string>
     <string name="confirm_continue_payment">Get official feedback from Paarth Singh.\nWill be given in 24 hours".\nPrice: Rs %1$d.</string>
     <string name="error_fail_create_complain">Fail to create complain</string>
     <string name="error_fail_block">Fail to block user</string>
@@ -101,6 +107,7 @@
     <string name="earn_extra_point">Your rating recieved. You can earn 1 extra point by giving \'detailed feedback\'.</string>
 
     <string name="comment_text_hint">Enter your comment…</string>
+    <string name="detailed_comment_text_hint">Enter your text comment…</string>
     <string name="message_text_hint">Start a new conversation…</string>
     <string name="smaller_reply_text_hint"><font size='12'>Enter your reply...</font></string>
     <string name="button_post_comment">Post comment</string>
@@ -172,6 +179,9 @@
     <string name="delete_post_menu">Delete post</string>
     <string name="share_record">Download &amp; Share</string>
     <string name="tnc_menu_item">T&amp;C</string>
+    <string name="message_following_posts_empty">You have not added any posts to favourites.</string>
+    <string name="following_post_menu_item">Favourites</string>
+    <string name="follow_post_menu_item">Add to Favourites</string>
     <string name="complain_text">You can complain to this post if it contains violence,
         bullying and threats, hate speech, tragic events and sexually explicit contents.
         Nobody will see the post if you complain to it. You can\'t delete your complain.</string>
@@ -241,6 +251,7 @@
     <string name="complain_sent">Complain was sent successfully</string>
     <string name="block_success">User blocked successfully</string>
     <string name="make_public_success">Post is public now</string>
+    <string name="follow_post_success">Added this post to favourites</string>
     <string name="now_time_range">now</string>
 
     <string name="duration_minutes_shortest">%1$d m</string>
@@ -332,8 +343,16 @@
     <string name="movie_filter">filter</string>
     <string name="movie_transfer">transfer</string>
     <string name="movie_music">music</string>
-    <string name="movie_next">next</string>
+    <string name="movie_next">finish</string>
     <string name="select_photos">add photos</string>
+    <!--app rater-->
+    <string name="dialog_rate_title">Rate %s</string>
+    <string name="dialog_rate_message">Enjoy using %s? Would you mind taking a moment to rate it? Thanks for your support!</string>
+
+    <string name="rating_dialog_button_ok">OK</string>
+    <string name="rating_dialog_button_later">Later</string>
+    <string name="rating_dialog_button_never">Never</string>
+
 
     <string-array name="attempt_arrays">
         <item>Attempt 1</item>

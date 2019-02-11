@@ -61,6 +61,7 @@
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     android:paddingTop="@dimen/intrinsic_padding"
+                    android:paddingBottom="@dimen/intrinsic_padding"
                     android:orientation="vertical">
                     <com.eriyaz.social.views.RecordLayout
                         android:id="@+id/recordLayout"
@@ -70,32 +71,16 @@
                         android:background="?android:colorBackground"
                         android:gravity="center"/>
                     <View
-                        android:id="@+id/shadow"
+                        android:id="@+id/shadowRecord"
                         android:layout_width="match_parent"
                         android:layout_height="4dp"
-                        android:layout_above="@+id/newCommentContainer"
                         android:background="@drawable/top_shadow" />
                     <LinearLayout
-                        android:id="@+id/newCommentContainer"
+                        android:id="@+id/recordContainer"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
-
-                        <EditText
-                            android:id="@+id/mistakesTextView"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:layout_weight="1"
-                            android:visibility="gone"
-                            android:background="@android:color/transparent"
-                            android:hint="@string/comment_text_hint"
-                            android:inputType="textMultiLine"
-                            android:maxHeight="@dimen/new_comment_max_height"
-                            android:minHeight="@dimen/new_comment_min_height"
-                            android:padding="@dimen/intrinsic_padding" />
-
                         <ImageButton
                             android:id="@+id/recordButton"
                             android:layout_width="wrap_content"
@@ -118,152 +103,181 @@
                             android:textAppearance="@style/TextAppearance.Subhead"
                             android:textColor="@color/google_button_color"/>
                     </LinearLayout>
-                </LinearLayout>
-                <LinearLayout android:id="@+id/detailedFeedbackLayout"
-                    android:layout_width="match_parent"
-                    android:layout_below="@id/commentLayout"
-                    android:visibility="gone"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-                    <Button
-                        android:id="@+id/mistakeTapButton"
+                    <!--<View-->
+                        <!--android:id="@+id/shadowBeforeComment"-->
+                        <!--android:layout_width="match_parent"-->
+                        <!--android:layout_height="4dp"-->
+                        <!--android:background="@drawable/top_shadow" />-->
+                    <LinearLayout
+                        android:id="@+id/newCommentContainer"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        style="@style/Widget.AppCompat.Button.Colored"
-                        android:text="Tap For Timestamp" />
-                    <TextView
-                        android:text="Tune Match %"
-                        android:textAppearance="@style/TextAppearance.Subhead"
-                        android:id="@+id/melodyPercentageLabel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_column="0" />
-                    <RadioGroup
-                        android:id="@+id/melodyPercRadioGroup"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal" >
-                        <RadioButton
-                            android:id="@+id/firstBtnMelodyId"
-                            android:text="50%"
-                            android:layout_width="60dp"
-                            android:scaleX="0.6"
-                            android:scaleY="0.6"
-                            android:layout_height="wrap_content" />
-                        <RadioButton
-                            android:id="@+id/secondBtnMelodyId"
-                            android:layout_marginLeft="-8dp"
-                            android:text="70%"
-                            android:scaleX="0.6"
-                            android:scaleY="0.6"
-                            android:layout_width="60dp"
-                            android:layout_height="wrap_content" />
-                        <RadioButton
-                            android:id="@+id/thirdBtnId"
-                            android:layout_marginLeft="-8dp"
-                            android:scaleX="0.6"
-                            android:scaleY="0.6"
-                            android:text="80%"
-                            android:layout_gravity="center"
-                            android:layout_width="60dp"
-                            android:layout_height="wrap_content" />
-                        <RadioButton
-                            android:id="@+id/fourthBtnId"
-                            android:layout_marginLeft="-8dp"
-                            android:layout_gravity="center"
-                            android:scaleX="0.6"
-                            android:scaleY="0.6"
-                            android:text="90%"
-                            android:layout_width="60dp"
-                            android:layout_height="wrap_content" />
-                        <RadioButton
-                            android:id="@+id/fifthBtnId"
-                            android:layout_marginLeft="-8dp"
-                            android:layout_gravity="center"
-                            android:scaleX="0.6"
-                            android:scaleY="0.6"
-                            android:text="99%"
-                            android:layout_width="60dp"
-                            android:layout_height="wrap_content" />
-                    </RadioGroup>
-                    <TextView
-                        android:text="Voice Quality"
-                        android:paddingTop="@dimen/intrinsic_padding"
-                        android:textAppearance="@style/TextAppearance.Subhead"
-                        android:id="@+id/voiceQualityLabel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-                    <RadioGroup
-                        android:id="@+id/voiceQualityRadioGroup"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal" >
-                        <RadioButton
-                            android:id="@+id/averageBtnId"
-                            android:text="Average"
-                            android:scaleX="0.6"
-                            android:scaleY="0.6"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <EditText
+                            android:id="@+id/mistakesTextView"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="1"
+                            android:background="@android:color/transparent"
+                            android:hint="@string/detailed_comment_text_hint"
+                            android:inputType="textMultiLine"
+                            android:maxHeight="@dimen/new_comment_max_height"
+                            android:minHeight="@dimen/new_comment_min_height" />
+                        <Button
+                            android:id="@+id/mistakeTapButton"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
-                        <RadioButton
-                            android:id="@+id/goodBtnId"
-                            android:scaleX="0.6"
-                            android:scaleY="0.6"
-                            android:text="Good"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
-                        <RadioButton
-                            android:id="@+id/excellentBtnId"
-                            android:scaleX="0.6"
-                            android:scaleY="0.6"
-                            android:text="Excellent"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
-                    </RadioGroup>
-                    <TextView
-                        android:text="Problems if any:"
-                        android:paddingTop="@dimen/intrinsic_padding"
-                        android:textAppearance="@style/TextAppearance.Subhead"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-                        <LinearLayout
-                            android:layout_width="fill_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal" >
-                        <CheckBox
-                            android:id="@+id/harkateCheckboxId"
-                            android:layout_marginLeft="-20dp"
-                            android:scaleX="0.6"
-                            android:scaleY="0.6"
-                            android:layout_width="90dp"
-                            android:layout_height="wrap_content"
-                            android:text="Harkat problem" />
-                        <CheckBox
-                            android:id="@+id/pronounciationCheckboxId"
-                            android:layout_marginLeft="-20dp"
-                            android:scaleX="0.6"
-                            android:scaleY="0.6"
-                            android:layout_width="130dp"
-                            android:layout_height="wrap_content"
-                            android:text="Pronounciation Distracting" />
-                        <CheckBox
-                            android:id="@+id/highPitchCheckboxId"
-                            android:layout_marginLeft="-20dp"
-                            android:scaleX="0.6"
-                            android:scaleY="0.6"
-                            android:layout_width="100dp"
-                            android:layout_height="wrap_content"
-                            android:text="Bad at High Pitch" />
-                        <CheckBox
-                            android:id="@+id/noFeelCheckboxId"
-                            android:layout_marginLeft="-20dp"
-                            android:scaleX="0.6"
-                            android:scaleY="0.6"
-                            android:layout_width="90dp"
-                            android:layout_height="wrap_content"
-                            android:text="Feel Missing" />
-                        </LinearLayout>
+                            android:textColor="@color/red"
+                            android:text="#time" />
+                    </LinearLayout>
+                    <View
+                        android:id="@+id/shadowAfterComment"
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp"
+                        android:background="@drawable/top_shadow" />
                 </LinearLayout>
+                <!--<LinearLayout android:id="@+id/detailedFeedbackLayout"-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_below="@id/commentLayout"-->
+                    <!--android:visibility="gone"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:orientation="vertical">-->
+                    <!--<TextView-->
+                        <!--android:text="Tune Match %"-->
+                        <!--android:textAppearance="@style/TextAppearance.Subhead"-->
+                        <!--android:id="@+id/melodyPercentageLabel"-->
+                        <!--android:layout_width="wrap_content"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:layout_column="0" />-->
+                    <!--<RadioGroup-->
+                        <!--android:id="@+id/melodyPercRadioGroup"-->
+                        <!--android:layout_width="wrap_content"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:orientation="horizontal" >-->
+                        <!--<RadioButton-->
+                            <!--android:id="@+id/firstBtnMelodyId"-->
+                            <!--android:text="50%"-->
+                            <!--android:layout_width="60dp"-->
+                            <!--android:scaleX="0.6"-->
+                            <!--android:scaleY="0.6"-->
+                            <!--android:layout_height="wrap_content" />-->
+                        <!--<RadioButton-->
+                            <!--android:id="@+id/secondBtnMelodyId"-->
+                            <!--android:layout_marginLeft="-8dp"-->
+                            <!--android:text="70%"-->
+                            <!--android:scaleX="0.6"-->
+                            <!--android:scaleY="0.6"-->
+                            <!--android:layout_width="60dp"-->
+                            <!--android:layout_height="wrap_content" />-->
+                        <!--<RadioButton-->
+                            <!--android:id="@+id/thirdBtnId"-->
+                            <!--android:layout_marginLeft="-8dp"-->
+                            <!--android:scaleX="0.6"-->
+                            <!--android:scaleY="0.6"-->
+                            <!--android:text="80%"-->
+                            <!--android:layout_gravity="center"-->
+                            <!--android:layout_width="60dp"-->
+                            <!--android:layout_height="wrap_content" />-->
+                        <!--<RadioButton-->
+                            <!--android:id="@+id/fourthBtnId"-->
+                            <!--android:layout_marginLeft="-8dp"-->
+                            <!--android:layout_gravity="center"-->
+                            <!--android:scaleX="0.6"-->
+                            <!--android:scaleY="0.6"-->
+                            <!--android:text="90%"-->
+                            <!--android:layout_width="60dp"-->
+                            <!--android:layout_height="wrap_content" />-->
+                        <!--<RadioButton-->
+                            <!--android:id="@+id/fifthBtnId"-->
+                            <!--android:layout_marginLeft="-8dp"-->
+                            <!--android:layout_gravity="center"-->
+                            <!--android:scaleX="0.6"-->
+                            <!--android:scaleY="0.6"-->
+                            <!--android:text="99%"-->
+                            <!--android:layout_width="60dp"-->
+                            <!--android:layout_height="wrap_content" />-->
+                    <!--</RadioGroup>-->
+                    <!--<TextView-->
+                        <!--android:text="Voice Quality"-->
+                        <!--android:paddingTop="@dimen/intrinsic_padding"-->
+                        <!--android:textAppearance="@style/TextAppearance.Subhead"-->
+                        <!--android:id="@+id/voiceQualityLabel"-->
+                        <!--android:layout_width="wrap_content"-->
+                        <!--android:layout_height="wrap_content" />-->
+                    <!--<RadioGroup-->
+                        <!--android:id="@+id/voiceQualityRadioGroup"-->
+                        <!--android:layout_width="wrap_content"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:orientation="horizontal" >-->
+                        <!--<RadioButton-->
+                            <!--android:id="@+id/averageBtnId"-->
+                            <!--android:text="Average"-->
+                            <!--android:scaleX="0.6"-->
+                            <!--android:scaleY="0.6"-->
+                            <!--android:layout_width="wrap_content"-->
+                            <!--android:layout_height="wrap_content" />-->
+                        <!--<RadioButton-->
+                            <!--android:id="@+id/goodBtnId"-->
+                            <!--android:scaleX="0.6"-->
+                            <!--android:scaleY="0.6"-->
+                            <!--android:text="Good"-->
+                            <!--android:layout_width="wrap_content"-->
+                            <!--android:layout_height="wrap_content" />-->
+                        <!--<RadioButton-->
+                            <!--android:id="@+id/excellentBtnId"-->
+                            <!--android:scaleX="0.6"-->
+                            <!--android:scaleY="0.6"-->
+                            <!--android:text="Excellent"-->
+                            <!--android:layout_width="wrap_content"-->
+                            <!--android:layout_height="wrap_content" />-->
+                    <!--</RadioGroup>-->
+                    <!--<TextView-->
+                        <!--android:text="Problems if any:"-->
+                        <!--android:paddingTop="@dimen/intrinsic_padding"-->
+                        <!--android:textAppearance="@style/TextAppearance.Subhead"-->
+                        <!--android:layout_width="wrap_content"-->
+                        <!--android:layout_height="wrap_content" />-->
+                        <!--<LinearLayout-->
+                            <!--android:layout_width="fill_parent"-->
+                            <!--android:layout_height="wrap_content"-->
+                            <!--android:orientation="horizontal" >-->
+                        <!--<CheckBox-->
+                            <!--android:id="@+id/harkateCheckboxId"-->
+                            <!--android:layout_marginLeft="-20dp"-->
+                            <!--android:scaleX="0.6"-->
+                            <!--android:scaleY="0.6"-->
+                            <!--android:layout_width="90dp"-->
+                            <!--android:layout_height="wrap_content"-->
+                            <!--android:text="Harkat problem" />-->
+                        <!--<CheckBox-->
+                            <!--android:id="@+id/pronounciationCheckboxId"-->
+                            <!--android:layout_marginLeft="-20dp"-->
+                            <!--android:scaleX="0.6"-->
+                            <!--android:scaleY="0.6"-->
+                            <!--android:layout_width="130dp"-->
+                            <!--android:layout_height="wrap_content"-->
+                            <!--android:text="Pronounciation Distracting" />-->
+                        <!--<CheckBox-->
+                            <!--android:id="@+id/highPitchCheckboxId"-->
+                            <!--android:layout_marginLeft="-20dp"-->
+                            <!--android:scaleX="0.6"-->
+                            <!--android:scaleY="0.6"-->
+                            <!--android:layout_width="100dp"-->
+                            <!--android:layout_height="wrap_content"-->
+                            <!--android:text="Bad at High Pitch" />-->
+                        <!--<CheckBox-->
+                            <!--android:id="@+id/noFeelCheckboxId"-->
+                            <!--android:layout_marginLeft="-20dp"-->
+                            <!--android:scaleX="0.6"-->
+                            <!--android:scaleY="0.6"-->
+                            <!--android:layout_width="90dp"-->
+                            <!--android:layout_height="wrap_content"-->
+                            <!--android:text="Feel Missing" />-->
+                        <!--</LinearLayout>-->
+                <!--</LinearLayout>-->
                 <Button
                     android:id="@+id/moreTextView"
                     style="@style/Widget.AppCompat.Button.Borderless.Colored"
@@ -276,7 +290,7 @@
                     android:visibility="visible"
                     android:text="Detailed Feedback" />
                 <Button android:id="@+id/submitButton"
-                    android:layout_below="@id/detailedFeedbackLayout"
+                    android:layout_below="@id/commentLayout"
                     android:text="submit"
                     android:minHeight="0dp"
                     android:minWidth="0dp"
@@ -285,7 +299,7 @@
                     android:layout_height="wrap_content"
                     android:layout_width="wrap_content" />
                 <Button android:id="@+id/closeButton"
-                    android:layout_below="@id/detailedFeedbackLayout"
+                    android:layout_below="@id/commentLayout"
                     android:text="close"
                     android:minHeight="0dp"
                     android:minWidth="0dp"

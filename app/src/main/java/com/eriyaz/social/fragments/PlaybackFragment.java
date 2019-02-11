@@ -91,22 +91,23 @@ public class PlaybackFragment extends BaseDialogFragment {
     private boolean playWhenReady = false;
     private ComponentListener componentListener;
     private TextView moreTextView;
-    private LinearLayout detailedFeedbackLayout;
+//    private LinearLayout detailedFeedbackLayout;
     private LinearLayout commentLayout;
+    private LinearLayout textCommentLayout;
     private Button submitButton;
-    private RadioGroup melodyRadioGroup;
-    private RadioGroup voiceQualityRadioGroup;
+//    private RadioGroup melodyRadioGroup;
+//    private RadioGroup voiceQualityRadioGroup;
     private CommentManager commentManager;
     private TextView ratingTextView;
     private TextView earnExtraTextView;
     private TextView recordErrorTextView;
-    private TextView melodyPercentageLabel;
-    private TextView voiceQualityLabel;
+//    private TextView melodyPercentageLabel;
+//    private TextView voiceQualityLabel;
     private FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
     private Application application;
-    private CheckBox harkateView;
+//    private CheckBox harkateView;
     private CheckBox pronounciationView;
-    private CheckBox highPitchView;
+//    private CheckBox highPitchView;
     private CheckBox feelView;
     private int intialRatingValue = 0;
 
@@ -197,14 +198,14 @@ public class PlaybackFragment extends BaseDialogFragment {
                 onCloseButton();
             }
         });
-        detailedFeedbackLayout = view.findViewById(R.id.detailedFeedbackLayout);
+//        detailedFeedbackLayout = view.findViewById(R.id.detailedFeedbackLayout);
         commentLayout = view.findViewById(R.id.commentLayout);
+        textCommentLayout = view.findViewById(R.id.newCommentContainer);
         moreTextView = view.findViewById(R.id.moreTextView);
         moreTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                openRecordLayout();
-//                openDetailedFeedback();
+                openDetailedFeedback();
             }
         });
         if (!PreferencesUtil.isUserRatedMany(getActivity())) {
@@ -249,17 +250,17 @@ public class PlaybackFragment extends BaseDialogFragment {
             }
         });
 
-        melodyRadioGroup = view.findViewById(R.id.melodyPercRadioGroup);
-        voiceQualityRadioGroup = view.findViewById(R.id.voiceQualityRadioGroup);
-        melodyPercentageLabel = view.findViewById(R.id.melodyPercentageLabel);
+//        melodyRadioGroup = view.findViewById(R.id.melodyPercRadioGroup);
+//        voiceQualityRadioGroup = view.findViewById(R.id.voiceQualityRadioGroup);
+//        melodyPercentageLabel = view.findViewById(R.id.melodyPercentageLabel);
         ratingTextView = view.findViewById(R.id.ratingTextView);
         earnExtraTextView = view.findViewById(R.id.earnExtraTextView);
         recordErrorTextView = view.findViewById(R.id.recordErrorTextView);
-        voiceQualityLabel = view.findViewById(R.id.voiceQualityLabel);
-        harkateView = view.findViewById(R.id.harkateCheckboxId);
-        pronounciationView = view.findViewById(R.id.pronounciationCheckboxId);
-        highPitchView = view.findViewById(R.id.highPitchCheckboxId);
-        feelView = view.findViewById(R.id.noFeelCheckboxId);
+//        voiceQualityLabel = view.findViewById(R.id.voiceQualityLabel);
+//        harkateView = view.findViewById(R.id.harkateCheckboxId);
+//        pronounciationView = view.findViewById(R.id.pronounciationCheckboxId);
+//        highPitchView = view.findViewById(R.id.highPitchCheckboxId);
+//        feelView = view.findViewById(R.id.noFeelCheckboxId);
 
         mFileNameTextView.setText(item.getName());
         updateRatingDetails();
@@ -312,13 +313,24 @@ public class PlaybackFragment extends BaseDialogFragment {
     }
 
     private void openDetailedFeedback() {
-        detailedFeedbackLayout.setVisibility(View.VISIBLE);
-        mistakesTextView.setVisibility(View.VISIBLE);
+        commentLayout.setVisibility(View.VISIBLE);
+        textCommentLayout.setVisibility(View.VISIBLE);
+        submitButton.setVisibility(View.VISIBLE);
+        moreTextView.setVisibility(View.GONE);
+        earnExtraTextView.setVisibility(View.GONE);
+    }
+
+    private void hideVoiceFeedback() {
+        if (commentLayout.getVisibility() == View.VISIBLE && textCommentLayout.getVisibility() == View.GONE) {
+            commentLayout.setVisibility(View.GONE);
+            submitButton.setVisibility(View.GONE);
+            moreTextView.setVisibility(View.VISIBLE);
+        }
     }
 
     private void openRecordLayout() {
         commentLayout.setVisibility(View.VISIBLE);
-//        mistakesTextView.setVisibility(View.GONE);
+        textCommentLayout.setVisibility(View.GONE);
         submitButton.setVisibility(View.VISIBLE);
         moreTextView.setVisibility(View.GONE);
         earnExtraTextView.setVisibility(View.GONE);
@@ -345,16 +357,13 @@ public class PlaybackFragment extends BaseDialogFragment {
     private void submitCommentFeedback(Comment detailed_comment) {
         detailed_comment.setAuthorId(firebaseAuth.getCurrentUser().getUid());
 
-        OnTaskCompleteListener listener = new OnTaskCompleteListener() {
-            @Override
-            public void onTaskComplete(boolean success) {
+        OnTaskCompleteListener listener = (success) -> {
                 if (getActivity() != null) ((BaseActivity) getActivity()).hideProgress();
                 if (success) {
                     dismiss();
                 } else {
                     ((BaseActivity) getActivity()).showSnackBar(R.string.error_fail_create_detailed_feedback);
                 }
-            }
         };
         ((BaseActivity) getActivity()).showProgress(R.string.message_submit_detailed_feedback);
         if (commentRecordLayout.getRecordItem() != null) {
@@ -374,16 +383,22 @@ public class PlaybackFragment extends BaseDialogFragment {
         } else {
             ratingTextView.setError(null);
         }
-        if (commentRecordLayout.getRecordItem() == null) {
-            recordErrorTextView.setText(R.string.mandatory_voice_feedback_error);
+        String commentText = mistakesTextView.getText().toString();
+        if (commentRecordLayout.getRecordItem() == null && commentText.isEmpty()) {
+            if (ratingBar.getProgress() <= 10) {
+                recordErrorTextView.setText(R.string.mandatory_voice_feedback_error);
+            } else {
+                recordErrorTextView.setText(R.string.detailed_feedback_error);
+            }
             error = true;
         }
         if (error) return;
         Comment comment = new Comment();
+        if (!commentText.isEmpty()) comment.setText(commentText);
         comment.setCreatedDate(Calendar.getInstance().getTimeInMillis());
-        if (ratingBar.getProgress() > 0 && ratingBar.getProgress() <= 5) {
+        if (ratingBar.getProgress() > 0 && ratingBar.getProgress() <= 10) {
             ratingController.handleRatingClickAction((BaseActivity) getActivity(), post, ratingBar.getProgress());
-        } else if (ratingBar.getProgress() <= 15) {
+        } else {
             comment.setDetailedFeedback(true);
         }
         submitCommentFeedback(comment);
@@ -439,40 +454,40 @@ public class PlaybackFragment extends BaseDialogFragment {
 //        }
     }
 
-    private CharSequence getProblems() {
-        StringBuffer problems = new StringBuffer();
-        if (harkateView.isChecked()) {
-            problems.append(harkateView.getText());
-        }
-        if (pronounciationView.isChecked()) {
-            if (problems.length() > 0) {
-                problems.append(", ");
-            }
-            problems.append(pronounciationView.getText());
-        }
-        if (highPitchView.isChecked()) {
-            if (problems.length() > 0) {
-                problems.append(", ");
-            }
-            problems.append(highPitchView.getText());
-        }
-        if (feelView.isChecked()) {
-            if (problems.length() > 0) {
-                problems.append(", ");
-            }
-            problems.append(feelView.getText());
-        }
-        if (problems.length() > 0) {
-            return "\nProblems: " + problems.toString();
-        }
-        return "";
-    }
+//    private CharSequence getProblems() {
+//        StringBuffer problems = new StringBuffer();
+//        if (harkateView.isChecked()) {
+//            problems.append(harkateView.getText());
+//        }
+//        if (pronounciationView.isChecked()) {
+//            if (problems.length() > 0) {
+//                problems.append(", ");
+//            }
+//            problems.append(pronounciationView.getText());
+//        }
+//        if (highPitchView.isChecked()) {
+//            if (problems.length() > 0) {
+//                problems.append(", ");
+//            }
+//            problems.append(highPitchView.getText());
+//        }
+//        if (feelView.isChecked()) {
+//            if (problems.length() > 0) {
+//                problems.append(", ");
+//            }
+//            problems.append(feelView.getText());
+//        }
+//        if (problems.length() > 0) {
+//            return "\nProblems: " + problems.toString();
+//        }
+//        return "";
+//    }
 
-    private CharSequence getMelodyText() {
-        int selectedMelodyRadioId = melodyRadioGroup.getCheckedRadioButtonId();
-        RadioButton selectedButton = melodyRadioGroup.findViewById(selectedMelodyRadioId);
-        return selectedButton.getText();
-    }
+//    private CharSequence getMelodyText() {
+//        int selectedMelodyRadioId = melodyRadioGroup.getCheckedRadioButtonId();
+//        RadioButton selectedButton = melodyRadioGroup.findViewById(selectedMelodyRadioId);
+//        return selectedButton.getText();
+//    }
 
     @Override
     public void onStart() {
@@ -648,19 +663,15 @@ public class PlaybackFragment extends BaseDialogFragment {
 
                 ratingController.setUpdatingRatingCounter(false);
                 isRatingChanged = true;
-                if (progress > 5 && progress <= 15 && intialRatingValue == 0) {
-                    moreTextView.setVisibility(View.VISIBLE);
+                if (progress > 10 && intialRatingValue == 0) {
                     earnExtraTextView.setVisibility(View.VISIBLE);
                     earnExtraTextView.setText(R.string.earn_extra_point);
-                } else if (progress > 15) {
-                    earnExtraTextView.setVisibility(View.VISIBLE);
-                    earnExtraTextView.setText(R.string.rating_received);
                 } else {
                     earnExtraTextView.setVisibility(View.GONE);
-                    moreTextView.setVisibility(View.VISIBLE);
                 }
+                moreTextView.setVisibility(View.VISIBLE);
 
-                if (progress > 0 && progress <= 5) {
+                if (progress > 0 && progress <= 10) {
                     AlertDialog.Builder builder = new BaseAlertDialogBuilder(getActivity());
                     builder.setMessage(getResources().getString(R.string.mandatory_detailed_feedback_popup));
                     builder.setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
@@ -671,6 +682,8 @@ public class PlaybackFragment extends BaseDialogFragment {
                     });
                     builder.show();
                     return;
+                } else {
+                    hideVoiceFeedback();
                 }
                 ratingController.handleRatingClickAction((BaseActivity) getActivity(), post, progress);
             }

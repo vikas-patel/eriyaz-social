@@ -181,6 +181,19 @@
             android:label="Share Recording" />
         <activity android:name="me.iwf.photopicker.PhotoPickerActivity"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
+        <activity android:name=".activities.FollowingPostsActivity"
+            android:theme="@style/AppCompat.NoActionBar"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/title_activity_following_posts"/>
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="@string/file_provider_authority"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_provider_path" />
+        </provider>
     </application>
 
 </manifest>

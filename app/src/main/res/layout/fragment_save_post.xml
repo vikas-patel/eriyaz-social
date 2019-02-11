@@ -137,6 +137,26 @@
 
     </android.support.design.widget.TextInputLayout>
 
+    <RadioGroup
+        android:id="@+id/feedbackRadioGroup"
+        android:layout_below="@+id/input_layout_nickname"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <RadioButton
+            android:id="@+id/feedbackAllButton"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textSize="11dp"
+            android:text="@string/feedback_scope_all" />
+        <RadioButton
+            android:id="@+id/feedbackExpertButton"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textSize="11dp"
+            android:text="@string/feedback_scope_expert"/>
+    </RadioGroup>
+
     <TextView
         android:id="@+id/post_limit_error_text"
         android:layout_width="wrap_content"
@@ -146,11 +166,11 @@
         android:layout_marginLeft="@dimen/intrinsic_padding"
         android:layout_marginRight="@dimen/intrinsic_padding"
         android:textColor="@color/google_button_color"
-        android:layout_below="@+id/input_layout_nickname" />
+        android:layout_below="@+id/feedbackRadioGroup" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_below="@+id/post_limit_error_text"
         android:orientation="horizontal">
         <View

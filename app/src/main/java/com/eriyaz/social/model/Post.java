@@ -19,6 +19,7 @@ package com.eriyaz.social.model;
 import android.os.Parcelable;
 
 import com.eriyaz.social.enums.BoughtFeedbackStatus;
+import com.eriyaz.social.enums.FeedbackScope;
 import com.eriyaz.social.enums.ItemType;
 import com.eriyaz.social.utils.FormatterUtil;
 import com.google.firebase.database.ServerValue;
@@ -58,6 +59,7 @@ public class Post implements Serializable, LazyLoading {
     private String nickName;
     private String celebrityName;
     private boolean isAuthorFirstPost;
+    private FeedbackScope feedbackScope;
 
     @Override
     public boolean equals(Object o) {
@@ -257,6 +259,14 @@ public class Post implements Serializable, LazyLoading {
         isAuthorFirstPost = authorFirstPost;
     }
 
+    public FeedbackScope getFeedbackScope() {
+        return feedbackScope;
+    }
+
+    public void setFeedbackScope(FeedbackScope feedbackScope) {
+        this.feedbackScope = feedbackScope;
+    }
+
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
 
@@ -281,6 +291,7 @@ public class Post implements Serializable, LazyLoading {
         result.put("celebrityName", celebrityName);
         result.put("isAuthorFirstPost", isAuthorFirstPost);
         result.put("createdDateText", FormatterUtil.getFirebaseDateFormat().format(new Date(createdDate)));
+        result.put("feedbackScope", feedbackScope);
 
         return result;
     }
@@ -365,6 +376,9 @@ public class Post implements Serializable, LazyLoading {
         }
         if (mapObj.containsKey("isAuthorFirstPost")) {
             setAuthorFirstPost((boolean) mapObj.get("isAuthorFirstPost"));
+        }
+        if (mapObj.containsKey("feedbackScope")) {
+            setFeedbackScope(FeedbackScope.valueOf((String) mapObj.get("feedbackScope")));
         }
     }
 }

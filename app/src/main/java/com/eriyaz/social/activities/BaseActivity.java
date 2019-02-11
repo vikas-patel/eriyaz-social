@@ -48,7 +48,7 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class BaseActivity extends AppCompatActivity {
 
-    private static final String TAG = BaseActivity.class.getSimpleName();
+    protected static final String TAG = BaseActivity.class.getSimpleName();
     public ProgressDialog progressDialog;
     public ActionBar actionBar;
     protected Analytics analytics;
@@ -211,4 +211,7 @@ public class BaseActivity extends AppCompatActivity {
         showSnackBar(messageId);
     }
 
+    protected String getCurrentUserId() {
+        return FirebaseAuth.getInstance().getUid();
+    }
 }

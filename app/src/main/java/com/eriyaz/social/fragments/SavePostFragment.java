@@ -16,7 +16,10 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -25,6 +28,7 @@ import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
 import com.eriyaz.social.activities.CreatePostActivity;
 import com.eriyaz.social.dialogs.AvatarDialog;
+import com.eriyaz.social.enums.FeedbackScope;
 import com.eriyaz.social.managers.DatabaseHelper;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteMessageListener;
 import com.eriyaz.social.model.RecordingItem;
@@ -51,6 +55,7 @@ public class SavePostFragment extends BaseFragment {
     private TextView vLength;
     private View cardView;
     private ImageView avatarImageView;
+    private FeedbackScope feedbackScope;
     private Button saveButton;
     private Button retryButton;
     private Button postButton;
@@ -61,6 +66,9 @@ public class SavePostFragment extends BaseFragment {
     protected EditText titleEditText;
     protected EditText descriptionEditText;
     protected EditText nickNameEditText;
+    protected RadioGroup feedbackRadioGroup;
+    protected RadioButton feedbackAllRadioButton;
+
 
     public static SavePostFragment newInstance(RecordingItem item) {
         SavePostFragment f = new SavePostFragment();
@@ -130,14 +138,19 @@ public class SavePostFragment extends BaseFragment {
             }
         });
 
-        titleEditText.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
+        titleEditText.setOnTouchListener((View v, MotionEvent event) -> {
                 if (titleEditText.hasFocus() && titleEditText.getError() != null) {
                     titleEditText.setError(null);
                     return true;
                 }
                 return false;
+        });
+
+        feedbackRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.feedbackAllButton) {
+                feedbackScope = FeedbackScope.ALL;
+            } else {
+                feedbackScope = FeedbackScope.EXPERT;
             }
         });
     }
@@ -198,6 +211,9 @@ public class SavePostFragment extends BaseFragment {
                 }
             }
         });
+        feedbackAllRadioButton = v.findViewById(R.id.feedbackAllButton);
+        feedbackRadioGroup = (RadioGroup) v.findViewById(R.id.feedbackRadioGroup);
+        feedbackRadioGroup.clearCheck();
         bindData();
         return v;
     }
@@ -236,6 +252,12 @@ public class SavePostFragment extends BaseFragment {
             cancel = true;
         }
 
+        if (feedbackScope == null) {
+            feedbackAllRadioButton.setError("Choose an option.");
+            focusView = feedbackAllRadioButton;
+            cancel = true;
+        }
+
         CreatePostActivity rootActivity = (CreatePostActivity) getActivity();
         long lastPostDate = rootActivity.getProfile().getLastPostCreatedDate();
         long currentTime = Calendar.getInstance().getTimeInMillis();
@@ -260,7 +282,7 @@ public class SavePostFragment extends BaseFragment {
         if (!cancel) {
             ((BaseActivity) getActivity()).hideKeyboard();
             ((CreatePostActivity) getActivity()).savePost(item, title, description, filePath, item.getLength(),
-                    anonymousCheckBox.isChecked(), nickName, avatarImageUrl);
+                    anonymousCheckBox.isChecked(), nickName, avatarImageUrl, feedbackScope);
         } else if (focusView != null) {
             focusView.requestFocus();
         }

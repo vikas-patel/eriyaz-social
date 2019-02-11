@@ -27,6 +27,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 
 import com.eriyaz.social.Constants;
+import com.eriyaz.social.enums.FeedbackScope;
 import com.eriyaz.social.fragments.HostFragment;
 import com.eriyaz.social.fragments.SavedRecordingsFragment;
 import com.eriyaz.social.managers.ProfileManager;
@@ -92,12 +93,13 @@ public class CreatePostActivity extends BaseActivity implements OnRecordingEndLi
     }
 
     public void savePost(final RecordingItem item, String title, String description, String audioFilePath, long audioDuration,
-                         boolean anonymous, String nickName, String avatarImageUrl) {
+                         boolean anonymous, String nickName, String avatarImageUrl, FeedbackScope feedbackScope) {
         showProgress(R.string.message_creating_post);
         Post post = new Post();
         post.setTitle(title);
         post.setDescription(description);
         post.setAuthorId(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        post.setFeedbackScope(feedbackScope);
         if (anonymous) {
             post.setAnonymous(true);
             post.setNickName(nickName);

@@ -16,6 +16,7 @@ import android.util.Log;
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.CreatePostActivity;
 import com.eriyaz.social.model.RecordingItem;
+import com.eriyaz.social.utils.LogUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -112,15 +113,13 @@ public class RecordingService extends Service {
 
         try {
             mRecorder.prepare();
-            mRecorder.start();
-            mStartingTimeMillis = System.currentTimeMillis();
-
             //startTimer();
             //startForeground(1, createNotification());
-
         } catch (IOException e) {
-            Log.e(LOG_TAG, "prepare() failed");
+            Log.e(LOG_TAG, "prepare() failed" + e.getMessage());
         }
+        mRecorder.start();
+        mStartingTimeMillis = System.currentTimeMillis();
     }
 
     public void setFileNameAndPath(){
@@ -141,19 +140,30 @@ public class RecordingService extends Service {
     }
 
     public void stopRecording() {
-        mRecorder.stop();
+        try {
+            mRecorder.stop();
+        } catch (RuntimeException e) {
+            // RuntimeException is thrown when stop() is called immediately after start().
+            // In this case the output file is not properly constructed ans should be deleted.
+            LogUtil.logError(LOG_TAG, "RuntimeException: stop() is called immediately after start()", e);
+            new File (mFilePath).delete();
+            mRecorder.release();
+            mRecorder = null;
+            return;
+            //noinspection ResultOfMethodCallIgnored
+        }
         mElapsedMillis = (System.currentTimeMillis() - mStartingTimeMillis);
         mRecorder.release();
 
         //remove notification
-        if (mIncrementTimerTask != null) {
-            mIncrementTimerTask.cancel();
-            mIncrementTimerTask = null;
-        }
+//        if (mIncrementTimerTask != null) {
+//            mIncrementTimerTask.cancel();
+//            mIncrementTimerTask = null;
+//        }
 
         mRecorder = null;
         RecordingItem recordingItem = new RecordingItem(mFileName, mFilePath, mElapsedMillis);
-        listener.onIntentResult(recordingItem);
+        if (listener != null) listener.onIntentResult(recordingItem);
 
 //        try {
 //            mDatabase.addRecording(mFileName, mFilePath, mElapsedMillis);

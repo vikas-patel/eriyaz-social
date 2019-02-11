@@ -16,8 +16,6 @@
         android:layout_above="@+id/newCommentContainer"
         android:layout_alignParentTop="true">
 
-
-
         <RelativeLayout
             android:id="@+id/activity_post_details"
             android:layout_width="match_parent"
@@ -50,7 +48,8 @@
                 <LinearLayout
                     android:id="@+id/fileViewContainer"
                     android:layout_width="match_parent"
-                    android:layout_height="100dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="100dp"
                     android:layout_marginTop="@dimen/activity_vertical_margin"
                     android:orientation="horizontal">
 
@@ -90,28 +89,41 @@
                     </LinearLayout>
 
                 </LinearLayout>
-                <LinearLayout
-                    android:layout_below="@+id/fileViewContainer"
+            </RelativeLayout>
+            <TextView
+                android:id="@+id/feedbackScopeTextView"
+                android:layout_below="@+id/imageContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/feedback_scope_all"
+                android:textSize="13dp"
+                android:visibility="gone"
+                android:textColor="@color/dark_green"
+                android:paddingLeft="@dimen/large_intrinsic_padding"
+                android:paddingRight="@dimen/large_intrinsic_padding" />
+            <LinearLayout
+                android:id="@+id/recordShareLayout"
+                android:layout_below="@+id/feedbackScopeTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <Button
+                    android:id="@+id/record_share_button"
+                    android:layout_marginLeft="@dimen/intrinsic_padding"
+                    android:layout_width="wrap_content"
+                    style="@style/Widget.AppCompat.Button.Colored"
+                    android:layout_height="wrap_content"
+                    android:visibility="visible"
+                    android:enabled="false"
+                    android:text="@string/share_record"/>
+                <Button
+                    android:id="@+id/buy_feedback_button"
+                    android:layout_marginLeft="@dimen/intrinsic_padding"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-                    <Button
-                        android:id="@+id/record_share_button"
-                        android:layout_marginLeft="@dimen/intrinsic_padding"
-                        android:layout_width="wrap_content"
-                        style="@style/Widget.AppCompat.Button.Colored"
-                        android:layout_height="wrap_content"
-                        android:visibility="visible"
-                        android:text="@string/share_record"/>
-                    <Button
-                        android:id="@+id/buy_feedback_button"
-                        android:layout_marginLeft="@dimen/intrinsic_padding"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:visibility="gone"
-                        android:text="@string/get_official_feedback"/>
-                </LinearLayout>
-            </RelativeLayout>
+                    android:visibility="gone"
+                    android:text="@string/get_official_feedback"/>
+            </LinearLayout>
 
 
             <!--<TextView-->
@@ -136,7 +148,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentStart="true"
                 android:layout_alignParentLeft="true"
-                android:layout_below="@+id/imageContainer"
+                android:layout_below="@+id/recordShareLayout"
                 android:layout_marginBottom="@dimen/intrinsic_padding"
                 android:orientation="horizontal"
                 android:paddingLeft="@dimen/large_intrinsic_padding"
@@ -157,12 +169,6 @@
                     android:textAppearance="@style/TextAppearance.Highlight" />
 
             </LinearLayout>
-            <!--<include-->
-                <!--android:id="@+id/seekbarContainer"-->
-                <!--layout="@layout/seekbar_container"-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:layout_below="@+id/authorContainer" />-->
 
             <include
                 android:id="@+id/countersContainer"

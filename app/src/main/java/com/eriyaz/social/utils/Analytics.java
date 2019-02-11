@@ -1,15 +1,12 @@
 package com.eriyaz.social.utils;
 
-import android.app.Activity;
-import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
 
+import com.eriyaz.social.enums.AppRaterAction;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-
-import java.util.SimpleTimeZone;
 
 /**
  * Created by vikas on 10/1/18.
@@ -42,6 +39,8 @@ public class Analytics {
     public static final String SIGNIN = "SignIn";
     public static final String CREATE_PROFILE = "CreateProfile";
     public static final String InviteAppInstall = "InviteAppInstall";
+    public static final String APP_RATER = "AppRater";
+    public static final String APP_RATER_ACTION = "Action";
 
     public Analytics(Context context) {
         firebase = FirebaseAnalytics.getInstance(context);
@@ -234,6 +233,14 @@ public class Analytics {
         Bundle bundle = new Bundle();
         if (currentUser != null) bundle.putString("UserName", currentUser.getDisplayName());
         firebase.logEvent(SIGNIN, bundle);
+    }
+
+    public void appRater(AppRaterAction action) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        Bundle bundle = new Bundle();
+        if (currentUser != null) bundle.putString("UserName", currentUser.getDisplayName());
+        bundle.putInt(APP_RATER_ACTION, action.ordinal());
+        firebase.logEvent(APP_RATER, bundle);
     }
 
     public void createProfile() {
