@@ -107,7 +107,7 @@ dependencies {
     // paytm
     implementation 'com.paytm:pgplussdk:1.1.2'
     // TODO: replace with firebase sdk function call
-    implementation 'com.android.volley:volley:1.0.0'
+    implementation 'com.android.volley:volley:1.1.0'
     implementation 'com.github.KatherineDrozhak:HashTagHelper:master-SNAPSHOT'
     // analytics
     implementation 'com.uxcam:uxcam:2.6.5@aar'
