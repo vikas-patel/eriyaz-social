@@ -80,16 +80,16 @@ dependencies {
     implementation 'com.google.android.exoplayer:exoplayer-core:2.8.1'
     implementation 'com.google.android.exoplayer:exoplayer-ui:2.8.1'
     // firebase
-    implementation 'com.google.firebase:firebase-core:16.0.3'
+    implementation 'com.google.firebase:firebase-core:16.0.7'
     implementation 'com.google.firebase:firebase-database:16.0.1'
-    implementation 'com.google.firebase:firebase-auth:16.0.3'
+    implementation 'com.google.firebase:firebase-auth:16.1.0'
     implementation 'com.google.firebase:firebase-storage:15.0.0'
-    implementation 'com.google.firebase:firebase-messaging:17.3.0'
-    implementation 'com.google.firebase:firebase-config:16.0.0'
-    implementation 'com.google.firebase:firebase-functions:16.0.1'
-    implementation 'com.google.firebase:firebase-invites:16.0.3'
+    implementation 'com.google.firebase:firebase-messaging:17.4.0'
+    implementation 'com.google.firebase:firebase-config:16.3.0'
+    implementation 'com.google.firebase:firebase-functions:16.2.0'
+    implementation 'com.google.firebase:firebase-invites:16.1.0'
     implementation 'com.firebaseui:firebase-ui-auth:4.1.0'
-    implementation 'com.google.firebase:firebase-perf:16.1.0'
+    implementation 'com.google.firebase:firebase-perf:16.2.3'
     // images
     implementation 'com.github.bumptech.glide:glide:4.1.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.1.1'
@@ -100,6 +100,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-auth:16.0.0'
     implementation 'com.facebook.android:facebook-android-sdk:4.17.0'
     implementation 'com.melnykov:floatingactionbutton:1.1.0'
+    implementation 'com.google.firebase:firebase-dynamic-links:16.1.7'
     // character image
     implementation 'com.amulyakhare:com.amulyakhare.textdrawable:1.0.1'
     // slider
