@@ -403,7 +403,7 @@ public class PlaybackFragment extends BaseDialogFragment {
         if (ratingBar.getProgress() == 0 && post.getRatingsCount() < 10) {
             ratingTextView.setError("Rating is not set.");
             error = true;
-        } else if (ratingBar.getProgress() == 0 && post.getRatingsCount()==15) {
+        } else if (ratingBar.getProgress() == 0 && post.getRatingsCount() >= 15) {
             ratingTextView.setError(null);
             error = false;
         }
