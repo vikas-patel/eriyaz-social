@@ -63,8 +63,9 @@ public class RatingController {
     public void ratingClickAction(float ratingValue) {
         if (!updatingRatingCounter) {
 //            startAnimateLikeButton(likeAnimationType);
-            if (ratingValue > 0)
+            if (ratingValue > 0) {
                 addRating(ratingValue);
+            }
             else
                 removeRating();
         }

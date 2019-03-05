@@ -76,6 +76,9 @@
             android:configChanges="orientation|screenSize"
             android:label="@string/label_post_detail_activity" />
         <activity
+            android:name=".activities.BaseCurrentProfileActivity"
+            android:configChanges="orientation|screenSize" />
+        <activity
             android:name=".activities.MessageActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/title_activity_messages">
