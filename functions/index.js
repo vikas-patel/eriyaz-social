@@ -2125,7 +2125,18 @@ exports.rankTaskRunner = functions.https.onRequest((req, res) => {
     const profileRef = admin.database().ref(`/profiles`);
     var updateProfiles = {};
     let updated = 0;
-    const profileQuery = profileRef.orderByChild('reputationPoints').startAt(1).once('value').then(profiles => {
+    var sortOnParam;
+    // Get parameter (weeklyPoints = "true") from request URL
+    var sortOnWeeklyPoints = req.query.weeklyPoints;
+    if (sortOnWeeklyPoints != null)
+    {
+      sortOnParam = "weeklyReputationPoints";
+    }
+    else
+    {
+      sortOnParam = "reputationPoints";
+    }
+    const profileQuery = profileRef.orderByChild(sortOnParam).startAt(1).once('value').then(profiles => {
         let rank = profiles.numChildren();
         // return in asc order by reputation points
         profiles.forEach( profileSnap => {
@@ -2136,6 +2147,31 @@ exports.rankTaskRunner = functions.https.onRequest((req, res) => {
                 updated++;
             }
             rank--;
+        });
+        console.log("updated profiles", updated);
+        res.status(200).send(`updated profiles ${updated}`);
+        return profileRef.update(updateProfiles);
+    });
+});
+
+exports.weeklyPointsTaskRunner = functions.https.onRequest((req, res) => {
+    console.log("Weekly points task runner");
+    const profileRef = admin.database().ref("/profiles");
+    var updateProfiles = {};
+    let updated = 0;
+
+    profileRef.once('value').then((snapshot) => {
+        // For each profile, calculate weeklyReputationPoints and update lastweekReputationPoints
+	    snapshot.forEach(child => {
+		let key = child.key;
+		var reputationPoints = child.val().reputationPoints;
+		var lastweekReputationPoints = child.val().lastweekReputationPoints;
+
+		// Update weeklyReputationPoints and lastweekReputationPoints in database
+		updateProfiles[`${key}/weeklyReputationPoints`] = reputationPoints - lastweekReputationPoints;
+		updateProfiles[`${key}/lastweekReputationPoints`] = reputationPoints;
+		updated++;
+
         });
         console.log("updated profiles", updated);
         res.status(200).send(`updated profiles ${updated}`);
