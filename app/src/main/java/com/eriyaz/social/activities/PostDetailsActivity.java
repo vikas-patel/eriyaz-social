@@ -387,6 +387,9 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
         });
         appRater = new AppRater(this);
         appRater.setAppRaterCallback(new AppRaterCallbackImp(PostDetailsActivity.this));
+
+
+
     }
 
     public boolean isAuthorized() {
@@ -430,7 +433,8 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
         if (Util.SDK_INT > 23) {
             commentRecordLayout.initializePlayer();
         }
-    }
+
+        }
 
     @Override
     public void onResume() {
@@ -757,6 +761,9 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
     }
 
     private void afterPostLoaded() {
+
+        invalidateOptionsMenu();//it will call onCreateContextMenu again so that we can hide editPost option if user is seeing others post
+
         isPostExist = true;
         initRatingRecyclerView();
         initCommentRecyclerView();
@@ -1286,6 +1293,10 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.post_details_menu, menu);
+        if(post!=null&&!post.getAuthorId().equals(getCurrentUserId())){
+            editActionMenuItem=menu.findItem(R.id.edit_post);
+            editActionMenuItem.setVisible(false);
+        }
         complainActionMenuItem = menu.findItem(R.id.complain_action);
         publicActionMenuItem = menu.findItem(R.id.make_public_action);
 //        editActionMenuItem = menu.findItem(R.id.edit_post_action);
@@ -1298,6 +1309,7 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
         if (!isPostExist) {
             return super.onOptionsItemSelected(item);
         }
+
 
         // Handle item selection
         switch (item.getItemId()) {
@@ -1329,6 +1341,9 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
                 if (hasAccessToModifyPost()) {
                     attemptToRemovePost();
                 }
+                return true;
+            case R.id.edit_post:
+                openEditPostActivity();
                 return true;
         }
 
