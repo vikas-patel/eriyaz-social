@@ -96,6 +96,34 @@
                             tools:targetApi="lollipop"/>
 
                     </RelativeLayout>
+
+                    <LinearLayout
+                        android:id="@+id/requestFeedbackLayout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginRight="8dp"
+                        android:layout_toStartOf="@+id/messageTextLayout"
+                        android:layout_toLeftOf="@+id/messageTextLayout"
+                        android:background="@drawable/send_comment_button_bg"
+                        android:elevation="4dp"
+                        android:gravity="center_vertical"
+                        android:padding="@dimen/intrinsic_padding">
+
+                        <TextView
+                            android:id="@+id/requestFeedbackTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Request Feedback"
+                            android:textColor="@android:color/white" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:id="@+id/change"
+                            android:orientation="vertical"
+                            android:layout_height="wrap_content"></LinearLayout>
+                    </LinearLayout>
+
                     <LinearLayout
                         android:id="@+id/messageTextLayout"
                         android:layout_width="wrap_content"
@@ -202,6 +230,5 @@
         </android.support.design.widget.CollapsingToolbarLayout>
 
     </android.support.design.widget.AppBarLayout>
-
 
 </android.support.design.widget.CoordinatorLayout>

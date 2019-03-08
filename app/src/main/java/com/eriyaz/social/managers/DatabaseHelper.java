@@ -1224,7 +1224,7 @@ public class DatabaseHelper {
         DatabaseReference databaseReference = getDatabaseReference().child("profiles").child(id);
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Profile profile = dataSnapshot.getValue(Profile.class);
                 listener.onObjectChanged(profile);
             }
