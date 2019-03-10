@@ -7,6 +7,7 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -99,7 +100,7 @@ public class PlaybackFragment extends BaseDialogFragment {
 //    private RadioGroup melodyRadioGroup;
 //    private RadioGroup voiceQualityRadioGroup;
     private CommentManager commentManager;
-    private TextView ratingTextView;
+    private TextView ratingTextView, rateBelowText, rateInfoText;
     private TextView earnExtraTextView;
     private TextView recordErrorTextView;
 //    private TextView melodyPercentageLabel;
@@ -152,6 +153,7 @@ public class PlaybackFragment extends BaseDialogFragment {
         isFeedbakRequest = getArguments().getBoolean(PostDetailsActivity.IS_FEEDBACK_REQUEST_NOTIFICATION);
         Log.d("FEEDBACK", String.valueOf(isFeedbakRequest));
         if (rating == null) rating = new Rating();
+
     }
 
     @Override
@@ -197,6 +199,9 @@ public class PlaybackFragment extends BaseDialogFragment {
 
         mFileNameTextView = (TextView) view.findViewById(R.id.file_name_text_view);
         ratingBar = (BubbleSeekBar) view.findViewById(R.id.ratingBar);
+        View seekbarView=view.findViewById(R.id.seekbarContainer);
+        LinearLayout mainLayout=view.findViewById(R.id.mainLayout);
+        rateBelowText=view.findViewById(R.id.ratingTextView);
         closeButton = view.findViewById(R.id.closeButton);
         closeButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -217,6 +222,24 @@ public class PlaybackFragment extends BaseDialogFragment {
         if (!PreferencesUtil.isUserRatedMany(getActivity())) {
             moreTextView.setVisibility(View.GONE);
         }
+
+        // Changes for issue 103
+        if (post.getRatingsCount() >= 15) {
+            // Hide ratings bar
+            rateBelowText.setVisibility(View.GONE);
+            seekbarView.setVisibility(View.GONE);
+            //rateInfoText.setVisibility(View.VISIBLE);
+
+            LinearLayout.LayoutParams layoutParams=new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            TextView ratingTextInfo=new TextView(getContext());
+            ratingTextInfo.setLayoutParams(layoutParams);
+            ratingTextInfo.setText(R.string.ratingInfo);
+            ratingTextInfo.setTextSize(16);
+            ratingTextInfo.setTextColor(getResources().getColor(R.color.primary_dark));
+            ratingTextInfo.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
+            mainLayout.addView(ratingTextInfo, 2);
+        }
+
         submitButton = view.findViewById(R.id.submitButton);
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -385,10 +408,14 @@ public class PlaybackFragment extends BaseDialogFragment {
     private void submitDetailedFeedback() {
         if (!isAuthorized()) return;
         boolean error = false;
-        if (ratingBar.getProgress() == 0) {
+        if (ratingBar.getProgress() == 0 && post.getRatingsCount() < 10) {
             ratingTextView.setError("Rating is not set.");
             error = true;
-        } else {
+        } else if (ratingBar.getProgress() == 0 && post.getRatingsCount() >= 15) {
+            ratingTextView.setError(null);
+            error = false;
+        }
+        else {
             ratingTextView.setError(null);
         }
         String commentText = mistakesTextView.getText().toString();
