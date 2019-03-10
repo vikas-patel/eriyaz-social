@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.text.Html;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -119,6 +120,8 @@ public class PlaybackFragment extends BaseDialogFragment {
     private ImageButton mRecordButton;
     private RecordLayout commentRecordLayout;
 
+    private boolean isFeedbakRequest;
+
     public PlaybackFragment newInstance(RecordingItem item) {
         PlaybackFragment f = new PlaybackFragment();
         Bundle b = new Bundle();
@@ -127,13 +130,14 @@ public class PlaybackFragment extends BaseDialogFragment {
         return f;
     }
 
-    public PlaybackFragment newInstance(RecordingItem item, Post post, Rating rating, String authorName) {
+    public PlaybackFragment newInstance(RecordingItem item, Post post, Rating rating, String authorName, boolean isFeedbackRequest) {
         PlaybackFragment f = new PlaybackFragment();
         Bundle b = new Bundle();
         b.putParcelable(RECORDING_ITEM, item);
         b.putSerializable(PostDetailsActivity.POST_ID_EXTRA_KEY, post);
         b.putSerializable(Rating.RATING_ID_EXTRA_KEY, rating);
         b.putString(Profile.AUTHOR_NAME_EXTRA_KEY, authorName);
+        b.putBoolean(PostDetailsActivity.IS_FEEDBACK_REQUEST_NOTIFICATION, isFeedbackRequest);
         f.setArguments(b);
         return f;
     }
@@ -145,6 +149,8 @@ public class PlaybackFragment extends BaseDialogFragment {
         post = (Post) getArguments().getSerializable(PostDetailsActivity.POST_ID_EXTRA_KEY);
         rating = (Rating) getArguments().getSerializable(Rating.RATING_ID_EXTRA_KEY);
         authorName = getArguments().getString(Profile.AUTHOR_NAME_EXTRA_KEY);
+        isFeedbakRequest = getArguments().getBoolean(PostDetailsActivity.IS_FEEDBACK_REQUEST_NOTIFICATION);
+        Log.d("FEEDBACK", String.valueOf(isFeedbakRequest));
         if (rating == null) rating = new Rating();
     }
 
@@ -366,6 +372,8 @@ public class PlaybackFragment extends BaseDialogFragment {
                 }
         };
         ((BaseActivity) getActivity()).showProgress(R.string.message_submit_detailed_feedback);
+        if(isFeedbakRequest)
+            analytics.logFeedbackRequestAccepted();
         if (commentRecordLayout.getRecordItem() != null) {
             Uri audioUri = Uri.fromFile(new File(commentRecordLayout.getRecordItem().getFilePath()));
             commentManager.createOrUpdateCommentWithAudio(audioUri, detailed_comment, post.getId(), listener);

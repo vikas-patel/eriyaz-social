@@ -17,6 +17,8 @@ public class Analytics {
     private FirebaseAnalytics firebase;
     public static final String RATING = "rating";
     public static final String COMMENT = "comment";
+    public static final String FEEDBACK_REQUEST_NOTIFICATION = "feedbackRequestNotification";
+    public static final String FEEDBACK_REQUEST_ACCEPTED = "feedbackRequestAccepted";
     public static final String FEEDBACK = "feedback";
     public static final String MESSAGE = "message";
     public static final String POST = "Post";
@@ -131,6 +133,20 @@ public class Analytics {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) bundle.putString("UserName", currentUser.getDisplayName());
         firebase.logEvent(COMMENT, bundle);
+    }
+
+    public void logFeedbackRequestNotification() {
+        Bundle bundle = new Bundle();
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) bundle.putString("UserName", currentUser.getDisplayName());
+        firebase.logEvent(FEEDBACK_REQUEST_NOTIFICATION, bundle);
+    }
+
+    public void logFeedbackRequestAccepted() {
+        Bundle bundle = new Bundle();
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) bundle.putString("UserName", currentUser.getDisplayName());
+        firebase.logEvent(FEEDBACK_REQUEST_ACCEPTED, bundle);
     }
 
     public void logFeedback() {

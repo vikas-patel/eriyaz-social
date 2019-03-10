@@ -31,6 +31,7 @@ import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.URLSpan;
 import android.text.util.Linkify;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
@@ -71,7 +72,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
     private final ImageView avatarImageView;
     private final ExpandableTextView ratingExpandedTextView;
     private final TextView ratingTextView;
-//    private final TextView authorNameTextView;
+    //    private final TextView authorNameTextView;
     private final TextView dateTextView;
     private final ImageView questionTextView;
     private TextView tapToTextView;
@@ -128,6 +129,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                 }
                 if (hasAccessToModifyPost(post)) {
                     popup.getMenu().findItem(R.id.blockMenuItem).setVisible(true);
+                    popup.getMenu().findItem(R.id.requestFeedbackMenuItem).setVisible(true);
                 }
                 //adding click listener
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -136,6 +138,9 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                         switch (item.getItemId()) {
                             case R.id.messageMenuItem:
                                 callback.onReplyClick(getAdapterPosition());
+                                break;
+                            case R.id.requestFeedbackMenuItem:
+                                callback.onRequestFeedbackClick(getAdapterPosition());
                                 break;
                             case R.id.reportMenuItem:
                                 callback.onReportClick(view, getAdapterPosition());
@@ -213,7 +218,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
         return new OnObjectChangedListener<Profile>() {
             @Override
             public void onObjectChanged(Profile obj) {
-                if (((BaseActivity)context).isActivityDestroyed()) return;
+                if (((BaseActivity) context).isActivityDestroyed()) return;
                 mUserName = obj.getUsername();
                 fillRating(rating, expandableTextView);
                 if (obj.getPhotoUrl() != null) {
@@ -228,7 +233,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
     }
 
     private void fillRating(final Rating rating, ExpandableTextView commentTextView) {
-        int usernameLen = mUserName != null ? mUserName.length():0;
+        int usernameLen = mUserName != null ? mUserName.length() : 0;
         String text = mUserName + "   ";
         if (!hasAccessToModifyPost(mPost)) {
             String ratingText = String.valueOf(rating.getRating());
@@ -258,11 +263,9 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
         }
         text = text + ratingText;
         SpannableString contentString = new SpannableString(text);
-        URLSpan urlSpan = new URLSpan("")
-        {
+        URLSpan urlSpan = new URLSpan("") {
             @Override
-            public void onClick( View widget )
-            {
+            public void onClick(View widget) {
                 RatingPercentileDialog ratingPercentileDialogDialog = new RatingPercentileDialog();
                 Bundle args = new Bundle();
                 args.putInt(RatingPercentileDialog.NORMALIZED_RATING_KEY, normalizedRating);
@@ -270,11 +273,11 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                 args.putString(RatingPercentileDialog.RATER_ID_KEY, rating.getAuthorId());
                 args.putString(RatingPercentileDialog.RATER_NAME_KEY, mUserName);
                 ratingPercentileDialogDialog.setArguments(args);
-                ratingPercentileDialogDialog.show(((BaseActivity)context).getFragmentManager(), RatingPercentileDialog.TAG);
+                ratingPercentileDialogDialog.show(((BaseActivity) context).getFragmentManager(), RatingPercentileDialog.TAG);
             }
         };
         contentString.setSpan(urlSpan,
-                usernameLen + 3, usernameLen+3+ratingLen, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                usernameLen + 3, usernameLen + 3 + ratingLen, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         contentString.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.highlight_text)),
                 0, usernameLen, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         ratingTextView.setText(contentString);
@@ -284,7 +287,8 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
 
     private boolean showReplyOption(Post post, Rating rating) {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser == null || post == null || !post.getAuthorId().equals(currentUser.getUid())) return false;
+        if (currentUser == null || post == null || !post.getAuthorId().equals(currentUser.getUid()))
+            return false;
         if (currentUser.getUid().equals(rating.getAuthorId())) return false;
         return true;
     }

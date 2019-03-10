@@ -88,5 +88,7 @@ public class RatingsAdapter extends RecyclerView.Adapter<RatingViewHolder> {
         void makeRatingVisible(int position);
 
         void onReplyClick(int position);
+
+        void onRequestFeedbackClick(int position);
     }
 }

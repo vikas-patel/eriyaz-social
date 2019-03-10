@@ -97,7 +97,7 @@ public abstract class BasePostsAdapter extends RecyclerView.Adapter<RecyclerView
             item.setLength(post.getAudioDuration());
             item.setFilePath(post.getImagePath());
             PlaybackFragment playbackFragment =
-                    new PlaybackFragment().newInstance(item, post, rating, authorName);
+                    new PlaybackFragment().newInstance(item, post, rating, authorName, false);
             FragmentTransaction transaction = ((AppCompatActivity)view.getContext()).getSupportFragmentManager()
                     .beginTransaction();
             playbackFragment.show(transaction, "dialog_playback");

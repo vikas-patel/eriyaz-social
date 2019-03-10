@@ -27,6 +27,20 @@ public class Notification {
         setId(itemType.toString());
     }
 
+    public Notification(String fromUserId, String message, String action, String extraKey, String extraKeyValue, boolean read, boolean openPlayStore, boolean fromSystem, ItemType itemType) {
+        this.id = id;
+        this.fromUserId = fromUserId;
+        this.message = message;
+        this.createdDate = createdDate;
+        this.action = action;
+        this.extraKey = extraKey;
+        this.extraKeyValue = extraKeyValue;
+        this.read = read;
+        this.openPlayStore = openPlayStore;
+        this.fromSystem = fromSystem;
+        this.itemType = itemType;
+    }
+
     public String getId() {
         return id;
     }

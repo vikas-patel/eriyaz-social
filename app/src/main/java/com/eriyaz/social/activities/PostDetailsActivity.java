@@ -17,105 +17,106 @@
 
 package com.eriyaz.social.activities;
 
-import android.Manifest;
-import android.animation.Animator;
-import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.graphics.Rect;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Handler;
-import android.support.annotation.Nullable;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.view.ActionMode;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.text.Editable;
-import android.text.Html;
-import android.text.TextUtils;
-import android.text.TextWatcher;
-import android.transition.Transition;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewPropertyAnimator;
-import android.view.ViewTreeObserver;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.ScrollView;
-import android.widget.TextView;
-import android.widget.Toast;
+        import android.Manifest;
+        import android.animation.Animator;
+        import android.annotation.SuppressLint;
+        import android.annotation.TargetApi;
+        import android.content.Context;
+        import android.content.DialogInterface;
+        import android.content.Intent;
+        import android.content.pm.PackageManager;
+        import android.graphics.Rect;
+        import android.net.Uri;
+        import android.os.Build;
+        import android.os.Bundle;
+        import android.os.Handler;
+        import android.support.annotation.Nullable;
+        import android.support.v4.app.FragmentTransaction;
+        import android.support.v7.app.AlertDialog;
+        import android.support.v7.view.ActionMode;
+        import android.support.v7.widget.DividerItemDecoration;
+        import android.support.v7.widget.LinearLayoutManager;
+        import android.support.v7.widget.RecyclerView;
+        import android.text.Editable;
+        import android.text.Html;
+        import android.text.TextUtils;
+        import android.text.TextWatcher;
+        import android.transition.Transition;
+        import android.util.Log;
+        import android.view.Menu;
+        import android.view.MenuInflater;
+        import android.view.MenuItem;
+        import android.view.MotionEvent;
+        import android.view.View;
+        import android.view.ViewPropertyAnimator;
+        import android.view.ViewTreeObserver;
+        import android.view.inputmethod.InputMethodManager;
+        import android.widget.Button;
+        import android.widget.EditText;
+        import android.widget.ImageButton;
+        import android.widget.ImageView;
+        import android.widget.ProgressBar;
+        import android.widget.ScrollView;
+        import android.widget.TextView;
+        import android.widget.Toast;
 
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.eriyaz.social.Application;
-import com.eriyaz.social.R;
-import com.eriyaz.social.adapters.CommentsAdapter;
-import com.eriyaz.social.adapters.RatingsAdapter;
-import com.eriyaz.social.adapters.holders.CommentViewHolder;
-import com.eriyaz.social.apprater.AppRater;
-import com.eriyaz.social.apprater.AppRaterCallbackImp;
-import com.eriyaz.social.controllers.LikeController;
-import com.eriyaz.social.dialogs.BlockDialog;
-import com.eriyaz.social.dialogs.ComplainDialog;
-import com.eriyaz.social.dialogs.EditCommentDialog;
-import com.eriyaz.social.enums.BoughtFeedbackStatus;
-import com.eriyaz.social.enums.FeedbackScope;
-import com.eriyaz.social.enums.PaymentStatus;
-import com.eriyaz.social.enums.PostOrigin;
-import com.eriyaz.social.enums.PostStatus;
-import com.eriyaz.social.enums.ProfileStatus;
-import com.eriyaz.social.fragments.MistakesPlayFragment;
-import com.eriyaz.social.fragments.PlaybackFragment;
-import com.eriyaz.social.fragments.RecordPlayFragment;
-import com.eriyaz.social.listeners.CustomTransitionListener;
-import com.eriyaz.social.managers.BoughtFeedbackManager;
-import com.eriyaz.social.managers.CommentManager;
-import com.eriyaz.social.managers.LikeManager;
-import com.eriyaz.social.managers.PostManager;
-import com.eriyaz.social.managers.ProfileManager;
-import com.eriyaz.social.managers.listeners.OnDataChangedListener;
-import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
-import com.eriyaz.social.managers.listeners.OnPaymentCompleteListener;
-import com.eriyaz.social.managers.listeners.OnPostChangedListener;
-import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
-import com.eriyaz.social.model.Comment;
-import com.eriyaz.social.model.Flag;
-import com.eriyaz.social.model.Like;
-import com.eriyaz.social.model.Post;
-import com.eriyaz.social.model.Profile;
-import com.eriyaz.social.model.Rating;
-import com.eriyaz.social.model.RecordingItem;
-import com.eriyaz.social.photomovie.RecordShareActivity;
-import com.eriyaz.social.utils.FormatterUtil;
-import com.eriyaz.social.utils.GlideApp;
-import com.eriyaz.social.utils.ImageUtil;
-import com.eriyaz.social.utils.OfficialFeedbackRequest;
-import com.eriyaz.social.utils.PermissionsUtil;
-import com.eriyaz.social.utils.RatingUtil;
-import com.eriyaz.social.views.RecordLayout;
-import com.google.android.exoplayer2.util.Util;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
+        import com.bumptech.glide.load.engine.DiskCacheStrategy;
+        import com.eriyaz.social.Application;
+        import com.eriyaz.social.R;
+        import com.eriyaz.social.adapters.CommentsAdapter;
+        import com.eriyaz.social.adapters.RatingsAdapter;
+        import com.eriyaz.social.adapters.holders.CommentViewHolder;
+        import com.eriyaz.social.apprater.AppRater;
+        import com.eriyaz.social.apprater.AppRaterCallbackImp;
+        import com.eriyaz.social.controllers.LikeController;
+        import com.eriyaz.social.dialogs.BlockDialog;
+        import com.eriyaz.social.dialogs.ComplainDialog;
+        import com.eriyaz.social.dialogs.EditCommentDialog;
+        import com.eriyaz.social.enums.BoughtFeedbackStatus;
+        import com.eriyaz.social.enums.FeedbackScope;
+        import com.eriyaz.social.enums.PaymentStatus;
+        import com.eriyaz.social.enums.PostOrigin;
+        import com.eriyaz.social.enums.PostStatus;
+        import com.eriyaz.social.enums.ProfileStatus;
+        import com.eriyaz.social.fragments.MistakesPlayFragment;
+        import com.eriyaz.social.fragments.PlaybackFragment;
+        import com.eriyaz.social.fragments.RecordPlayFragment;
+        import com.eriyaz.social.listeners.CustomTransitionListener;
+        import com.eriyaz.social.managers.BoughtFeedbackManager;
+        import com.eriyaz.social.managers.CommentManager;
+        import com.eriyaz.social.managers.LikeManager;
+        import com.eriyaz.social.managers.PostManager;
+        import com.eriyaz.social.managers.ProfileManager;
+        import com.eriyaz.social.managers.listeners.OnDataChangedListener;
+        import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
+        import com.eriyaz.social.managers.listeners.OnPaymentCompleteListener;
+        import com.eriyaz.social.managers.listeners.OnPostChangedListener;
+        import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
+        import com.eriyaz.social.managers.requestFeedbackManager;
+        import com.eriyaz.social.model.Comment;
+        import com.eriyaz.social.model.Flag;
+        import com.eriyaz.social.model.Like;
+        import com.eriyaz.social.model.Post;
+        import com.eriyaz.social.model.Profile;
+        import com.eriyaz.social.model.Rating;
+        import com.eriyaz.social.model.RecordingItem;
+        import com.eriyaz.social.photomovie.RecordShareActivity;
+        import com.eriyaz.social.utils.FormatterUtil;
+        import com.eriyaz.social.utils.GlideApp;
+        import com.eriyaz.social.utils.ImageUtil;
+        import com.eriyaz.social.utils.OfficialFeedbackRequest;
+        import com.eriyaz.social.utils.PermissionsUtil;
+        import com.eriyaz.social.utils.RatingUtil;
+        import com.eriyaz.social.views.RecordLayout;
+        import com.google.android.exoplayer2.util.Util;
+        import com.google.firebase.auth.FirebaseAuth;
+        import com.google.firebase.auth.FirebaseUser;
+        import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 
-import java.io.File;
-import java.io.Serializable;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+        import java.io.File;
+        import java.io.Serializable;
+        import java.util.List;
+        import java.util.concurrent.TimeUnit;
 
 public class PostDetailsActivity extends BaseCurrentProfileActivity implements EditCommentDialog.CommentDialogCallback,
         ComplainDialog.ComplainCallback, BlockDialog.BlockCallback {
@@ -127,6 +128,7 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
     public static final int UPDATE_POST_REQUEST = 1;
     public static final String POST_STATUS_EXTRA_KEY = "PostDetailsActivity.POST_STATUS_EXTRA_KEY";
     public static final String POST_ORIGIN_EXTRA_KEY = "PostDetailsActivity.POST_ORIGIN_EXTRA_KEY";
+    public static final String IS_FEEDBACK_REQUEST_NOTIFICATION = "PostDetailsActivity.IS_FEEDBACK_REQUEST_NOTIFICATION";
     public static final String IS_ADMIN_EXTRA_KEY = "PostDetailsActivity.IS_ADMIN_EXTRA_KEY";
 
     private EditText commentEditText;
@@ -141,7 +143,7 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
     private TextView aggregatePercentileTextView;
 
     private TextView commentsLabel;
-//    private TextView likeCounterTextView;
+    //    private TextView likeCounterTextView;
     private TextView commentsCountTextView;
     private TextView authorTextView;
     private TextView dateTextView;
@@ -199,6 +201,9 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
     private Button sendButton;
     private AppRater appRater;
 
+    requestFeedbackManager f;
+    boolean isFeedbackRequest;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -216,6 +221,8 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
         isAuthorAnimationRequired = getIntent().getBooleanExtra(AUTHOR_ANIMATION_NEEDED_EXTRA_KEY, false);
         isAdmin = getIntent().getBooleanExtra(IS_ADMIN_EXTRA_KEY, false);
         postId = getIntent().getStringExtra(POST_ID_EXTRA_KEY);
+        isFeedbackRequest = getIntent().getBooleanExtra(IS_FEEDBACK_REQUEST_NOTIFICATION,false);
+        Log.d("TAG", String.valueOf(isFeedbackRequest));
 
 
         fileName = (TextView) findViewById(R.id.file_name_text);
@@ -303,7 +310,7 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
                     item.setLength(post.getAudioDuration());
                     item.setFilePath(post.getImagePath());
                     PlaybackFragment playbackFragment =
-                            new PlaybackFragment().newInstance(item, post, rating, profile.getUsername());
+                            new PlaybackFragment().newInstance(item, post, rating, profile.getUsername(), isFeedbackRequest);
                     FragmentTransaction transaction = getSupportFragmentManager()
                             .beginTransaction();
                     playbackFragment.show(transaction, "dialog_playback");
@@ -651,6 +658,18 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
             public void onReplyClick(int position) {
                 Rating selectedRating = ratingsAdapter.getItemByPosition(position);
                 openRaterMessageActivity(selectedRating.getAuthorId());
+            }
+
+            @Override
+            public void onRequestFeedbackClick(int position) {
+                Rating selectedRating = ratingsAdapter.getItemByPosition(position);
+                f = new requestFeedbackManager(
+                        PostDetailsActivity.this,
+                        getCurrentUserId(),
+                        selectedRating.getAuthorId(),
+                        post.getImageTitle().substring(5),
+                        currentProfile.getUsername(),
+                        currentProfile.getPoints());
             }
 
             @Override
@@ -1073,7 +1092,7 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
 //                            new android.util.Pair<>(view, getString(R.string.post_author_image_transition_name)));
 //            startActivity(intent, options.toBundle());
 //        } else {
-            startActivity(intent);
+        startActivity(intent);
 //        }
     }
 
@@ -1427,12 +1446,12 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
     private void attemptFollowPost() {
         if (hasInternetConnection()) {
             postManager.followPost(PostDetailsActivity.this, getCurrentUserId(), post.getId(), success ->  {
-                    if (success) {
-                        showSnackBar(R.string.follow_post_success);
-                    } else {
-                        showSnackBar(R.string.error_fail_remove_post);
-                    }
-                });
+                if (success) {
+                    showSnackBar(R.string.follow_post_success);
+                } else {
+                    showSnackBar(R.string.error_fail_remove_post);
+                }
+            });
         } else {
             showSnackBar(R.string.internet_connection_failed);
         }
@@ -1598,7 +1617,7 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
         updateComment(newText, commentId);
     }
 
-//    private class ActionModeCallback implements ActionMode.Callback {
+    //    private class ActionModeCallback implements ActionMode.Callback {
 //        Comment selectedComment;
 //        int position;
 //

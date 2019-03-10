@@ -23,6 +23,12 @@
         android:orderInCategory="1"
         android:visible="false"
         android:title="Message" />
+
+    <item
+        android:id="@+id/requestFeedbackMenuItem"
+        android:orderInCategory="1"
+        android:visible="false"
+        android:title="Request feedback" />
     <item
         android:id="@+id/reportMenuItem"
         android:orderInCategory="1"
