@@ -128,6 +128,7 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
     public static final String POST_STATUS_EXTRA_KEY = "PostDetailsActivity.POST_STATUS_EXTRA_KEY";
     public static final String POST_ORIGIN_EXTRA_KEY = "PostDetailsActivity.POST_ORIGIN_EXTRA_KEY";
     public static final String IS_ADMIN_EXTRA_KEY = "PostDetailsActivity.IS_ADMIN_EXTRA_KEY";
+    public static final String IS_COMMENT_NOTIFICATION = "PostDetailsActivity.IS_COMMENT_NOTIFICATION";
 
     private EditText commentEditText;
     @Nullable
@@ -170,6 +171,7 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
     private MenuItem publicActionMenuItem;
 
     private String postId;
+    private boolean isIntentFromNotification;
 
     private PostManager postManager;
     private CommentManager commentManager;
@@ -216,7 +218,6 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
         isAuthorAnimationRequired = getIntent().getBooleanExtra(AUTHOR_ANIMATION_NEEDED_EXTRA_KEY, false);
         isAdmin = getIntent().getBooleanExtra(IS_ADMIN_EXTRA_KEY, false);
         postId = getIntent().getStringExtra(POST_ID_EXTRA_KEY);
-
 
         fileName = (TextView) findViewById(R.id.file_name_text);
         descriptionEditText = findViewById(R.id.descriptionEditText);
@@ -387,7 +388,9 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
         });
         appRater = new AppRater(this);
         appRater.setAppRaterCallback(new AppRaterCallbackImp(PostDetailsActivity.this));
+
     }
+
 
     public boolean isAuthorized() {
         if (!hasInternetConnection()) {
@@ -526,6 +529,13 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
             public void onRewardClick(View view, int position, int points) {
                 Comment comment = commentsAdapter.getItemByPosition(position);
                 comment.setReputationPoints(points);
+                updateComment(comment);
+            }
+
+            @Override
+            public void onUserRewardClick(View view, int position, int points) {
+                Comment comment = commentsAdapter.getItemByPosition(position);
+                comment.setUserRewardPoints(points);
                 updateComment(comment);
             }
 
@@ -757,6 +767,8 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
     }
 
     private void afterPostLoaded() {
+
+        isIntentFromNotification = getIntent().getBooleanExtra(PostDetailsActivity.IS_COMMENT_NOTIFICATION, false);
         isPostExist = true;
         initRatingRecyclerView();
         initCommentRecyclerView();
@@ -767,6 +779,10 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
         initLikeButtonState();
         invalidateOptionsMenu();
         progressBar.setVisibility(View.GONE);
+
+        if(isIntentFromNotification) {
+            new Handler().postDelayed(this::scrollToFirstComment,1000);
+        }
     }
 
     private void showPostWasRemovedDialog() {

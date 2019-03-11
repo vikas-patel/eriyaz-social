@@ -93,6 +93,7 @@ public class NotificationHolder extends RecyclerView.ViewHolder {
                 Intent intent = new Intent(context, c);
                 intent.putExtra(notification.getExtraKey(), notification.getExtraKeyValue());
                 intent.putExtra(PostDetailsActivity.POST_ORIGIN_EXTRA_KEY, PostOrigin.APP_NOTIFICATION);
+                intent.putExtra(PostDetailsActivity.IS_COMMENT_NOTIFICATION, notification.isForCommentNotification());
                 ((Activity)context).startActivity(intent);
             } catch (ClassNotFoundException e) {
                 LogUtil.logError("NotificationHolder", e.getMessage(), e);

@@ -353,6 +353,9 @@
     <string name="rating_dialog_button_later">Later</string>
     <string name="rating_dialog_button_never">Never</string>
 
+    <string name="admin_text">ADMIN</string>
+    <string name="user_text">USER</string>
+    <string name="reward_points_dialog_text">Reputation points awarded by %s for informative/encouraging feedback.</string>
 
     <string-array name="attempt_arrays">
         <item>Attempt 1</item>
@@ -389,6 +392,22 @@
         <item>18</item>
         <item>19</item>
         <item>20</item>
+    </string-array>
+
+    <string-array name="user_reward_points">
+        <item>Reward Feedbacker</item>
+        <item>-1</item>
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
     </string-array>
 
     <string-array name="report_arrays">

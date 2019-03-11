@@ -29,6 +29,7 @@ public class Comment {
     private long createdDate;
     private boolean detailedFeedback;
     private int reputationPoints;
+    private int userRewardPoints;
     private int likesCount;
 
     public Comment() {
@@ -39,6 +40,7 @@ public class Comment {
 
         this.text = text;
         this.createdDate = Calendar.getInstance().getTimeInMillis();
+        userRewardPoints = -2;
     }
 
     public String getId() {
@@ -111,5 +113,13 @@ public class Comment {
 
     public void setLikesCount(int likesCount) {
         this.likesCount = likesCount;
+    }
+
+    public int getUserRewardPoints() {
+        return userRewardPoints;
+    }
+
+    public void setUserRewardPoints(int userRewardPoints) {
+        this.userRewardPoints = userRewardPoints;
     }
 }
