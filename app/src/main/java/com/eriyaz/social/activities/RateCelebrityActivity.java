@@ -504,6 +504,11 @@ public class RateCelebrityActivity extends BaseActivity {
                 openRaterMessageActivity(selectedRating.getAuthorId());
             }
 
+            @Override
+            public void onRequestFeedbackClick(int position) {
+
+            }
+
 
         });
         ratingsRecyclerView.setAdapter(ratingsAdapter);
