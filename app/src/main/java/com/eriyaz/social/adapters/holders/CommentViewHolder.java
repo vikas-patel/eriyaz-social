@@ -61,7 +61,6 @@ import com.eriyaz.social.model.Comment;
 import com.eriyaz.social.model.Notification;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Profile;
-import com.eriyaz.social.model.feedbackDetails;
 import com.eriyaz.social.utils.FormatterUtil;
 import com.eriyaz.social.utils.GlideApp;
 import com.eriyaz.social.utils.ImageUtil;
