@@ -25,6 +25,9 @@ import com.eriyaz.social.utils.FormatterUtil;
 import com.eriyaz.social.utils.GlideApp;
 import com.eriyaz.social.utils.ImageUtil;
 import com.eriyaz.social.utils.LogUtil;
+import com.facebook.internal.BoltsMeasurementEventListener;
+
+import static com.eriyaz.social.dialogs.warningDialog.notificationMessage;
 
 /**
  * Created by vikas on 12/2/18.
@@ -93,6 +96,17 @@ public class NotificationHolder extends RecyclerView.ViewHolder {
                 Intent intent = new Intent(context, c);
                 intent.putExtra(notification.getExtraKey(), notification.getExtraKeyValue());
                 intent.putExtra(PostDetailsActivity.POST_ORIGIN_EXTRA_KEY, PostOrigin.APP_NOTIFICATION);
+                intent.putExtra(PostDetailsActivity.IS_COMMENT_NOTIFICATION, notification.isForCommentNotification());
+
+                int l = notification.getMessage().length() - notificationMessage.length();
+                int l2 = notification.getMessage().length();
+                String m = notification.getMessage().substring(l, l2);
+                boolean isFeedbackRequest = false;
+                if(m.equals(notificationMessage)) isFeedbackRequest = true;
+                Log.d("TAG", String.valueOf(isFeedbackRequest));
+
+                intent.putExtra(PostDetailsActivity.IS_FEEDBACK_REQUEST_NOTIFICATION, isFeedbackRequest);
+
                 ((Activity)context).startActivity(intent);
             } catch (ClassNotFoundException e) {
                 LogUtil.logError("NotificationHolder", e.getMessage(), e);

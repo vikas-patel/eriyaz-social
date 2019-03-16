@@ -20,6 +20,8 @@ package com.eriyaz.social.adapters.holders;
 
 import android.content.Context;
 import android.content.Intent;
+import android.nfc.Tag;
+import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
@@ -29,6 +31,7 @@ import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.UnderlineSpan;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -39,18 +42,23 @@ import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.eriyaz.social.Constants;
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
 import com.eriyaz.social.activities.BaseAlertDialogBuilder;
 import com.eriyaz.social.activities.LeaderboardActivity;
+import com.eriyaz.social.activities.PostDetailsActivity;
 import com.eriyaz.social.adapters.CommentsAdapter;
 import com.eriyaz.social.controllers.LikeController;
+import com.eriyaz.social.enums.ItemType;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.model.Comment;
+import com.eriyaz.social.model.Notification;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.FormatterUtil;
@@ -58,9 +66,18 @@ import com.eriyaz.social.utils.GlideApp;
 import com.eriyaz.social.utils.ImageUtil;
 import com.eriyaz.social.utils.TimestampTagUtil;
 import com.eriyaz.social.views.ExpandableTextView;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.volokh.danylo.hashtaghelper.HashTagHelper;
+
+import java.util.Calendar;
 
 /**
  * Created by alexey on 10.05.17.
@@ -75,6 +92,10 @@ CommentViewHolder extends RecyclerView.ViewHolder {
     private final TextView dateTextView;
     protected ImageButton optionMenuButton;
     protected Spinner rewardSpinner;
+    private Spinner userRewardSpinner;
+    private TextView adminTitleTextView;
+    private TextView userTitleTextView;
+    private TextView userRewardTextView;
     private TextView rewardTextView;
     private ImageView playImageView;
     private TextView likeCounterTextView;
@@ -86,6 +107,7 @@ CommentViewHolder extends RecyclerView.ViewHolder {
     private CommentsAdapter.Callback callback;
     private Context context;
     private boolean isAdmin;
+    String postUserName;
 
     private HashTagHelper mistakesTextHashTagHelper;
 
@@ -106,8 +128,12 @@ CommentViewHolder extends RecyclerView.ViewHolder {
         dateTextView = (TextView) itemView.findViewById(R.id.dateTextView);
         optionMenuButton = itemView.findViewById(R.id.optionMenuButton);
         playImageView = itemView.findViewById(R.id.playimageView);
+        userRewardSpinner = itemView.findViewById(R.id.rewardUserSpinner);
+        userRewardTextView = itemView.findViewById(R.id.rewardUserTextView);
         rewardSpinner = itemView.findViewById(R.id.rewardSpinner);
         rewardTextView = itemView.findViewById(R.id.rewardText);
+        adminTitleTextView = itemView.findViewById(R.id.admin_title_text_view);
+        userTitleTextView = itemView.findViewById(R.id.user_reward_text_view);
         isAdmin = aIsAdmin;
 
         likesImageView.setOnClickListener(new View.OnClickListener() {
@@ -242,22 +268,119 @@ CommentViewHolder extends RecyclerView.ViewHolder {
         }
 
         if (comment.getReputationPoints() > 0) {
+            adminTitleTextView.setVisibility(View.VISIBLE);
             rewardTextView.setVisibility(View.VISIBLE);
             rewardTextView.setText(Html.fromHtml(String.format(context.getString(R.string.comment_reward_points), comment.getReputationPoints())));
             rewardTextView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    showReputationDialog();
+                    showReputationDialog("Admin");
                 }
             });
         } else {
             rewardTextView.setVisibility(View.GONE);
+            adminTitleTextView.setVisibility(View.GONE);
+        }
+
+        String profileId = FirebaseAuth.getInstance().getUid();
+
+        if(!(comment.getAuthorId().equals(post.getAuthorId())) && profileId.equals(post.getAuthorId())) {
+
+            userRewardSpinner.setVisibility(View.VISIBLE);
+            userRewardSpinner.setSelection(comment.getUserRewardPoints()+2);
+            int initialPosition = userRewardSpinner.getSelectedItemPosition();
+            userRewardSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    if(initialPosition == position)return;
+                    String val = (String)parent.getItemAtPosition(position);
+                    if(position == 0)
+                        callback.onUserRewardClick(view, getAdapterPosition(), -2);
+                    else {
+                        callback.onUserRewardClick(view, getAdapterPosition(), Integer.parseInt(val));
+                        notifyCommenter(comment, post);
+                    }
+
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+
+                }
+            });
+        }
+
+        if(comment.getUserRewardPoints()> -2 ){
+            userTitleTextView.setVisibility(View.VISIBLE);
+            userRewardTextView.setVisibility(View.VISIBLE);
+            userRewardTextView.setText(Html.fromHtml(String.format(context.getString(R.string.comment_reward_points), comment.getUserRewardPoints())));
+            userRewardTextView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showReputationDialog("Post Author");
+                }
+            });
+        }
+        else {
+            userRewardTextView.setVisibility(View.GONE);
+            userTitleTextView.setVisibility(View.GONE);
         }
     }
 
-    private void showReputationDialog() {
+    private void notifyCommenter(Comment comment, Post post) {
+
+        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+        DatabaseReference profileRef = firebaseDatabase.getReference("profiles").child(post.getAuthorId());
+
+        profileRef.child("username").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                postUserName = dataSnapshot.getValue(String.class);
+                sendNotification(comment, post);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+
+    }
+
+    private void sendNotification(Comment comment, Post post) {
+        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+        DatabaseReference notificationRef = firebaseDatabase.getReference("user-notifications").child(comment.getAuthorId());
+
+        String pushToNodeId = notificationRef.push().getKey();
+        String action = "com.eriyaz.social.activities.PostDetailsActivity";
+        String extraKey = "PostDetailsActivity.POST_ID_EXTRA_KEY";
+
+        Notification newNotification = new Notification(ItemType.ITEM);
+        newNotification.setId(pushToNodeId);
+        newNotification.setCreatedDate(Calendar.getInstance().getTimeInMillis());
+        newNotification.setFromUserId(post.getAuthorId());
+        newNotification.setAction(action);
+        newNotification.setExtraKey(extraKey);
+        newNotification.setExtraKeyValue(post.getId());
+        newNotification.setForCommentNotification(true);
+
+        newNotification.setMessage(postUserName+" rewarded your feedback with "+comment.getUserRewardPoints()+" points");
+
+        notificationRef.child(pushToNodeId).setValue(newNotification).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                Log.i("CommentViewHolder", "Notification Sent");
+            }
+        });
+    }
+
+    private void showReputationDialog(String str) {
         LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View view = layoutInflater.inflate(R.layout.dialog_reputation_points_about, null);
+
+        TextView messageTextView = view.findViewById(R.id.dialog_message_textView);
+        messageTextView.setText(String.format(context.getResources().getString(R.string.reward_points_dialog_text), str));
 
         final TextView reputationLinkTextView = view.findViewById(R.id.reputationLinkTextView);
         reputationLinkTextView.setOnClickListener(new View.OnClickListener() {

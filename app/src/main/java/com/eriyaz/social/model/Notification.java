@@ -18,6 +18,7 @@ public class Notification {
     private boolean openPlayStore;
     private boolean fromSystem;
     private ItemType itemType;
+    private boolean isForCommentNotification;
 
     public Notification() {
     }
@@ -25,6 +26,20 @@ public class Notification {
     public Notification(ItemType itemType) {
         this.itemType = itemType;
         setId(itemType.toString());
+    }
+
+    public Notification(String fromUserId, String message, String action, String extraKey, String extraKeyValue, boolean read, boolean openPlayStore, boolean fromSystem, ItemType itemType) {
+        this.id = id;
+        this.fromUserId = fromUserId;
+        this.message = message;
+        this.createdDate = createdDate;
+        this.action = action;
+        this.extraKey = extraKey;
+        this.extraKeyValue = extraKeyValue;
+        this.read = read;
+        this.openPlayStore = openPlayStore;
+        this.fromSystem = fromSystem;
+        this.itemType = itemType;
     }
 
     public String getId() {
@@ -105,6 +120,14 @@ public class Notification {
 
     public void setFromSystem(boolean fromSystem) {
         this.fromSystem = fromSystem;
+    }
+
+    public boolean isForCommentNotification() {
+        return isForCommentNotification;
+    }
+
+    public void setForCommentNotification(boolean forCommentNotification) {
+        isForCommentNotification = forCommentNotification;
     }
 
     public ItemType getItemType() {
