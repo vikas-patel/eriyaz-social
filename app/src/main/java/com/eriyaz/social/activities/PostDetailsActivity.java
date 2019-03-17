@@ -17,7 +17,7 @@
 
 package com.eriyaz.social.activities;
 
-        import android.Manifest;
+import android.Manifest;
         import android.animation.Animator;
         import android.annotation.SuppressLint;
         import android.annotation.TargetApi;

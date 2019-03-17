@@ -376,7 +376,7 @@ exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{aut
     const postRatingRef = event.data.ref.parent.parent.parent;
     const postId = event.params.postId;
     console.log('updating post counters ', postId);
-	
+
     return postRatingRef.once('value').then(snapshot => {
         let ratingTotal = 0;
         let ratingNum = snapshot.numChildren();
@@ -395,7 +395,11 @@ exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{aut
                 return null;
             }
             current.ratingsCount = ratingNum;
-            if (ratingNum > 0) {
+            var a = current.isRatingRemoved;
+            if(a == true){
+              current.averageRating = 0;
+              console.log("Average Rating Calculated here");
+            }else if (ratingNum > 0) {
                 current.averageRating = ratingTotal/ratingNum;
             } else {
                 current.averageRating = 0;
@@ -478,7 +482,7 @@ exports.rewardReputationPoints = functions.database.ref('/post-comments/{postId}
     const commentId = event.params.commentId;
     const postId = event.params.postId;
     const commentRef = event.data.ref.parent;
-    
+
     return commentRef.once('value').then(snapshot => {
         let comment = snapshot.val();
         const commentAuthorId = comment.authorId;
@@ -1122,7 +1126,7 @@ exports.appNotificationFlag = functions.database.ref('/flags/{flaggedUser}/{flag
 
     const getFlaggedProfileTask = admin.database().ref(`/profiles/${flaggedUser}`).once('value');
     const getFlaggedByProfileTask = admin.database().ref(`/profiles/${flaggedBy}`).once('value');
-    
+
     return Promise.all([getFlaggedProfileTask, getFlaggedByProfileTask]).then(results => {
         const flaggedSnap = results[0];
         const flaggedBySnap = results[1];
@@ -1563,7 +1567,7 @@ exports.generateChecksum = functions.https.onRequest((req, res) => {
     var paramarray = {};
     paramarray['MID'] = paytm_config.MID; //Provided by Paytm
     paramarray['ORDER_ID'] = req.query.orderId; //unique OrderId for every request
-    paramarray['CUST_ID'] = req.query.customerId;  // unique customer identifier 
+    paramarray['CUST_ID'] = req.query.customerId;  // unique customer identifier
     paramarray['INDUSTRY_TYPE_ID'] = paytm_config.INDUSTRY_TYPE_ID; //Provided by Paytm
     paramarray['CHANNEL_ID'] = paytm_config.CHANNEL_ID; //Provided by Paytm
     paramarray['TXN_AMOUNT'] = req.query.txnAmount; // transaction amount
@@ -1861,7 +1865,7 @@ exports.profileSearch = functions.https.onRequest((req, res) => {
             })
 
             res.status(200).send(arr.join('\n'));
-            
+
         } else {
 
             res.status(200).send(`No result found`);
@@ -1896,9 +1900,9 @@ exports.profileSearch = functions.https.onRequest((req, res) => {
 //     if (event.data.exists() && event.data.previous.exists()) {
 //         const post = event.data.val();
 //         if (post.createdDate < Date.now() - cacheDays) return console.log("no need to update the cache");
-//         for( var i = 0; i < recentPosts.length-1; i++){ 
+//         for( var i = 0; i < recentPosts.length-1; i++){
 //            if (recentPosts[i].id == postId) {
-//              recentPosts.splice(i, 1, post); 
+//              recentPosts.splice(i, 1, post);
 //            }
 //         }
 //         console.log("post updated");
@@ -1909,9 +1913,9 @@ exports.profileSearch = functions.https.onRequest((req, res) => {
 //     if (!event.data.exists()) {
 //         const post = event.data.previous.val();
 //         if (post.createdDate < Date.now() - cacheDays) return console.log("no need to delete from the cache");
-//         for( var i = 0; i < recentPosts.length-1; i++){ 
+//         for( var i = 0; i < recentPosts.length-1; i++){
 //            if (recentPosts[i].id == postId) {
-//              recentPosts.splice(i, 1); 
+//              recentPosts.splice(i, 1);
 //            }
 //         }
 //         console.log("post deleted from cache", postId);
@@ -2066,7 +2070,7 @@ function getFriends(userId) {
             friends.push(friendSnap.key);
         });
         return friends;
-    });   
+    });
 }
 
 function getRatedPosts(userId, lastDate) {
@@ -2110,7 +2114,7 @@ exports.profileStats = functions.https.onRequest((req, res) => {
                 }
             })
             res.status(200).send("Total profile count: " + totalProfileCount + " \nUninstall profile count: " + uninstallProfileCount);
-            
+
         } else {
 
             res.status(200).send(`No result found`);
@@ -2189,7 +2193,7 @@ exports.taskRunner = functions.https.onRequest((req, res) => {
     return queueRef.orderByChild('time').endAt(Date.now()).once('value').then(tasks => {
         if (tasks.exists()) {
             const promises = []
-            
+
             // Execute tasks concurrently
             tasks.forEach( taskSnapshot => {
                 promises.push( execute(taskSnapshot) )
@@ -2198,10 +2202,10 @@ exports.taskRunner = functions.https.onRequest((req, res) => {
             return Promise.all(promises).then(results => {
                 // Optional: count success/failure ratio
                 const successCount = results.length;
-                    
+
                 res.status(200).send(`Work complete. ${successCount} succeeded`);
             });
-            
+
         } else {
 
             res.status(200).send(`Task queue empty`);
@@ -2225,7 +2229,7 @@ function execute(taskSnapshot) {
         return workers[task.worker](task).then(result => {
             // If the task has an interval then reschedule it, else remove it
             if (task.interval) {
-                return ref.update({ 
+                return ref.update({
                     time: task.time + task.interval,
                     runs: (task.runs || 0) + 1
                 })
@@ -2235,7 +2239,7 @@ function execute(taskSnapshot) {
         });
     } catch(err) {
         // If error, update fail count and error message
-        return ref.update({ 
+        return ref.update({
             err: err.message,
             failures: (task.failures || 0) + 1
         });
@@ -2276,10 +2280,10 @@ function minutes(value) {
 // const bigquery = require('@google-cloud/bigquery')();
 
 // exports.syncBigQueryPost = functions.database.ref('/posts/{postId}').onCreate((snapshot,context) => {
-  
+
 // 	const dataset = bigquery.dataset("com_eriyaz_social_ANDROID");
 // 	const table = dataset.table("post");
-  
+
 // 	const postTitle = snapshot.val().title;
 // 	return table.insert({
 // 		id: context.params.postId,
