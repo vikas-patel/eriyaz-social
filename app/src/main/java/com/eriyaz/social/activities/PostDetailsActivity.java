@@ -30,6 +30,7 @@ package com.eriyaz.social.activities;
         import android.os.Build;
         import android.os.Bundle;
         import android.os.Handler;
+        import android.support.annotation.NonNull;
         import android.support.annotation.Nullable;
         import android.support.v4.app.FragmentTransaction;
         import android.support.v7.app.AlertDialog;
@@ -62,6 +63,7 @@ package com.eriyaz.social.activities;
 
         import com.bumptech.glide.load.engine.DiskCacheStrategy;
         import com.eriyaz.social.Application;
+        import com.eriyaz.social.Constants;
         import com.eriyaz.social.R;
         import com.eriyaz.social.adapters.CommentsAdapter;
         import com.eriyaz.social.adapters.RatingsAdapter;
@@ -109,8 +111,15 @@ package com.eriyaz.social.activities;
         import com.eriyaz.social.utils.RatingUtil;
         import com.eriyaz.social.views.RecordLayout;
         import com.google.android.exoplayer2.util.Util;
+        import com.google.android.gms.tasks.OnCompleteListener;
+        import com.google.android.gms.tasks.Task;
         import com.google.firebase.auth.FirebaseAuth;
         import com.google.firebase.auth.FirebaseUser;
+        import com.google.firebase.database.DataSnapshot;
+        import com.google.firebase.database.DatabaseError;
+        import com.google.firebase.database.DatabaseReference;
+        import com.google.firebase.database.FirebaseDatabase;
+        import com.google.firebase.database.ValueEventListener;
         import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 
         import java.io.File;
@@ -171,6 +180,7 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
     private MenuItem editActionMenuItem;
     private MenuItem deleteActionMenuItem;
     private MenuItem publicActionMenuItem;
+    private MenuItem removeRatingMenuItem;
 
     private String postId;
     private boolean isIntentFromNotification;
@@ -925,8 +935,9 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
         long commentsCount = post.getCommentsCount();
         commentsCountTextView.setText(String.valueOf(commentsCount));
         commentsLabel.setText(String.format(getString(R.string.label_comments), commentsCount));
-//        likeCounterTextView.setText(String.valueOf(post.getLikesCount()));
         ratingCounterTextView.setText("(" + post.getRatingsCount() + ")");
+//        likeCounterTextView.setText(String.valueOf(post.getLikesCount()));
+
         if (hasAccessToModifyPost()) {
             String avgRatingText = "";
             if (post.getAverageRating() > 0) {
@@ -976,14 +987,38 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
             commentsLabel.setVisibility(View.VISIBLE);
         }
 
-        ratingsLabel.setText(String.format(getString(R.string.label_ratings), post.getRatingsCount()));
 
-        if (post.getRatingsCount() == 0) {
-            ratingsLabel.setVisibility(View.GONE);
-            ratingsProgressBar.setVisibility(View.GONE);
-        } else if (ratingsLabel.getVisibility() != View.VISIBLE) {
-            ratingsLabel.setVisibility(View.VISIBLE);
-        }
+        FirebaseDatabase.getInstance().getReference("posts").child(post.getId()).child("isRatingRemoved").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                boolean hideRatings = dataSnapshot.getValue(Boolean.class);
+                post.setRatingRemoved(hideRatings);
+                Log.e(TAG, hideRatings+"");
+                if(hideRatings) {
+                    ratingsLabel.setTextSize(24.0f);
+                    ratingsLabel.setText("Singer has removed the ratings");
+
+                }
+                else {
+                    ratingsLabel.setTextSize(16.0f);
+                    ratingsLabel.setText(String.format(getString(R.string.label_ratings), post.getRatingsCount()));
+                }
+                if (post.getRatingsCount() == 0 && !post.isRatingRemoved() ) {
+                    ratingsLabel.setVisibility(View.GONE);
+                    ratingsProgressBar.setVisibility(View.GONE);
+                } else if (ratingsLabel.getVisibility() != View.VISIBLE) {
+                    ratingsLabel.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+
+
     }
 
     private OnObjectChangedListener<Profile> createProfileChangeListener() {
@@ -1314,6 +1349,27 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
         if (complainActionMenuItem != null && post != null && !post.isHasComplain() && isAdmin) {
             complainActionMenuItem.setVisible(true);
         }
+
+        if (post.getAuthorId().equals(FirebaseAuth.getInstance().getUid())) {
+            FirebaseDatabase.getInstance().getReference("posts").child(post.getId()).child("isRatingRemoved")
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            boolean v = dataSnapshot.getValue(Boolean.class);
+                            if(v)
+                                removeRatingMenuItem.setTitle("Make Ratings Visible");
+                            else
+                                removeRatingMenuItem.setTitle("Remove Rating");
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+            removeRatingMenuItem.setVisible(true);
+        }
+
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -1325,6 +1381,7 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
         publicActionMenuItem = menu.findItem(R.id.make_public_action);
 //        editActionMenuItem = menu.findItem(R.id.edit_post_action);
         deleteActionMenuItem = menu.findItem(R.id.delete_post_action);
+        removeRatingMenuItem = menu.findItem(R.id.remove_ratings_from_post);
         return true;
     }
 
@@ -1365,9 +1422,43 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
                     attemptToRemovePost();
                 }
                 return true;
+            case R.id.remove_ratings_from_post:
+                if(post!=null) {
+                    DatabaseReference ratingRemovedRef = FirebaseDatabase.getInstance().getReference("posts").child(post.getId()).child("isRatingRemoved");
+
+                    ratingRemovedRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            boolean val = dataSnapshot.getValue(Boolean.class);
+
+                            updateRatingRemoved(!val);
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+
+
+
+                }
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void updateRatingRemoved(boolean val) {
+
+        DatabaseReference ratingRemovedRef = FirebaseDatabase.getInstance().getReference("posts").child(post.getId()).child("isRatingRemoved");
+
+        ratingRemovedRef.setValue(val).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                updateCounters();
+            }
+        });
     }
 
     private void doComplainAction() {

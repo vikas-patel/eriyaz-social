@@ -60,6 +60,7 @@ public class Post implements Serializable, LazyLoading {
     private String celebrityName;
     private boolean isAuthorFirstPost;
     private FeedbackScope feedbackScope;
+    private boolean isRatingRemoved;
 
     @Override
     public boolean equals(Object o) {
@@ -85,6 +86,14 @@ public class Post implements Serializable, LazyLoading {
     public Post(ItemType itemType) {
         this.itemType = itemType;
         setId(itemType.toString());
+    }
+
+    public boolean isRatingRemoved() {
+        return isRatingRemoved;
+    }
+
+    public void setRatingRemoved(boolean ratingRemoved) {
+        isRatingRemoved = ratingRemoved;
     }
 
     public String getId() {
@@ -292,6 +301,7 @@ public class Post implements Serializable, LazyLoading {
         result.put("isAuthorFirstPost", isAuthorFirstPost);
         result.put("createdDateText", FormatterUtil.getFirebaseDateFormat().format(new Date(createdDate)));
         result.put("feedbackScope", feedbackScope);
+        result.put("isRatingRemoved", isRatingRemoved);
 
         return result;
     }
@@ -379,6 +389,9 @@ public class Post implements Serializable, LazyLoading {
         }
         if (mapObj.containsKey("feedbackScope")) {
             setFeedbackScope(FeedbackScope.valueOf((String) mapObj.get("feedbackScope")));
+        }
+        if (mapObj.containsKey("isRatingRemoved")){
+            setRatingRemoved((boolean)mapObj.get("isRatingRemoved"));
         }
     }
 }
