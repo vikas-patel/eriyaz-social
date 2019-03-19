@@ -75,7 +75,10 @@ public class RatingsAdapter extends RecyclerView.Adapter<RatingViewHolder> {
 
     @Override
     public int getItemCount() {
-        return list.size();
+        if(post.isRatingRemoved())
+            return 0;
+        else
+            return list.size();
     }
 
     public interface Callback {
