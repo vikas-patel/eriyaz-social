@@ -20,6 +20,7 @@ package com.eriyaz.social.activities;
 import android.app.ActivityOptions;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.drawable.LayerDrawable;
 import android.net.Uri;
 import android.os.Build;
@@ -35,6 +36,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SimpleItemAnimator;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -67,12 +69,15 @@ import com.eriyaz.social.utils.AnimationUtils;
 import com.eriyaz.social.utils.DeepLinkUtil;
 import com.eriyaz.social.utils.LogUtil;
 import com.eriyaz.social.utils.PreferencesUtil;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
 import com.google.firebase.dynamiclinks.PendingDynamicLinkData;
+import com.google.firebase.dynamiclinks.ShortDynamicLink;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.uxcam.UXCam;
 
@@ -102,6 +107,8 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
     static {
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
     }
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

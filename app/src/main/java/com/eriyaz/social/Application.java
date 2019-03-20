@@ -17,15 +17,21 @@
 
 package com.eriyaz.social;
 
+import android.app.Activity;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 
 import com.eriyaz.social.managers.DatabaseHelper;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
+import com.google.firebase.dynamiclinks.ShortDynamicLink;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 public class Application extends android.app.Application {
 
@@ -42,7 +48,10 @@ public class Application extends android.app.Application {
         mFirebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
         mFirebaseRemoteConfig.setDefaults(R.xml.remote_config_defaults);
         fetchRemoteConfig();
+
+
     }
+
 
     public void setBlockedByList(List aBlockedList) {
         blockedByList = aBlockedList;
