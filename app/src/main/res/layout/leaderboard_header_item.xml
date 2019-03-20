@@ -1,38 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/leaderboard_list"
+    android:id="@+id/headerLayout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
     android:padding="@dimen/intrinsic_padding">
 
     <TextView
-        android:id="@+id/rankTextView"
+        android:id="@+id/rankHeader"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAlignment="center"
         android:textSize="16dp"
         android:paddingLeft="@dimen/intrinsic_padding"
         android:paddingRight="@dimen/large_intrinsic_padding"
-        android:textColor="@color/default_link"
-        android:text="1" />
-
-    <com.eriyaz.social.views.CircularImageView
-        android:id="@+id/avatarImageView"
-        android:layout_width="@dimen/bought_feedback_list_avatar_height"
-        android:layout_height="@dimen/bought_feedback_list_avatar_height"
-        android:paddingLeft="@dimen/intrinsic_padding"
-        android:paddingRight="@dimen/intrinsic_padding"
-        android:src="@drawable/ic_stub"
-        app:shadow="false"
-        app:border="true"
-        app:border_width="0dp" />
+        android:textAppearance="@style/TextAppearance.Highlight"
+        android:clickable="true"
+        android:text="@string/rankHeader" />
 
     <TextView
-        android:id="@+id/authorNameTextView"
+        android:id="@+id/authorNameHeader"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAlignment="textStart"
@@ -40,26 +28,28 @@
         android:layout_weight="1"
         android:paddingLeft="@dimen/intrinsic_padding"
         android:paddingRight="@dimen/small_intrinsic_padding"
-        android:text="Mr. xyz" />
+        android:textAppearance="@style/TextAppearance.Highlight"
+        android:text="@string/feedbackerHeader" />
 
     <TextView
-        android:id="@+id/pointsTextView"
+        android:id="@+id/pointsHeader"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAlignment="center"
         android:paddingLeft="@dimen/intrinsic_padding"
         android:paddingRight="@dimen/intrinsic_padding"
         android:textAppearance="@style/TextAppearance.Highlight"
-        android:text="270" />
+        android:text="@string/reputationPointsHeader" />
 
     <TextView
-        android:id="@+id/weeklyPointsTextView"
+        android:id="@+id/weeklyPointsHeader"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAlignment="center"
         android:paddingLeft="@dimen/intrinsic_padding"
         android:paddingRight="@dimen/intrinsic_padding"
         android:textAppearance="@style/TextAppearance.Highlight"
-        android:text="270" />
+        android:text="@string/weeklyRankHeader"
+        android:clickable="true" />
 
 </LinearLayout>

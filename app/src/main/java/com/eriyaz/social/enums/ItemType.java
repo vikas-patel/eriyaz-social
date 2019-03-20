@@ -20,7 +20,7 @@ package com.eriyaz.social.enums;
  * Created by Alex on 21.07.16.
  */
 
-public enum ItemType {LOAD(10), ITEM(11);
+public enum ItemType {LOAD(0), HEADER(1), ITEM(2);
     private final int typeCode;
 
     ItemType(int typeCode) {
