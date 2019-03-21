@@ -2129,9 +2129,11 @@ exports.rankTaskRunner = functions.https.onRequest((req, res) => {
     const profileRef = admin.database().ref(`/profiles`);
     var updateProfiles = {};
     let updated = 0;
+    let rank = 0;
     var sortOnParam;
     // Get parameter (weeklyPoints = "true") from request URL
     var sortOnWeeklyPoints = req.query.weeklyPoints;
+    console.log("Request parameter ", sortOnWeeklyPoints);
     if (sortOnWeeklyPoints != null)
     {
       sortOnParam = "weeklyReputationPoints";
@@ -2140,23 +2142,33 @@ exports.rankTaskRunner = functions.https.onRequest((req, res) => {
     {
       sortOnParam = "reputationPoints";
     }
-    const profileQuery = profileRef.orderByChild(sortOnParam).startAt(1).once('value').then(profiles => {
-        let rank = profiles.numChildren();
+    profileRef.orderByChild(sortOnParam).startAt(1).once('value').then((profiles) => {
+        rank = profiles.numChildren();
         // return in asc order by reputation points
         profiles.forEach( profileSnap => {
-            let key = profileSnap.key;
-            let previousRank = profileSnap.val().rank;
-            if (!previousRank || previousRank != rank) {
-                updateProfiles[`${key}/rank`] = rank;
-                updated++;
+            var key = profileSnap.key;
+            if (sortOnParam == "reputationPoints") {
+                const previousRank = profileSnap.val().rank;
+                if (!previousRank || previousRank != rank)
+                    updateProfiles[`${key}/rank`] = rank;
             }
+            else
+            {
+                const previousRank1 = profileSnap.val().weeklyRank;
+                if (!previousRank1 || previousRank1 != rank) {
+                    console.log("weeklyReputationPoints", rank);
+                    updateProfiles[`${key}/weeklyRank`] = rank;
+                }
+            }
+            updated++;
             rank--;
         });
         console.log("updated profiles", updated);
-        res.status(200).send(`updated profiles ${updated}`);
-        return profileRef.update(updateProfiles);
+                res.status(200).send(`updated profiles ${updated}`);
+                return profileRef.update(updateProfiles);
+
+        });
     });
-});
 
 exports.weeklyPointsTaskRunner = functions.https.onRequest((req, res) => {
     console.log("Weekly points task runner");
@@ -2168,8 +2180,8 @@ exports.weeklyPointsTaskRunner = functions.https.onRequest((req, res) => {
         // For each profile, calculate weeklyReputationPoints and update lastweekReputationPoints
 	    snapshot.forEach(child => {
 		let key = child.key;
-		var reputationPoints = child.val().reputationPoints;
-		var lastweekReputationPoints = child.val().lastweekReputationPoints;
+		const reputationPoints = child.val().reputationPoints;
+		const lastweekReputationPoints = child.val().lastweekReputationPoints;
 
 		// Update weeklyReputationPoints and lastweekReputationPoints in database
 		updateProfiles[`${key}/weeklyReputationPoints`] = reputationPoints - lastweekReputationPoints;

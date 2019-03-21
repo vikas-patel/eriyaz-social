@@ -19,21 +19,28 @@ package com.eriyaz.social.adapters;
 
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.BaseActivity;
+import com.eriyaz.social.activities.LeaderboardActivity;
 import com.eriyaz.social.activities.RewardActivity;
+import com.eriyaz.social.adapters.holders.LeaderBoardHeaderViewHolder;
 import com.eriyaz.social.adapters.holders.LeaderBoardViewHolder;
 import com.eriyaz.social.adapters.holders.LoadViewHolder;
 import com.eriyaz.social.adapters.holders.PostViewHolder;
+import com.eriyaz.social.adapters.holders.ViewHolder;
 import com.eriyaz.social.enums.ItemType;
 import com.eriyaz.social.managers.PostManager;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnPostListChangedListener;
 import com.eriyaz.social.managers.listeners.OnProfileListChangedListener;
+import com.eriyaz.social.model.ListItem;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.PostListResult;
 import com.eriyaz.social.model.Profile;
@@ -57,9 +64,9 @@ public class ProfileAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private boolean isMoreDataAvailable = true;
     private int lastLoadedItemRank;
     private SwipeRefreshLayout swipeContainer;
-    private BaseActivity activity;
+    private LeaderboardActivity activity;
 
-    public ProfileAdapter(final BaseActivity activity, SwipeRefreshLayout swipeContainer) {
+    public ProfileAdapter(final LeaderboardActivity activity, SwipeRefreshLayout swipeContainer) {
         this.activity = activity;
         this.swipeContainer = swipeContainer;
         initRefreshLayout();
@@ -86,15 +93,23 @@ public class ProfileAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
     }
 
+    boolean isPositionHeader(int position)
+    {
+        return position==0;
+    }
+
     @Override
     public int getItemCount() {
-        return profileList.size();
+        return profileList.size()+1;
     }
 
     @Override
     public int getItemViewType(int position) {
-        if (profileList.get(position) == null) return -1;
-        return profileList.get(position).getItemType().getTypeCode();
+//        if (profileList.get(position) == null) return -1;
+        if (isPositionHeader(position))
+            return ItemType.HEADER.getTypeCode();
+        else
+            return ItemType.ITEM.getTypeCode();
     }
 
     public void setCallback(Callback callback) {
@@ -104,35 +119,45 @@ public class ProfileAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+
         if (viewType == ItemType.ITEM.getTypeCode()) {
             return new LeaderBoardViewHolder(inflater.inflate(R.layout.leaderboard_list_item, parent, false),
                     callback);
-        } else {
+        }
+        else if (viewType == ItemType.HEADER.getTypeCode())
+        {
+            return new LeaderBoardHeaderViewHolder(inflater.inflate(R.layout.leaderboard_header_item, parent, false),
+                    callback);
+        }
+        else {
             return new LoadViewHolder(inflater.inflate(R.layout.loading_view, parent, false));
         }
     }
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        if (position >= getItemCount() - 1 && isMoreDataAvailable && !isLoading) {
-            android.os.Handler mHandler = activity.getWindow().getDecorView().getHandler();
-            mHandler.post(new Runnable() {
-                public void run() {
-                    //change adapter contents
-                    if (activity.hasInternetConnection()) {
-                        isLoading = true;
-                        profileList.add(new Profile(ItemType.LOAD));
-                        notifyItemInserted(profileList.size());
-                        loadNext(lastLoadedItemRank + 1);
-                    } else {
-                        activity.showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
-                    }
-                }
-            });
-        }
+//        if (position >= getItemCount() - 1 && isMoreDataAvailable && !isLoading) {
+//            android.os.Handler mHandler = activity.getWindow().getDecorView().getHandler();
+//            mHandler.post(new Runnable() {
+//                public void run() {
+//                    //change adapter contents
+//                    if (activity.hasInternetConnection()) {
+//                        isLoading = true;
+//                        profileList.add(new Profile(ItemType.LOAD));
+//                        notifyItemInserted(profileList.size());
+//                        loadNext(lastLoadedItemRank + 1);
+//                    } else {
+//                        activity.showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
+//                    }
+//                }
+//            });
+//        }
 
         if (getItemViewType(position) != ItemType.LOAD.getTypeCode()) {
-            ((LeaderBoardViewHolder) holder).bindData(profileList.get(position));
+            if (getItemViewType(position) == ItemType.ITEM.getTypeCode())
+                ((LeaderBoardViewHolder) holder).bindData(profileList.get(position-1));
+            else
+                Log.d("ProfileAdapter", "Adding headers");
         }
     }
 
@@ -201,18 +226,29 @@ public class ProfileAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     protected Profile getItemByPosition(int position) {
-        return profileList.get(position);
+        if (position == 0) {
+            return null;
+        }
+        return profileList.get(position-1);
     }
 
     @Override
     public long getItemId(int position) {
-        if (getItemByPosition(position) == null) return -1;
-        return getItemByPosition(position).getId().hashCode();
+
+        if (getItemByPosition(position) == null)
+            return -1;
+        else
+            return getItemByPosition(position).getId().hashCode();
+    }
+
+    public List<Profile> getProfileList() {
+        return profileList;
     }
 
     public interface Callback {
         void onItemClick(Profile profile, View view);
         void onListLoadingFinished();
         void onCanceled(String message);
+        void onHeaderClick(String header);
     }
 }
