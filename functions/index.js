@@ -398,7 +398,7 @@ exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{aut
             var a = current.isRatingRemoved;
             if(a == true){
               current.averageRating = 0;
-              console.log("Average Rating Calculated here");
+              console.log("Average Rating Calculated when user has removed ratings");
             }else if (ratingNum > 0) {
                 current.averageRating = ratingTotal/ratingNum;
             } else {
