@@ -551,6 +551,6 @@
 <p>1. RateMySinging Official Feedback can be purchased by clicking on &ldquo;Get Official Feedback&rdquo; button on the recording details page. <br />2. Once you click the &ldquo;Get Official Feedback&rdquo; button you will be taken to the Paytm payment process. <br />3. After you make the payment of the required fees, the &ldquo;Get Official Feedback&rdquo; button will be disabled and replaced with &ldquo;Awaiting Official Feedback&rdquo;.<br />4. Our team will resolve your feedback request within 48 hours. The feedback will be posted as a comment on your recording. <br />5. After the feedback is given the status of the button will change to &ldquo;Official Feedback Received&rdquo;.<br />6. You can reply on the comment for further queries/issues or to initiate a refund if the feedback is unsatisfactory.<br />7. A refund will be issued within 5 working days.</p>
 ]]></string>
     <string name="edit_post">Edit Post</string>
-    <string name="joinapp">Join App</string>
+    <string name="joinapp"> \nJoin App</string>
 
 </resources>

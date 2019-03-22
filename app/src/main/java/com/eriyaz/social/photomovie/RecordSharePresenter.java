@@ -321,7 +321,7 @@ public class RecordSharePresenter implements MovieFilterView.FilterCallback, IMo
                             sharingIntent.putExtra(Intent.EXTRA_STREAM, uri);
 
                             String shortLink=task.getResult().getShortLink().toString();
-                            sharingIntent.putExtra(Intent.EXTRA_TEXT, mRecordShareView.getActivity().getString(R.string.post_share_description, mProfileName, mPostTitle)+mRecordShareView.getActivity().getString(R.string.joinapp) +shortLink);
+                            sharingIntent.putExtra(Intent.EXTRA_TEXT, mRecordShareView.getActivity().getString(R.string.post_share_description, mProfileName, mPostTitle)+mRecordShareView.getActivity().getString(R.string.joinapp)+" " +shortLink);
                             mRecordShareView.getActivity().startActivity(Intent.createChooser(sharingIntent, "Share Video!"));
                             BaseActivity activity = (BaseActivity) mRecordShareView.getActivity();
                             activity.getAnalytics().logShareVideo();
