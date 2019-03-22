@@ -50,7 +50,7 @@ public class LeaderBoardViewHolder extends RecyclerView.ViewHolder {
     private final TextView rankTextView;
     private final ImageView avatarImageView;
     private TextView authorNameTextView;
-    private TextView pointsTextView;
+    private TextView pointsTextView, weeklyRankTextView;
     private ProfileAdapter.Callback callback;
     private Context context;
 
@@ -59,16 +59,17 @@ public class LeaderBoardViewHolder extends RecyclerView.ViewHolder {
 
         this.callback = callback;
         this.context = itemView.getContext();
-
         avatarImageView = itemView.findViewById(R.id.avatarImageView);
         rankTextView = itemView.findViewById(R.id.rankTextView);
         authorNameTextView = itemView.findViewById(R.id.authorNameTextView);
         pointsTextView = itemView.findViewById(R.id.pointsTextView);
+        weeklyRankTextView = itemView.findViewById(R.id.weeklyPointsTextView);
     }
 
     public void bindData(final Profile profile) {
         rankTextView.setText(Integer.toString(profile.getRank()));
         pointsTextView.setText(Long.toString(profile.getReputationPoints()));
+        weeklyRankTextView.setText(Long.toString(profile.getWeeklyRank()));
         authorNameTextView.setText(profile.getUsername());
         setProfileImage(profile);
         if (isSelfProfile(profile.getId())) {
@@ -100,5 +101,4 @@ public class LeaderBoardViewHolder extends RecyclerView.ViewHolder {
         if (profileId != null && profileId.equals(currentUser.getUid())) return true;
         return false;
     }
-
 }
