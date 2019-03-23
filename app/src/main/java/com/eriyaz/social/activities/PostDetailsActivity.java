@@ -670,6 +670,28 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
             }
 
             @Override
+            public void onRemoveRatingClick(View v, int position) {
+                Rating rating = ratingsAdapter.getItemByPosition(position);
+                if(!hasInternetConnection()){
+                    showSnackBar(R.string.internet_connection_failed);
+                    return;
+                }
+
+                //set rating textView to "Post Author has removed rating"
+                rating.setRemoved(true);
+                FirebaseDatabase.getInstance().getReference("post-ratings").
+                        child(post.getId()).child(rating.getAuthorId()).child(rating.getId())
+                        .child("isRatingRemoved").setValue(true)
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+
+                            }
+                        });
+
+            }
+
+            @Override
             public void onAuthorClick(String authorId, View view) {
                 openProfileActivity(authorId, view);
             }
@@ -987,37 +1009,14 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
             commentsLabel.setVisibility(View.VISIBLE);
         }
 
+        ratingsLabel.setText(String.format(getString(R.string.label_ratings), post.getRatingsCount()));
 
-        FirebaseDatabase.getInstance().getReference("posts").child(post.getId()).child("isRatingRemoved").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                boolean hideRatings = dataSnapshot.getValue(Boolean.class);
-                post.setRatingRemoved(hideRatings);
-                Log.e(TAG, hideRatings+"");
-                if(hideRatings) {
-                    ratingsLabel.setTextSize(24.0f);
-                    ratingsLabel.setText("Singer has removed the ratings");
-
-                }
-                else {
-                    ratingsLabel.setTextSize(16.0f);
-                    ratingsLabel.setText(String.format(getString(R.string.label_ratings), post.getRatingsCount()));
-                }
-                if (post.getRatingsCount() == 0 && !post.isRatingRemoved() ) {
-                    ratingsLabel.setVisibility(View.GONE);
-                    ratingsProgressBar.setVisibility(View.GONE);
-                } else if (ratingsLabel.getVisibility() != View.VISIBLE) {
-                    ratingsLabel.setVisibility(View.VISIBLE);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-
-
+        if (post.getRatingsCount() == 0 ) {
+            ratingsLabel.setVisibility(View.GONE);
+            ratingsProgressBar.setVisibility(View.GONE);
+            } else if (ratingsLabel.getVisibility() != View.VISIBLE) {
+                ratingsLabel.setVisibility(View.VISIBLE);
+        }
 
     }
 
@@ -1350,26 +1349,6 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
             complainActionMenuItem.setVisible(true);
         }
 
-        if (post.getAuthorId().equals(FirebaseAuth.getInstance().getUid())) {
-            FirebaseDatabase.getInstance().getReference("posts").child(post.getId()).child("isRatingRemoved")
-                    .addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            boolean v = dataSnapshot.getValue(Boolean.class);
-                            if(v)
-                                removeRatingMenuItem.setTitle("Make Ratings Visible");
-                            else
-                                removeRatingMenuItem.setTitle("Remove Rating");
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                        }
-                    });
-            removeRatingMenuItem.setVisible(true);
-        }
-
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -1381,7 +1360,6 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
         publicActionMenuItem = menu.findItem(R.id.make_public_action);
 //        editActionMenuItem = menu.findItem(R.id.edit_post_action);
         deleteActionMenuItem = menu.findItem(R.id.delete_post_action);
-        removeRatingMenuItem = menu.findItem(R.id.remove_ratings_from_post);
         return true;
     }
 
@@ -1422,43 +1400,10 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
                     attemptToRemovePost();
                 }
                 return true;
-            case R.id.remove_ratings_from_post:
-                if(post!=null) {
-                    DatabaseReference ratingRemovedRef = FirebaseDatabase.getInstance().getReference("posts").child(post.getId()).child("isRatingRemoved");
 
-                    ratingRemovedRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            boolean val = dataSnapshot.getValue(Boolean.class);
-
-                            updateRatingRemoved(!val);
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                        }
-                    });
-
-
-
-                }
-                return true;
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    private void updateRatingRemoved(boolean val) {
-
-        DatabaseReference ratingRemovedRef = FirebaseDatabase.getInstance().getReference("posts").child(post.getId()).child("isRatingRemoved");
-
-        ratingRemovedRef.setValue(val).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                updateCounters();
-            }
-        });
     }
 
     private void doComplainAction() {

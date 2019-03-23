@@ -50,9 +50,5 @@
         app:showAsAction="never"
         android:orderInCategory="1" />
 
-    <item
-        android:id="@+id/remove_ratings_from_post"
-        android:visible="false"
-        />
 
 </menu>

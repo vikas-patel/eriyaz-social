@@ -490,6 +490,11 @@ public class RateCelebrityActivity extends BaseActivity {
             }
 
             @Override
+            public void onRemoveRatingClick(View v, int position) {
+
+            }
+
+            @Override
             public void onAuthorClick(String authorId, View view) {
             }
 

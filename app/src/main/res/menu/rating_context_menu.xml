@@ -40,4 +40,9 @@
         android:orderInCategory="1"
         android:title="@string/block_comment_menu_item" />
 
+    <item
+        android:id="@+id/removeRating"
+        android:visible="false"
+        android:title="Remove Rating"/>
+
 </menu>
