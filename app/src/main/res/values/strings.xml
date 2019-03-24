@@ -358,12 +358,6 @@
     <string name="user_text">USER</string>
     <string name="reward_points_dialog_text">Reputation points awarded by %s for informative/encouraging feedback.</string>
 
-    <!-- Top Feedbackers page headers-->
-    <string name="rankHeader">Rank</string>
-    <string name="feedbackerHeader">Feedbacker</string>
-    <string name="reputationPointsHeader">Reputation Points</string>
-    <string name="weeklyRankHeader">Weekly Rank</string>
-
     <string-array name="attempt_arrays">
         <item>Attempt 1</item>
         <item>Attempt 2</item>
