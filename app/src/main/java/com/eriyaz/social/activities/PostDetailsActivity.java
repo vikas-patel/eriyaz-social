@@ -803,7 +803,7 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
 
         isIntentFromNotification = getIntent().getBooleanExtra(PostDetailsActivity.IS_COMMENT_NOTIFICATION, false);
 
-        invalidateOptionsMenu();//it will call onCreateContextMenu again so that we can hide editPost option if user is seeing others post
+        //invalidateOptionsMenu();//it will call onCreateContextMenu again so that we can hide editPost option if user is seeing others post
 
         isPostExist = true;
         initRatingRecyclerView();
