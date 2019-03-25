@@ -368,23 +368,33 @@ function sendEmail(subject, body) {
 }
 
 // Keeps track of the length of the 'likes' child list in a separate property.
-exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}/normalizedRating').onWrite(event => {
-    if (event.data.exists() && !event.data.previous.exists() && event.data.val() == 0) {
+exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onWrite(event => {
+    console.log("This was executed");
+
+    let normalizedRating = event.data.current.child('normalizedRating');
+
+    if (normalizedRating.exists() && !normalizedRating.previous.exists() && normalizedRating.val() == 0) {
         console.log("ignore: normalizedRating hasn't set yet.");
         return 0;
     }
-    const postRatingRef = event.data.ref.parent.parent.parent;
+    const postRatingRef = normalizedRating.ref.parent.parent.parent;
     const postId = event.params.postId;
-    console.log('updating post counters ', postId);
+    console.log('updating post counters', postId);
 
     return postRatingRef.once('value').then(snapshot => {
-        let ratingTotal = 0;
-        let ratingNum = snapshot.numChildren();
+        var ratingTotal = 0;
+        var ratingNum = snapshot.numChildren();
         snapshot.forEach(function(authorSnap) {
 	      authorSnap.forEach(function(ratingSnap) {
-             let ratingVal = ratingSnap.val().normalizedRating
-             if (!ratingVal) ratingVal = ratingSnap.val().rating;
-		     ratingTotal = ratingTotal + ratingVal;
+             let isRemoved = ratingSnap.val().isRatingRemoved;
+             let ratingVal = ratingSnap.val().normalizedRating;
+             if (!ratingVal) {
+               ratingVal = ratingSnap.val().rating;
+             }
+             if(isRemoved)
+               ratingNum = ratingNum-1;
+            else
+		           ratingTotal = ratingTotal + ratingVal;
 	      });
         });
         // Get the rated post
@@ -395,11 +405,7 @@ exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{aut
                 return null;
             }
             current.ratingsCount = ratingNum;
-            var a = current.isRatingRemoved;
-            if(a == true){
-              current.averageRating = 0;
-              console.log("Average Rating Calculated here");
-            }else if (ratingNum > 0) {
+            if (ratingNum > 0) {
                 current.averageRating = ratingTotal/ratingNum;
             } else {
                 current.averageRating = 0;
