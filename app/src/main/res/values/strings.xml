@@ -17,7 +17,7 @@
 
 <resources>
     <string name="app_name">RateMySinging</string>
-    <string name="file_provider_authority" translatable="false">com.eriyaz.social.fileprovider</string>
+    <string name="file_provider_authority" translatable="false">.fileprovider</string>
     <string name="app_subtitle">A Community Of Singers</string>
     <string name="app_share_description">Connect with other singers and get their feedback on your singing.</string>
     <string name="post_share_description">%1$s sings %2$s from RateMySinging app</string>
