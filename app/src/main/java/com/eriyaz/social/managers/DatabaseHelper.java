@@ -807,6 +807,15 @@ public class DatabaseHelper {
         isRatingRemovedRef.setValue(Boolean.TRUE);
     }
 
+    public void resetRatingValue(String postId, Rating rating, float value) {
+
+        DatabaseReference ratingValueRef = database.getReference().child(POST_RATINGS_DB_KEY)
+                .child(postId).child(rating.getAuthorId())
+                .child(rating.getId()).child("rating");
+        ratingValueRef.setValue(value);
+
+    }
+
     public UploadTask uploadImage(Uri uri, String imageTitle) {
 //        StorageReference storageRef = storage.getReferenceFromUrl(context.getResources().getString(R.string.storage_link));
         StorageReference storageRef = storage.getReference();
@@ -1740,5 +1749,6 @@ public class DatabaseHelper {
         activeListeners.put(valueEventListener, databaseReference);
         return valueEventListener;
     }
+
 
 }
