@@ -63,7 +63,8 @@ import android.Manifest;
 
         import com.bumptech.glide.load.engine.DiskCacheStrategy;
         import com.eriyaz.social.Application;
-        import com.eriyaz.social.Constants;
+import com.eriyaz.social.ApplicationHelper;
+import com.eriyaz.social.Constants;
         import com.eriyaz.social.R;
         import com.eriyaz.social.adapters.CommentsAdapter;
         import com.eriyaz.social.adapters.RatingsAdapter;
@@ -86,7 +87,8 @@ import android.Manifest;
         import com.eriyaz.social.listeners.CustomTransitionListener;
         import com.eriyaz.social.managers.BoughtFeedbackManager;
         import com.eriyaz.social.managers.CommentManager;
-        import com.eriyaz.social.managers.LikeManager;
+import com.eriyaz.social.managers.DatabaseHelper;
+import com.eriyaz.social.managers.LikeManager;
         import com.eriyaz.social.managers.PostManager;
         import com.eriyaz.social.managers.ProfileManager;
         import com.eriyaz.social.managers.listeners.OnDataChangedListener;
@@ -680,18 +682,10 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
                     return;
                 }
 
-                //set rating textView to "Post Author has removed rating"
-                rating.setRemoved(true);
-                FirebaseDatabase.getInstance().getReference("post-ratings").
-                        child(post.getId()).child(rating.getAuthorId()).child(rating.getId())
-                        .child("isRatingRemoved").setValue(true)
-                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-
-                            }
-                        });
-
+                DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
+                databaseHelper.hideRating(postId, rating);
+                rating.setRatingRemoved(true);
+                ratingsAdapter.notifyItemChanged(position);
             }
 
             @Override

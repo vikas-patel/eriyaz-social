@@ -137,7 +137,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                     popup.getMenu().findItem(R.id.blockMenuItem).setVisible(true);
                     popup.getMenu().findItem(R.id.requestFeedbackMenuItem).setVisible(true);
                 }
-                if(showRatingRemoveOption(post,rating) && !rating.isRemoved()){
+                if(showRatingRemoveOption(post,rating) && !rating.isRatingRemoved()){
                     popup.getMenu().findItem(R.id.removeRating).setVisible(true);
                 }
                 //adding click listener
@@ -257,7 +257,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                 ratingText = ratingText + "\n" + rating.getDetailedText();
             }
 
-            if(rating.isRemoved())
+            if(rating.isRatingRemoved())
                 extra = "Post Author removed the rating";
             else
                 extra = ratingText;
@@ -287,7 +287,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
             ratingText = ratingText + "\n" + rating.getDetailedText();
         }
 
-        if(rating.isRemoved()){
+        if(rating.isRatingRemoved()){
             text = text + removedRatings;
         }
         else {
@@ -298,7 +298,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
         contentString.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.highlight_text)),
                 0, usernameLen, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
-        if(!rating.isRemoved()) {
+        if(!rating.isRatingRemoved()) {
             URLSpan urlSpan = new URLSpan("") {
                 @Override
                 public void onClick(View widget) {

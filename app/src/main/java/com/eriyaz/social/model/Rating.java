@@ -20,7 +20,7 @@ public class Rating implements Serializable {
     // only for rated post
     private String postId;
     private boolean viewedByPostAuthor;
-    private boolean isRemoved;
+    private boolean ratingRemoved;
     private ItemType itemType;
 
     public Rating(ItemType itemType) {
@@ -98,12 +98,12 @@ public class Rating implements Serializable {
         this.viewedByPostAuthor = viewedByPostAuthor;
     }
 
-    public boolean isRemoved() {
-        return isRemoved;
+    public boolean isRatingRemoved() {
+        return ratingRemoved;
     }
 
-    public void setRemoved(boolean removed) {
-        isRemoved = removed;
+    public void setRatingRemoved(boolean ratingRemoved) {
+        this.ratingRemoved = ratingRemoved;
     }
 
     public String getDetailedText() {

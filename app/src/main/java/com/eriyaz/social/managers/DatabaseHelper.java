@@ -20,6 +20,7 @@ package com.eriyaz.social.managers;
 import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.eriyaz.social.managers.listeners.OnPostCreatedListener;
@@ -111,6 +112,7 @@ public class DatabaseHelper {
     public static final String LIKE_USER_DB_KEY = "like-user";
     public static final String COMMENT_LIKES_DB_KEY = "comment-likes";
     public static final String BOOKMARK_POSTS_DB_KEY = "bookmark-posts";
+    public static final String POST_RATINGS_DB_KEY = "post-ratings";
 
     public static DatabaseHelper getInstance(Context context) {
         if (instance == null) {
@@ -555,6 +557,27 @@ public class DatabaseHelper {
         });
     }
 
+    public void decrementRatingsCount(String postId) {
+        DatabaseReference ratingRef = database.getReference("posts").child(postId).child("ratingsCount");
+        ratingRef.runTransaction(new Transaction.Handler() {
+            @NonNull
+            @Override
+            public Transaction.Result doTransaction(@NonNull MutableData mutableData) {
+                Integer currentRatingCount = mutableData.getValue(Integer.class);
+                if(currentRatingCount!=null && currentRatingCount>0){
+                    mutableData.setValue(currentRatingCount-1);
+                }
+
+                return Transaction.success(mutableData);
+            }
+
+            @Override
+            public void onComplete(@Nullable DatabaseError databaseError, boolean b, @Nullable DataSnapshot dataSnapshot) {
+
+            }
+        });
+    }
+
     public void decrementCommentsCount(String postId, final OnTaskCompleteListener onTaskCompleteListener) {
         DatabaseReference postRef = database.getReference("posts/" + postId + "/commentsCount");
         postRef.runTransaction(new Transaction.Handler() {
@@ -775,6 +798,13 @@ public class DatabaseHelper {
                 .child(postId).child(rating.getAuthorId())
                 .child(rating.getId()).child("viewedByPostAuthor");
         ratingViewedRef.setValue(Boolean.TRUE);
+    }
+
+    public void hideRating(String postId, Rating rating){
+        DatabaseReference isRatingRemovedRef = database.getReference().child(POST_RATINGS_DB_KEY)
+                .child(postId).child(rating.getAuthorId())
+                .child(rating.getId()).child("ratingRemoved");
+        isRatingRemovedRef.setValue(Boolean.TRUE);
     }
 
     public UploadTask uploadImage(Uri uri, String imageTitle) {
@@ -1710,4 +1740,5 @@ public class DatabaseHelper {
         activeListeners.put(valueEventListener, databaseReference);
         return valueEventListener;
     }
+
 }

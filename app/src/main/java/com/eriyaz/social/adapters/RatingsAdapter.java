@@ -60,26 +60,7 @@ public class RatingsAdapter extends RecyclerView.Adapter<RatingViewHolder> {
     @Override
     public void onBindViewHolder(RatingViewHolder holder, int position) {
         holder.itemView.setLongClickable(true);
-        Rating rating = getItemByPosition(position);
-
-        DatabaseReference isRemovedRef = FirebaseDatabase.getInstance().getReference("post-ratings").
-                child(post.getId()).child(rating.getAuthorId())
-                .child(rating.getId()).child("isRatingRemoved");
-
-        isRemovedRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Boolean isRemoved = dataSnapshot.getValue(Boolean.class);
-                if(isRemoved!=null)
-                    rating.setRemoved(isRemoved);
-                holder.bindData(rating, post);
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-
+        holder.bindData(getItemByPosition(position), post);
     }
 
     public Rating getItemByPosition(int position) {
