@@ -378,13 +378,21 @@ exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{aut
     console.log('updating post counters ', postId);
 
     return postRatingRef.once('value').then(snapshot => {
-        let ratingTotal = 0;
-        let ratingNum = snapshot.numChildren();
+        var ratingTotal = 0;
+        var removedRatingsCount = 0;
+        var ratingNum = snapshot.numChildren();
         snapshot.forEach(function(authorSnap) {
 	      authorSnap.forEach(function(ratingSnap) {
-             let ratingVal = ratingSnap.val().normalizedRating
-             if (!ratingVal) ratingVal = ratingSnap.val().rating;
-		     ratingTotal = ratingTotal + ratingVal;
+             let ratingVal = ratingSnap.val().normalizedRating;
+             if (!ratingVal) {
+               ratingVal = ratingSnap.val().rating;
+             }
+             if(!ratingSnap.val().ratingRemoved){
+		           ratingTotal = ratingTotal + ratingVal;
+             }
+            else{
+              removedRatingsCount++;
+            }
 	      });
         });
         // Get the rated post
@@ -395,12 +403,8 @@ exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{aut
                 return null;
             }
             current.ratingsCount = ratingNum;
-            var a = current.isRatingRemoved;
-            if(a == true){
-              current.averageRating = 0;
-              console.log("Average Rating Calculated here");
-            }else if (ratingNum > 0) {
-                current.averageRating = ratingTotal/ratingNum;
+            if (ratingNum > 0 && ratingNum!=removedRatingsCount) {
+                current.averageRating = ratingTotal/(ratingNum-removedRatingsCount);
             } else {
                 current.averageRating = 0;
             }

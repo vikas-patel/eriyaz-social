@@ -22,6 +22,7 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.media.Image;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.graphics.drawable.VectorDrawableCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
@@ -60,6 +61,11 @@ import com.eriyaz.social.utils.RatingUtil;
 import com.eriyaz.social.views.ExpandableTextView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.regex.Pattern;
 
@@ -131,6 +137,9 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                     popup.getMenu().findItem(R.id.blockMenuItem).setVisible(true);
                     popup.getMenu().findItem(R.id.requestFeedbackMenuItem).setVisible(true);
                 }
+                if(showRatingRemoveOption(post,rating) && !rating.isRatingRemoved()){
+                    popup.getMenu().findItem(R.id.removeRating).setVisible(true);
+                }
                 //adding click listener
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
@@ -147,6 +156,9 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                                 break;
                             case R.id.blockMenuItem:
                                 callback.onBlockClick(view, getAdapterPosition());
+                                break;
+                            case R.id.removeRating:
+                                callback.onRemoveRatingClick(view, getAdapterPosition());
                                 break;
                         }
                         return false;
@@ -182,6 +194,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                 if (rating.getDetailedText() != null && !rating.getDetailedText().isEmpty()) {
                     ratingText = ratingText + "\n" + rating.getDetailedText();
                 }
+
                 ratingExpandedTextView.setText(ratingText);
             }
         } else {
@@ -189,12 +202,14 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
             if (rating.getDetailedText() != null && !rating.getDetailedText().isEmpty()) {
                 ratingText = ratingText + "\n" + rating.getDetailedText();
             }
+
             ratingExpandedTextView.setText(ratingText);
         }
         if (authorId != null)
-            profileManager.getProfileSingleValue(authorId, createOnProfileChangeListener(ratingExpandedTextView,
-                    avatarImageView, rating));
+            profileManager.getProfileSingleValue(authorId,
+                    createOnProfileChangeListener(ratingExpandedTextView, avatarImageView, rating));
     }
+
 
     private void showRating(final View v) {
         if (!PreferencesUtil.isUserViewedRatingAtLeastOnce(context)) {
@@ -235,15 +250,24 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
     private void fillRating(final Rating rating, ExpandableTextView commentTextView) {
         int usernameLen = mUserName != null ? mUserName.length() : 0;
         String text = mUserName + "   ";
+        String extra = "";
         if (!hasAccessToModifyPost(mPost)) {
             String ratingText = String.valueOf(rating.getRating());
             if (rating.getDetailedText() != null && !rating.getDetailedText().isEmpty()) {
                 ratingText = ratingText + "\n" + rating.getDetailedText();
             }
-            Spannable contentString = new SpannableStringBuilder(text + ratingText);
+
+            if(rating.isRatingRemoved())
+                extra = "Post Author removed the rating";
+            else
+                extra = ratingText;
+
+            Spannable contentString = new SpannableStringBuilder(text + extra);
             contentString.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.highlight_text)),
                     0, usernameLen, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
             commentTextView.setText(contentString);
+
             return;
         }
         if (!rating.isViewedByPostAuthor()) {
@@ -257,30 +281,43 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
         final int actualRating = (int) rating.getRating();
         final int normalizedRating = rating.getNormalizedRating() == 0 ? actualRating : rating.getNormalizedRating();
         String ratingText = RatingUtil.getRatingPercentile(normalizedRating);
+        String removedRatings = "Post Author Removed ratings";
         int ratingLen = ratingText.length();
         if (rating.getDetailedText() != null && !rating.getDetailedText().isEmpty()) {
             ratingText = ratingText + "\n" + rating.getDetailedText();
         }
-        text = text + ratingText;
+
+        if(rating.isRatingRemoved()){
+            text = text + removedRatings;
+        }
+        else {
+            text = text + ratingText;
+        }
+
         SpannableString contentString = new SpannableString(text);
-        URLSpan urlSpan = new URLSpan("") {
-            @Override
-            public void onClick(View widget) {
-                RatingPercentileDialog ratingPercentileDialogDialog = new RatingPercentileDialog();
-                Bundle args = new Bundle();
-                args.putInt(RatingPercentileDialog.NORMALIZED_RATING_KEY, normalizedRating);
-                args.putInt(RatingPercentileDialog.ACTUAL_RATING_KEY, actualRating);
-                args.putString(RatingPercentileDialog.RATER_ID_KEY, rating.getAuthorId());
-                args.putString(RatingPercentileDialog.RATER_NAME_KEY, mUserName);
-                ratingPercentileDialogDialog.setArguments(args);
-                ratingPercentileDialogDialog.show(((BaseActivity) context).getFragmentManager(), RatingPercentileDialog.TAG);
-            }
-        };
-        contentString.setSpan(urlSpan,
-                usernameLen + 3, usernameLen + 3 + ratingLen, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         contentString.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.highlight_text)),
                 0, usernameLen, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        if(!rating.isRatingRemoved()) {
+            URLSpan urlSpan = new URLSpan("") {
+                @Override
+                public void onClick(View widget) {
+                    RatingPercentileDialog ratingPercentileDialogDialog = new RatingPercentileDialog();
+                    Bundle args = new Bundle();
+                    args.putInt(RatingPercentileDialog.NORMALIZED_RATING_KEY, normalizedRating);
+                    args.putInt(RatingPercentileDialog.ACTUAL_RATING_KEY, actualRating);
+                    args.putString(RatingPercentileDialog.RATER_ID_KEY, rating.getAuthorId());
+                    args.putString(RatingPercentileDialog.RATER_NAME_KEY, mUserName);
+                    ratingPercentileDialogDialog.setArguments(args);
+                    ratingPercentileDialogDialog.show(((BaseActivity) context).getFragmentManager(), RatingPercentileDialog.TAG);
+                }
+            };
+            contentString.setSpan(urlSpan,
+                    usernameLen + 3, usernameLen + 3 + ratingLen, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+
         ratingTextView.setText(contentString);
+
         Pattern pattern = Pattern.compile("(Top|Bottom).*%");
         Linkify.addLinks(ratingTextView, pattern, "");
     }
@@ -297,4 +334,12 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         return currentUser != null && post != null && post.getAuthorId().equals(currentUser.getUid());
     }
+
+    private boolean showRatingRemoveOption(Post post, Rating rating) {
+
+        String currentUserId = FirebaseAuth.getInstance().getUid();
+        return post!=null && rating!=null && post.getAuthorId().equals(currentUserId);
+
+    }
+
 }
