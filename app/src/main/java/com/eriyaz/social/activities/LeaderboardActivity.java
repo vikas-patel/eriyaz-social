@@ -1,96 +1,119 @@
 package com.eriyaz.social.activities;
 
-import android.content.Intent;
+import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SimpleItemAnimator;
-import android.util.Log;
-import android.view.MotionEvent;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
+import android.view.ViewGroup;
+
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.eriyaz.social.R;
-import com.eriyaz.social.adapters.PostsAdapter;
-import com.eriyaz.social.adapters.ProfileAdapter;
-import com.eriyaz.social.managers.PostManager;
-import com.eriyaz.social.managers.listeners.OnObjectExistListener;
-import com.eriyaz.social.model.Post;
-import com.eriyaz.social.model.Profile;
-import com.eriyaz.social.model.ProfileListResult;
+import com.eriyaz.social.fragments.FeedbackerListFragment;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+public class LeaderboardActivity extends BaseActivity {
 
+    /**
+     * The {@link android.support.v4.view.PagerAdapter} that will provide
+     * fragments for each of the sections. We use a
+     * {@link FragmentPagerAdapter} derivative, which will keep every
+     * loaded fragment in memory. If this becomes too memory intensive, it
+     * may be best to switch to a
+     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
+     */
+    private SectionsPagerAdapter mSectionsPagerAdapter;
 
-public class LeaderboardActivity extends BaseActivity{
-    private ProfileAdapter profileAdapter;
-    private RecyclerView recyclerView;
+    /**
+     * The {@link ViewPager} that will host the section contents.
+     */
+    private ViewPager mViewPager;
+    TabLayout tabLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_leaderboard);
+        setContentView(R.layout.activity_leaderboard_tab);
 
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-        }
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        final ProgressBar progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        SwipeRefreshLayout swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
-        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        // Create the adapter that will return a fragment for each of the three
+        // primary sections of the activity.
+        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
-        profileAdapter = new ProfileAdapter(this, swipeContainer);
-        profileAdapter.setCallback(new ProfileAdapter.Callback() {
-            @Override
-            public void onItemClick(final Profile profile, final View view) {
-                if (!hasInternetConnection()) {
-                    showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
-                    return;
-                }
-                openProfileActivity(profile.getId(), view);
-            }
+        // Set up the ViewPager with the sections adapter.
+        mViewPager = (ViewPager) findViewById(R.id.container);
+        mViewPager.setAdapter(mSectionsPagerAdapter);
 
-            @Override
-            public void onListLoadingFinished() {
-                progressBar.setVisibility(View.GONE);
-            }
+        tabLayout=findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(mViewPager);
 
-            @Override
-            public void onCanceled(String message) {
-                progressBar.setVisibility(View.GONE);
-                Toast.makeText(LeaderboardActivity.this, message, Toast.LENGTH_LONG).show();
-            }
-        });
-
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        ((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
-        recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(),
-                ((LinearLayoutManager) recyclerView.getLayoutManager()).getOrientation()));
-        recyclerView.setAdapter(profileAdapter);
-        profileAdapter.loadFirstPage();
-
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-            }
-        });
-        if (!hasInternetConnection())
-            showFloatButtonRelatedSnackBar(R.string.internet_connection_failed);
     }
 
-    private void openProfileActivity(String userId, View view) {
-        Intent intent = new Intent(LeaderboardActivity.this, ProfileActivity.class);
-        intent.putExtra(ProfileActivity.USER_ID_EXTRA_KEY, userId);
-        startActivity(intent);
+    /**
+     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
+     * one of the sections/tabs/pages.
+     */
+    public class SectionsPagerAdapter extends FragmentStatePagerAdapter {
+
+        public SectionsPagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            // getItem is called to instantiate the fragment for the given page.
+            // Return a PlaceholderFragment (defined as a static inner class below).
+            switch(position) {
+                case 0: {
+                    FeedbackerListFragment tab1 = new FeedbackerListFragment();
+                    Bundle args = new Bundle();
+                    args.putString("orderBy", "weeklyRank");
+                    tab1.setArguments(args);
+                    return tab1;
+                }
+                case 1: {
+                    FeedbackerListFragment tab2 = new FeedbackerListFragment();
+                    Bundle args = new Bundle();
+                    args.putString("orderBy", "rank");
+                    tab2.setArguments(args);
+                    return tab2;
+                }
+                default:
+                    return null;
+            }
+        }
+
+        @Override
+        public int getCount() {
+            // Show 2 total pages.
+            return 2;
+        }
+
+        @Nullable
+        @Override
+        public CharSequence getPageTitle(int position) {
+            switch(position) {
+                case 0:
+                    return "Weekly Rank";
+                case 1:
+                    return "Overall Rank";
+            }
+            return null;
+        }
     }
 }

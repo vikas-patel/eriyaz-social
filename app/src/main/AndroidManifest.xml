@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.eriyaz.social"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.eriyaz.social">
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
@@ -17,9 +17,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <meta-data
-            tools:replace="android:value"
             android:name="com.facebook.sdk.ApplicationId"
-            android:value="@string/facebook_app_id" />
+            android:value="@string/facebook_app_id"
+            tools:replace="android:value" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_push_notification_small" />
@@ -84,6 +84,7 @@
             android:label="@string/title_activity_messages">
             <intent-filter>
                 <action android:name="MESSAGE_ACTIVITY" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
@@ -93,6 +94,7 @@
             android:label="@string/title_activity_feedback">
             <intent-filter>
                 <action android:name="FEEDBACK_ACTIVITY" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
@@ -154,7 +156,7 @@
             </intent-filter>
         </service>
 
-        <receiver android:name=".services.CancelNotificationReceiver"></receiver>
+        <receiver android:name=".services.CancelNotificationReceiver" />
 
         <activity
             android:name=".activities.AdminActivity"
@@ -167,27 +169,32 @@
         <activity
             android:name=".activities.LeaderboardActivity"
             android:configChanges="orientation|screenSize"
-            android:label="Top Feedbackers" />
+            android:label="Top Feedbackers"
+            android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".activities.ResetPasswordActivity"
             android:label="Reset Password" />
         <activity
             android:name=".activities.RateCelebrityActivity"
             android:exported="true" />
-        <activity android:name=".activities.UsersListActivity"
-            android:theme="@style/AppCompat.NoActionBar"
+        <activity
+            android:name=".activities.UsersListActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/title_comment_like_users"/>
+            android:label="@string/title_comment_like_users"
+            android:theme="@style/AppCompat.NoActionBar" />
         <activity
             android:name=".photomovie.RecordShareActivity"
             android:configChanges="orientation|screenSize"
             android:label="Share Recording" />
-        <activity android:name="me.iwf.photopicker.PhotoPickerActivity"
+        <activity
+            android:name="me.iwf.photopicker.PhotoPickerActivity"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
-        <activity android:name=".activities.FollowingPostsActivity"
-            android:theme="@style/AppCompat.NoActionBar"
+        <activity
+            android:name=".activities.FollowingPostsActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/title_activity_following_posts"/>
+            android:label="@string/title_activity_following_posts"
+            android:theme="@style/AppCompat.NoActionBar" />
+
         <provider
             android:name="android.support.v4.content.FileProvider"
             android:authorities="@string/file_provider_authority"
@@ -198,5 +205,4 @@
                 android:resource="@xml/file_provider_path" />
         </provider>
     </application>
-
 </manifest>

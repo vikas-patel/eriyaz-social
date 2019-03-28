@@ -943,21 +943,21 @@ public class DatabaseHelper {
         });
     }
 
-    public void getProfilesByRank(final OnProfileListChangedListener<Profile> onDataChangedListener, int rank) {
+    public void getProfilesByRank(final OnProfileListChangedListener<Profile> onDataChangedListener, int rank, String queryParameter) {
         DatabaseReference databaseReference = database.getReference("profiles");
         Query profileQuery;
         if (rank == 0) {
-            profileQuery = databaseReference.limitToFirst(Constants.Post.POST_AMOUNT_ON_PAGE).startAt(1).orderByChild("rank");
+            profileQuery = databaseReference.limitToFirst(Constants.Post.POST_AMOUNT_ON_PAGE).startAt(1).orderByChild(queryParameter);
         } else {
-            profileQuery = databaseReference.limitToFirst(Constants.Post.POST_AMOUNT_ON_PAGE).startAt(rank).orderByChild("rank");
+            profileQuery = databaseReference.limitToFirst(Constants.Post.POST_AMOUNT_ON_PAGE).startAt(rank).orderByChild(queryParameter);
         }
 
         profileQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                ProfileListResult result = parseProfileList(dataSnapshot);
+                ProfileListResult result = parseProfileList(dataSnapshot, queryParameter);
                 if (result.getProfiles().isEmpty() && result.isMoreDataAvailable()) {
-                    getProfilesByRank(onDataChangedListener, result.getLastItemRank() + 1);
+                    getProfilesByRank(onDataChangedListener, result.getLastItemRank() + 1, queryParameter);
                 } else {
                     onDataChangedListener.onListChanged(result);
                 }
@@ -975,7 +975,6 @@ public class DatabaseHelper {
         DatabaseReference databaseReference = database.getReference("posts");
         Query postsQuery;
         postsQuery = databaseReference.orderByChild("authorId").equalTo(userId);
-
 //        postsQuery.keepSynced(true);
         postsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -1162,7 +1161,7 @@ public class DatabaseHelper {
         return result;
     }
 
-    private ProfileListResult parseProfileList(DataSnapshot dataSnapshot) {
+    private ProfileListResult parseProfileList(DataSnapshot dataSnapshot, String queryParameter) {
         ProfileListResult result = new ProfileListResult();
         List<Profile> list = new ArrayList<Profile>();
         boolean isMoreDataAvailable = true;
@@ -1171,15 +1170,26 @@ public class DatabaseHelper {
         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
             Profile profile = snapshot.getValue(Profile.class);
             list.add(profile);
-            if (lastItemRank == 0 || lastItemRank < profile.getRank()) {
-                lastItemRank = profile.getRank();
+            if (queryParameter.equalsIgnoreCase("rank")) {
+                if (lastItemRank == 0 || lastItemRank < profile.getRank()) {
+                    lastItemRank = profile.getRank();
+                }
+            }
+            else
+            {
+                if (lastItemRank == 0 || lastItemRank < profile.getWeeklyRank()) {
+                    lastItemRank = profile.getWeeklyRank();
+                }
             }
         }
 
         Collections.sort(list, new Comparator<Profile>() {
             @Override
             public int compare(Profile lhs, Profile rhs) {
-                return ((Integer) lhs.getRank()).compareTo(rhs.getRank());
+                if (queryParameter.equalsIgnoreCase("rank"))
+                    return ((Integer) lhs.getRank()).compareTo(rhs.getRank());
+                else
+                    return ((Integer) lhs.getWeeklyRank()).compareTo(rhs.getWeeklyRank());
             }
         });
 

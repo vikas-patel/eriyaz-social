@@ -19,33 +19,20 @@ package com.eriyaz.social.adapters;
 
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.eriyaz.social.R;
-import com.eriyaz.social.activities.BaseActivity;
 import com.eriyaz.social.activities.LeaderboardActivity;
-import com.eriyaz.social.activities.RewardActivity;
-import com.eriyaz.social.adapters.holders.LeaderBoardHeaderViewHolder;
 import com.eriyaz.social.adapters.holders.LeaderBoardViewHolder;
 import com.eriyaz.social.adapters.holders.LoadViewHolder;
-import com.eriyaz.social.adapters.holders.PostViewHolder;
-import com.eriyaz.social.adapters.holders.ViewHolder;
 import com.eriyaz.social.enums.ItemType;
 import com.eriyaz.social.managers.PostManager;
 import com.eriyaz.social.managers.ProfileManager;
-import com.eriyaz.social.managers.listeners.OnPostListChangedListener;
 import com.eriyaz.social.managers.listeners.OnProfileListChangedListener;
-import com.eriyaz.social.model.ListItem;
-import com.eriyaz.social.model.Post;
-import com.eriyaz.social.model.PostListResult;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.ProfileListResult;
-import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.utils.PreferencesUtil;
 
 import java.util.LinkedList;
@@ -65,10 +52,12 @@ public class ProfileAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private int lastLoadedItemRank;
     private SwipeRefreshLayout swipeContainer;
     private LeaderboardActivity activity;
+    private String queryParameter;
 
-    public ProfileAdapter(final LeaderboardActivity activity, SwipeRefreshLayout swipeContainer) {
+    public ProfileAdapter(final LeaderboardActivity activity, SwipeRefreshLayout swipeContainer, String queryParameter) {
         this.activity = activity;
         this.swipeContainer = swipeContainer;
+        this.queryParameter=queryParameter;
         initRefreshLayout();
         setHasStableIds(true);
     }
@@ -115,7 +104,7 @@ public class ProfileAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
         if (viewType == ItemType.ITEM.getTypeCode()) {
             return new LeaderBoardViewHolder(inflater.inflate(R.layout.leaderboard_list_item, parent, false),
-                    callback);
+                    callback, queryParameter);
         }
         else {
             return new LoadViewHolder(inflater.inflate(R.layout.loading_view, parent, false));
@@ -200,7 +189,7 @@ public class ProfileAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             }
         };
 
-        ProfileManager.getInstance(activity).getProfilesByRank(onProfilesDataChangedListener, nextItemRank);
+        ProfileManager.getInstance(activity).getProfilesByRank(onProfilesDataChangedListener, nextItemRank, queryParameter);
     }
 
     private void hideProgress() {
