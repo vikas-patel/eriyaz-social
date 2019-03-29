@@ -800,20 +800,13 @@ public class DatabaseHelper {
         ratingViewedRef.setValue(Boolean.TRUE);
     }
 
-    public void hideRating(String postId, Rating rating){
-        DatabaseReference isRatingRemovedRef = database.getReference().child(POST_RATINGS_DB_KEY)
+    public void hideRating(String postId, Rating rating, float value){
+        DatabaseReference ref = database.getReference().child(POST_RATINGS_DB_KEY)
                 .child(postId).child(rating.getAuthorId())
-                .child(rating.getId()).child("ratingRemoved");
-        isRatingRemovedRef.setValue(Boolean.TRUE);
-    }
+                .child(rating.getId());
 
-    public void resetRatingValue(String postId, Rating rating, float value) {
-
-        DatabaseReference ratingValueRef = database.getReference().child(POST_RATINGS_DB_KEY)
-                .child(postId).child(rating.getAuthorId())
-                .child(rating.getId()).child("rating");
-        ratingValueRef.setValue(value);
-
+        ref.child("ratingRemoved").setValue(Boolean.TRUE);
+        ref.child("rating").setValue(value);
     }
 
     public UploadTask uploadImage(Uri uri, String imageTitle) {
