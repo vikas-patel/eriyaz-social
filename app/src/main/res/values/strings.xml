@@ -358,12 +358,6 @@
     <string name="user_text">USER</string>
     <string name="reward_points_dialog_text">Reputation points awarded by %s for informative/encouraging feedback.</string>
 
-    <!-- Top Feedbackers page headers-->
-    <string name="rankHeader">Rank</string>
-    <string name="feedbackerHeader">Feedbacker</string>
-    <string name="reputationPointsHeader">Reputation Points</string>
-    <string name="weeklyRankHeader">Weekly Rank</string>
-
     <string-array name="attempt_arrays">
         <item>Attempt 1</item>
         <item>Attempt 2</item>
@@ -554,4 +548,7 @@
     <string name="joinapp"> \nJoin App</string>
     <string name="dynamic_link_prefix">https://kmav7.app.goo.gl</string>
 
+    <string name="title_activity_leaderboard_tab">Top Feedbackers</string>
+    <string name="action_settings">Settings</string>
+    <string name="section_format">Hello World from section: %1$d</string>
 </resources>

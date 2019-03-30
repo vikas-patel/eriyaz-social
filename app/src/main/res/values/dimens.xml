@@ -79,5 +79,6 @@
     <dimen name="record_share_menu_height">130dp</dimen>
     <dimen name="record_share_bottom_height">120dp</dimen>
     <dimen name="record_share_menu_item_space">10dp</dimen>
+    <dimen name="appbar_padding_top">4dp</dimen>
 
 </resources>

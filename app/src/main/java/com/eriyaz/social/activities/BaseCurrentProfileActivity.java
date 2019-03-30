@@ -2,6 +2,7 @@ package com.eriyaz.social.activities;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.eriyaz.social.enums.ProfileStatus;
 import com.eriyaz.social.managers.ProfileManager;
@@ -9,6 +10,7 @@ import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.model.Point;
 import com.eriyaz.social.model.Profile;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 /**
  * Created by vikas on 1/9/18.
@@ -28,12 +30,12 @@ public class BaseCurrentProfileActivity extends BaseActivity {
     protected void onResume() {
         super.onResume();
         if (profileManager.checkProfile().equals(ProfileStatus.PROFILE_CREATED)) {
-            profileManager.onNewPointAddedListener(BaseCurrentProfileActivity.this,
-                    FirebaseAuth.getInstance().getCurrentUser().getUid(),
-                    newPointAddedListener());
-            profileManager.getProfileValue(BaseCurrentProfileActivity.this,
-                    FirebaseAuth.getInstance().getCurrentUser().getUid(),
-                    createOnProfileChangedListener());
+                profileManager.onNewPointAddedListener(BaseCurrentProfileActivity.this,
+                        FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                        newPointAddedListener());
+                profileManager.getProfileValue(BaseCurrentProfileActivity.this,
+                        FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                        createOnProfileChangedListener());
         }
     }
 

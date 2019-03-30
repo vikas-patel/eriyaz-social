@@ -214,8 +214,8 @@ public class ProfileManager extends FirebaseListenersManager {
         databaseHelper.removeMessage(messageId, userId, onTaskCompleteListener);
     }
 
-    public void getProfilesByRank(OnProfileListChangedListener<Profile> onDataChangedListener, int rank) {
-        ApplicationHelper.getDatabaseHelper().getProfilesByRank(onDataChangedListener, rank);
+    public void getProfilesByRank(OnProfileListChangedListener<Profile> onDataChangedListener, int rank, String queryParameter) {
+        ApplicationHelper.getDatabaseHelper().getProfilesByRank(onDataChangedListener, rank, queryParameter);
     }
 
     public ProfileStatus checkProfile() {

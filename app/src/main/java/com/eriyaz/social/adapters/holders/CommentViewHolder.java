@@ -402,9 +402,11 @@ CommentViewHolder extends RecyclerView.ViewHolder {
             @Override
             public void onObjectChanged(Profile obj) {
                 if (((BaseActivity)context).isActivityDestroyed()) return;
-                mUserName = obj.getUsername();
-                fillComment(mUserName, comment, expandableTextView);
-
+//                // Added to resolve NPE
+                if (obj.getUsername() != null) {
+                    mUserName = obj.getUsername();
+                    fillComment(mUserName, comment, expandableTextView);
+                }
                 if (obj.getPhotoUrl() != null) {
                     ImageUtil.loadImage(GlideApp.with(context), obj.getPhotoUrl(), avatarImageView);
                 } else {

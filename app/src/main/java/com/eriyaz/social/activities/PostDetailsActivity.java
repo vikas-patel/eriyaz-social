@@ -683,9 +683,8 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
                 }
 
                 DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
-                databaseHelper.hideRating(postId, rating);
+                databaseHelper.hideRating(postId, rating, 1.0f);
                 //ratings hidden so set to 1.
-                databaseHelper.resetRatingValue(postId, rating, 1.0f);
                 rating.setRating(1.0f);
                 rating.setRatingRemoved(true);
                 ratingsAdapter.notifyItemChanged(position);

@@ -114,7 +114,7 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         postManager = PostManager.getInstance(this);
@@ -148,6 +148,7 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
         appRater = new AppRater(this);
         appRater.setAppRaterCallback(new AppRaterCallbackImp(MainActivity.this));
         appRater.markAppLaunched();
+
     }
 
     @Override
@@ -326,7 +327,7 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
     private void initContentView() {
         if (recyclerView == null) {
 //            recordButton = (FloatingActionButton) findViewById(R.id.addNewPostFab);
-            recordButton = (Button) findViewById(R.id.addNewPostFab);
+            recordButton = findViewById(R.id.addNewPostFab);
             MoveUpwardBehavior fancyBehavior = new MoveUpwardBehavior();
             CoordinatorLayout.LayoutParams params =
                     (CoordinatorLayout.LayoutParams) recordButton.getLayoutParams();
@@ -344,7 +345,7 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
                 });
             }
 
-            newPostsCounterTextView = (TextView) findViewById(R.id.newPostsCounterTextView);
+            newPostsCounterTextView = findViewById(R.id.newPostsCounterTextView);
             newPostsCounterTextView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -352,9 +353,9 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
                 }
             });
 
-            final ProgressBar progressBar = (ProgressBar) findViewById(R.id.progressBar);
-            SwipeRefreshLayout swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
-            recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+            final ProgressBar progressBar = findViewById(R.id.progressBar);
+            SwipeRefreshLayout swipeContainer =findViewById(R.id.swipeContainer);
+            recyclerView = findViewById(R.id.recycler_view);
             postsAdapter = new PostsAdapter(this, swipeContainer);
             postsAdapter.setCallback(new PostsAdapter.Callback() {
                 @Override
@@ -761,7 +762,7 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
             public void onListChanged(List<String> list) {
                 Application application = (Application) getApplication();
 
-                Toast.makeText(MainActivity.this, ""+list.size(), Toast.LENGTH_LONG);
+                Toast.makeText(MainActivity.this, ""+list.size(), Toast.LENGTH_LONG).show();
                 application.setBlockedByList(list);
             }
         };
