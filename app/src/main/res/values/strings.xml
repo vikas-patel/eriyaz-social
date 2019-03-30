@@ -552,5 +552,6 @@
 ]]></string>
     <string name="edit_post">Edit Post</string>
     <string name="joinapp"> \nJoin App</string>
+    <string name="dynamic_link_prefix">https://kmav7.app.goo.gl</string>
 
 </resources>
