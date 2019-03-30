@@ -358,6 +358,7 @@ public class EditPostActivity extends CreatePostActivity {
 
         if (feedbackScope == null) {
             feedbackAllRadioButton.setError("Choose an option.");
+
             focusView = feedbackAllRadioButton;
             cancel = true;
         }
