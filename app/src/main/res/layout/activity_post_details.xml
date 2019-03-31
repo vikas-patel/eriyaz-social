@@ -14,9 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/newCommentContainer"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="62dp"
-        android:layout_marginBottom="-62dp">
+        android:layout_alignParentTop="true">
 
         <RelativeLayout
             android:id="@+id/activity_post_details"
