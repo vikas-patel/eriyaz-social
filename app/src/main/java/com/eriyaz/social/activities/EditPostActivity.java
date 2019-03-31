@@ -53,13 +53,22 @@ import com.eriyaz.social.managers.PostManager;
 import com.eriyaz.social.managers.listeners.OnPostChangedListener;
 import com.eriyaz.social.managers.listeners.OnPostCreatedListener;
 import com.eriyaz.social.model.Post;
+import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.utils.GlideApp;
 import com.eriyaz.social.utils.ImageUtil;
 import com.eriyaz.social.utils.LogUtil;
 import com.eriyaz.social.utils.ValidationUtil;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
+import com.google.firebase.database.Transaction;
 
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class EditPostActivity extends CreatePostActivity {
@@ -80,6 +89,8 @@ public class EditPostActivity extends CreatePostActivity {
     private RadioButton feedbackAllRadioButton,feedbackExpertRadioButton;
     private RecordingItem item;
     private FeedbackScope feedbackScope;
+
+    private FirebaseDatabase database;
 
 
     @Override
@@ -388,7 +399,9 @@ public class EditPostActivity extends CreatePostActivity {
             post.setFeedbackScope(feedbackScope);
             post.setAnonymous(anonymousCheckBox.isChecked());
 
-            postManager.createOrUpdatePost(post, new OnPostCreatedListener() {
+            //since PostManager.createOrUpdatePost method is also updating the lastpostCreatedDate and upload count
+            //so this method is for avoiding that.
+            createOrUpdatePost(post, new OnPostCreatedListener() {
                 @Override
                 public void onPostSaved(boolean success, String error) {
 
@@ -418,7 +431,58 @@ public class EditPostActivity extends CreatePostActivity {
         } else if (focusView != null) {
             focusView.requestFocus();
         }
+        }
 
+    public void createOrUpdatePost(final Post post, final OnPostCreatedListener onPostCreatedListener) {
+        try {
+            database=FirebaseDatabase.getInstance();
+            DatabaseReference databaseReference = database.getReference();
+
+            Map<String, Object> postValues = post.toMap();
+            Map<String, Object> childUpdates = new HashMap<>();
+            childUpdates.put("/posts/" + post.getId(), postValues);
+
+            databaseReference.updateChildren(childUpdates, new DatabaseReference.CompletionListener() {
+                @Override
+                public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                    if (databaseError == null) {
+  //                      DatabaseReference profileRef = database.getReference("profiles/" + post.getAuthorId());
+//                        incrementPostCount(profileRef);
+
+                        //need to call this here because, post successfully updated
+                        onPostCreatedListener.onPostSaved(true, "");
+                    } else {
+                        onPostCreatedListener.onPostSaved(false, databaseError.getMessage());
+                        LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
+                    }
+                }
+
+//                private void incrementPostCount(DatabaseReference profileRef) {
+//                    profileRef.runTransaction(new Transaction.Handler() {
+//                        @Override
+//                        public Transaction.Result doTransaction(MutableData mutableData) {
+//                            Profile currentValue = mutableData.getValue(Profile.class);
+//                            if (currentValue != null) {
+//                                currentValue.setPostCount(currentValue.getPostCount() + 1);
+//                                currentValue.setLastPostCreatedDate(Calendar.getInstance().getTimeInMillis());
+//                                mutableData.setValue(currentValue);
+//                            }
+//
+//                            return Transaction.success(mutableData);
+//                     }
+
+//                        @Override
+//                        public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+//                            onPostCreatedListener.onPostSaved(true, "");
+//                            LogUtil.logInfo(TAG, "Updating post count transaction is completed.");
+//                        }
+//                    });
+//                }
+            });
+            analytics.logPost();
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
+        }
     }
 
 }
