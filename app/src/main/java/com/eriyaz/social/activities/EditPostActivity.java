@@ -90,8 +90,9 @@ public class EditPostActivity extends CreatePostActivity {
     private RecordingItem item;
     private FeedbackScope feedbackScope;
 
-    private FirebaseDatabase database;
+//    private FirebaseDatabase database;
 
+    private boolean isUpdate=false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -399,9 +400,7 @@ public class EditPostActivity extends CreatePostActivity {
             post.setFeedbackScope(feedbackScope);
             post.setAnonymous(anonymousCheckBox.isChecked());
 
-            //since PostManager.createOrUpdatePost method is also updating the lastpostCreatedDate and upload count
-            //so this method is for avoiding that.
-            createOrUpdatePost(post, new OnPostCreatedListener() {
+            postManager.createOrUpdatePost(isUpdate,post, new OnPostCreatedListener() {
                 @Override
                 public void onPostSaved(boolean success, String error) {
 
@@ -433,29 +432,29 @@ public class EditPostActivity extends CreatePostActivity {
         }
         }
 
-    public void createOrUpdatePost(final Post post, final OnPostCreatedListener onPostCreatedListener) {
-        try {
-            database=FirebaseDatabase.getInstance();
-            DatabaseReference databaseReference = database.getReference();
-
-            Map<String, Object> postValues = post.toMap();
-            Map<String, Object> childUpdates = new HashMap<>();
-            childUpdates.put("/posts/" + post.getId(), postValues);
-
-            databaseReference.updateChildren(childUpdates, new DatabaseReference.CompletionListener() {
-                @Override
-                public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                    if (databaseError == null) {
-  //                      DatabaseReference profileRef = database.getReference("profiles/" + post.getAuthorId());
-//                        incrementPostCount(profileRef);
-
-                        //need to call this here because, post successfully updated
-                        onPostCreatedListener.onPostSaved(true, "");
-                    } else {
-                        onPostCreatedListener.onPostSaved(false, databaseError.getMessage());
-                        LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
-                    }
-                }
+//    public void createOrUpdatePost(final Post post, final OnPostCreatedListener onPostCreatedListener) {
+//        try {
+//            database=FirebaseDatabase.getInstance();
+//            DatabaseReference databaseReference = database.getReference();
+//
+//            Map<String, Object> postValues = post.toMap();
+//            Map<String, Object> childUpdates = new HashMap<>();
+//            childUpdates.put("/posts/" + post.getId(), postValues);
+//
+//            databaseReference.updateChildren(childUpdates, new DatabaseReference.CompletionListener() {
+//                @Override
+//                public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+//                    if (databaseError == null) {
+//  //                      DatabaseReference profileRef = database.getReference("profiles/" + post.getAuthorId());
+////                        incrementPostCount(profileRef);
+//
+//                        //need to call this here because, post successfully updated
+//                        onPostCreatedListener.onPostSaved(true, "");
+//                    } else {
+//                        onPostCreatedListener.onPostSaved(false, databaseError.getMessage());
+//                        LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
+//                    }
+//                }
 
 //                private void incrementPostCount(DatabaseReference profileRef) {
 //                    profileRef.runTransaction(new Transaction.Handler() {
@@ -478,11 +477,11 @@ public class EditPostActivity extends CreatePostActivity {
 //                        }
 //                    });
 //                }
-            });
-            analytics.logPost();
-        } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
-        }
-    }
+//            });
+//            analytics.logPost();
+//        } catch (Exception e) {
+//            Log.e(TAG, e.getMessage());
+//        }
+//    }
 
 }
