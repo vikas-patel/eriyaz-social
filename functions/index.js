@@ -2191,6 +2191,7 @@ exports.weeklyPointsTaskRunner = functions.https.onRequest((req, res) => {
         if (typeof weeklyReputationPoints == 'undefined' ||
             typeof reputationPoints == 'undefined' ||
             typeof lastweekReputationPoints == 'undefined') {
+
             console.log("unable to update profile with ID ",key);
         }
         else {
