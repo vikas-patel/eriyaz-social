@@ -683,9 +683,8 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
                 }
 
                 DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
-                databaseHelper.hideRating(postId, rating);
+                databaseHelper.hideRating(postId, rating, 1.0f);
                 //ratings hidden so set to 1.
-                databaseHelper.resetRatingValue(postId, rating, 1.0f);
                 rating.setRating(1.0f);
                 rating.setRatingRemoved(true);
                 ratingsAdapter.notifyItemChanged(position);
@@ -1339,7 +1338,7 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
     public boolean onPrepareOptionsMenu(Menu menu) {
         if (profile == null || post == null) return true;
         if (deleteActionMenuItem != null && hasAccessToModifyPost()) {
-//            editActionMenuItem.setVisible(true);
+           editActionMenuItem.setVisible(true);
             deleteActionMenuItem.setVisible(true);
         }
 
@@ -1358,13 +1357,13 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.post_details_menu, menu);
-        if(post!=null&&!post.getAuthorId().equals(getCurrentUserId())){
-            editActionMenuItem=menu.findItem(R.id.edit_post);
-            editActionMenuItem.setVisible(false);
-        }
+//        if(post!=null&&!post.getAuthorId().equals(getCurrentUserId())){
+//            editActionMenuItem=menu.findItem(R.id.edit_post);
+//            editActionMenuItem.setVisible(false);
+//        }
         complainActionMenuItem = menu.findItem(R.id.complain_action);
         publicActionMenuItem = menu.findItem(R.id.make_public_action);
-//        editActionMenuItem = menu.findItem(R.id.edit_post_action);
+        editActionMenuItem = menu.findItem(R.id.edit_post);
         deleteActionMenuItem = menu.findItem(R.id.delete_post_action);
         return true;
     }
@@ -1393,11 +1392,11 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
                 makePublicAction();
                 return true;
 
-//            case R.id.edit_post_action:
-//                if (hasAccessToModifyPost()) {
-//                    openEditPostActivity();
-//                }
-//                return true;
+            case R.id.edit_post:
+                if (hasAccessToModifyPost()) {
+                    openEditPostActivity();
+                }
+                return true;
             case R.id.ratings_chart_menu_item:
                 openRatingsChartActivity();
                 return true;
@@ -1406,10 +1405,12 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
                     attemptToRemovePost();
                 }
                 return true;
-
-            case R.id.edit_post:
-                openEditPostActivity();
-                return true;
+//
+//            case R.id.edit_post:
+//                if (hasAccessToModifyPost()) {
+//                    openEditPostActivity();
+//                    }
+//                return true;
         }
 
         return super.onOptionsItemSelected(item);

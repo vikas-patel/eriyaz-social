@@ -546,6 +546,7 @@
 ]]></string>
     <string name="edit_post">Edit Post</string>
     <string name="joinapp"> \nJoin App</string>
+    <string name="dynamic_link_prefix">https://kmav7.app.goo.gl</string>
 
     <string name="title_activity_leaderboard_tab">Top Feedbackers</string>
     <string name="action_settings">Settings</string>

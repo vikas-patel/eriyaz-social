@@ -302,7 +302,8 @@ public class RecordSharePresenter implements MovieFilterView.FilterCallback, IMo
     private void generateShortLink(File outputFile) {
         FirebaseDynamicLinks.getInstance().createDynamicLink()
                 .setLink(Uri.parse("https://play.google.com/store/apps/details?id=com.eriyaz.social&hl=en&invitedby=Ott9ue8YWBhLYpyXE5Vj2ZEKLGA3"))
-                .setDomainUriPrefix("https://eriyaz.page.link")
+                .setDomainUriPrefix(mRecordShareView.getActivity().getString(R.string.dynamic_link_prefix))
+                //new dynamic url prefix
                 // Set parameters
                 // ...
 

@@ -257,7 +257,7 @@ public class DatabaseHelper {
         return databaseReference.child("post-comments").push().getKey();
     }
 
-    public void createOrUpdatePost(final Post post, final OnPostCreatedListener onPostCreatedListener) {
+    public void createOrUpdatePost(boolean isUpdate, final Post post, final OnPostCreatedListener onPostCreatedListener) {
         try {
             DatabaseReference databaseReference = database.getReference();
 
@@ -268,7 +268,11 @@ public class DatabaseHelper {
             databaseReference.updateChildren(childUpdates, new DatabaseReference.CompletionListener() {
                 @Override
                 public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                    if (databaseError == null) {
+                    if(!isUpdate){
+                        onPostCreatedListener.onPostSaved(true, databaseError.getMessage());
+
+                    }
+                    else if (databaseError == null ) {
                         DatabaseReference profileRef = database.getReference("profiles/" + post.getAuthorId());
                         incrementPostCount(profileRef);
                     } else {
@@ -800,20 +804,13 @@ public class DatabaseHelper {
         ratingViewedRef.setValue(Boolean.TRUE);
     }
 
-    public void hideRating(String postId, Rating rating){
-        DatabaseReference isRatingRemovedRef = database.getReference().child(POST_RATINGS_DB_KEY)
+    public void hideRating(String postId, Rating rating, float value){
+        DatabaseReference ref = database.getReference().child(POST_RATINGS_DB_KEY)
                 .child(postId).child(rating.getAuthorId())
-                .child(rating.getId()).child("ratingRemoved");
-        isRatingRemovedRef.setValue(Boolean.TRUE);
-    }
+                .child(rating.getId());
 
-    public void resetRatingValue(String postId, Rating rating, float value) {
-
-        DatabaseReference ratingValueRef = database.getReference().child(POST_RATINGS_DB_KEY)
-                .child(postId).child(rating.getAuthorId())
-                .child(rating.getId()).child("rating");
-        ratingValueRef.setValue(value);
-
+        ref.child("ratingRemoved").setValue(Boolean.TRUE);
+        ref.child("rating").setValue(value);
     }
 
     public UploadTask uploadImage(Uri uri, String imageTitle) {
