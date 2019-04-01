@@ -2186,12 +2186,19 @@ exports.weeklyPointsTaskRunner = functions.https.onRequest((req, res) => {
 		let key = child.key;
 		const reputationPoints = child.val().reputationPoints;
 		const lastweekReputationPoints = child.val().lastweekReputationPoints;
+		const weeklyReputationPoints = child.val().weeklyReputationPoints;
 
-		// Update weeklyReputationPoints and lastweekReputationPoints in database
-		updateProfiles[`${key}/weeklyReputationPoints`] = reputationPoints - lastweekReputationPoints;
-		updateProfiles[`${key}/lastweekReputationPoints`] = reputationPoints;
-		updated++;
-
+        if (typeof weeklyReputationPoints == 'undefined' ||
+            typeof reputationPoints == 'undefined' ||
+            typeof lastweekReputationPoints == 'undefined') {
+            console.log("unable to update profile with ID ",key);
+        }
+        else {
+            // Update weeklyReputationPoints and lastweekReputationPoints in database
+            updateProfiles[`${key}/weeklyReputationPoints`] = reputationPoints - lastweekReputationPoints;
+            updateProfiles[`${key}/lastweekReputationPoints`] = reputationPoints;
+            updated++;
+        }
         });
         console.log("updated profiles", updated);
         res.status(200).send(`updated profiles ${updated}`);
