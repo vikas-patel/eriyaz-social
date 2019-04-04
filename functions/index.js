@@ -2133,8 +2133,11 @@ exports.rankTaskRunner = functions.https.onRequest((req, res) => {
     const profileRef = admin.database().ref(`/profiles`);
     var updateProfiles = {};
     let updated = 0;
-    let rank = 0;
+    let rank = 1;
+    let previous_reputationPoints = 0;
+    let previous_rank = 0;
     var sortOnParam;
+    var items = [];
     // Get parameter (weeklyPoints = "true") from request URL
     var sortOnWeeklyPoints = req.query.weeklyPoints;
     console.log("Request parameter ", sortOnWeeklyPoints);
@@ -2147,25 +2150,65 @@ exports.rankTaskRunner = functions.https.onRequest((req, res) => {
       sortOnParam = "reputationPoints";
     }
     profileRef.orderByChild(sortOnParam).startAt(1).once('value').then((profiles) => {
-        rank = profiles.numChildren();
         // return in asc order by reputation points
+        //rank = profiles.numChildren();
+
         profiles.forEach( profileSnap => {
+            items.push(profileSnap);
+        });
+        console.log("array length ",items.length);
+        items.reverse();
+
+        items.forEach(profileSnap => {
+
             var key = profileSnap.key;
+            console.log("key", key);
+
             if (sortOnParam == "reputationPoints") {
                 const previousRank = profileSnap.val().rank;
-                if (!previousRank || previousRank != rank)
-                    updateProfiles[`${key}/rank`] = rank;
+                const reputationPoints = profileSnap.val().reputationPoints;
+                console.log("ReputationPoints ", reputationPoints);
+                if (reputationPoints != null && previousRank != null) {
+                    if (reputationPoints == previous_reputationPoints) {
+                        updateProfiles[`${key}/rank`] = previous_rank;
+                        console.log("previous rank", previous_rank);
+                    }
+                    else if (previousRank != rank) {
+                        updateProfiles[`${key}/rank`] = rank;
+                        console.log("Rank", rank);
+                    }
+                    else
+                    {
+                        console.log("Rank has been set for profile ID"+ key);
+                    }
+                    previous_reputationPoints = reputationPoints;
+                    previous_rank = previousRank;
+                }
             }
             else
             {
+                const weeklyReputationPoints = profileSnap.val().weeklyReputationPoints;
                 const previousRank1 = profileSnap.val().weeklyRank;
-                if (!previousRank1 || previousRank1 != rank) {
-                    console.log("weeklyReputationPoints", rank);
-                    updateProfiles[`${key}/weeklyRank`] = rank;
+                console.log("weeklyReputationPoints ", weeklyReputationPoints);
+                if (weeklyReputationPoints != null && previousRank1 != null)
+                {
+                    if (weeklyReputationPoints == previous_reputationPoints) {
+                        updateProfiles[`${key}/weeklyRank`] = previous_rank;
+                        console.log("previous rank", previous_rank);
+                    }
+                    else if (previousRank1 != rank) {
+                        console.log("weeklyReputationPoints", rank);
+                        updateProfiles[`${key}/weeklyRank`] = rank;
+                    }
+                    else {
+                        console.log("Rank has been set for profile ID"+ key);
+                    }
+                    previous_reputationPoints = weeklyReputationPoints;
+                    previous_rank = previousRank1;
                 }
             }
             updated++;
-            rank--;
+            rank++;
         });
         console.log("updated profiles", updated);
                 res.status(200).send(`updated profiles ${updated}`);
@@ -2187,16 +2230,22 @@ exports.weeklyPointsTaskRunner = functions.https.onRequest((req, res) => {
 		const reputationPoints = child.val().reputationPoints;
 		const lastweekReputationPoints = child.val().lastweekReputationPoints;
 		const weeklyReputationPoints = child.val().weeklyReputationPoints;
+		const weeklyRank = child.val().weeklyRank;
 
-        if (typeof weeklyReputationPoints == 'undefined' ||
-            typeof reputationPoints == 'undefined' ||
-            typeof lastweekReputationPoints == 'undefined') {
+        if (!child.hasChild("weeklyReputationPoints") ||
+            !child.hasChild("reputationPoints") ||
+            !child.hasChild("lastweekReputationPoints")) {
 
             console.log("unable to update profile with ID ",key);
         }
         else {
             // Update weeklyReputationPoints and lastweekReputationPoints in database
-            updateProfiles[`${key}/weeklyReputationPoints`] = reputationPoints - lastweekReputationPoints;
+            const reputationPointsGained = reputationPoints - lastweekReputationPoints;
+            if (reputationPointsGained == 0 && child.hasChild("weeklyRank"))
+            {
+                updateProfiles[`${key}/weeklyRank`] = 0;
+            }
+            updateProfiles[`${key}/weeklyReputationPoints`] = reputationPointsGained;
             updateProfiles[`${key}/lastweekReputationPoints`] = reputationPoints;
             updated++;
         }
