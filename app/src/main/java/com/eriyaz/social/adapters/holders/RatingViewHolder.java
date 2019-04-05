@@ -316,7 +316,10 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                     usernameLen + 3, usernameLen + 3 + ratingLen, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
 
-        ratingTextView.setText(contentString);
+        if(rating.isRatingRemoved())
+            commentTextView.setText(contentString);
+        else
+            ratingTextView.setText(contentString);
 
         Pattern pattern = Pattern.compile("(Top|Bottom).*%");
         Linkify.addLinks(ratingTextView, pattern, "");

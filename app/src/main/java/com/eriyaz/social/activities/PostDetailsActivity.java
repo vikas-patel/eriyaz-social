@@ -551,14 +551,14 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
             public void onRewardClick(View view, int position, int points) {
                 Comment comment = commentsAdapter.getItemByPosition(position);
                 comment.setReputationPoints(points);
-                updateComment(comment);
+                updateComment(comment, points);
             }
 
             @Override
             public void onUserRewardClick(View view, int position, int points) {
                 Comment comment = commentsAdapter.getItemByPosition(position);
                 comment.setUserRewardPoints(points);
-                updateComment(comment);
+                updateComment(comment, points);
             }
 
             @Override
@@ -683,9 +683,9 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
                 }
 
                 DatabaseHelper databaseHelper = ApplicationHelper.getDatabaseHelper();
-                databaseHelper.hideRating(postId, rating, 1.0f);
+                databaseHelper.hideRating(postId, rating, 0.0f);
                 //ratings hidden so set to 1.
-                rating.setRating(1.0f);
+                rating.setRating(0.0f);
                 rating.setRatingRemoved(true);
                 ratingsAdapter.notifyItemChanged(position);
             }
@@ -1663,13 +1663,14 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
             }
         });
     }
-    private void updateComment(Comment comment) {
+    private void updateComment(Comment comment, int points) {
         showProgress();
         commentManager.updateComment(comment, postId, new OnTaskCompleteListener() {
             @Override
             public void onTaskComplete(boolean success) {
                 hideProgress();
-                showSnackBar(R.string.message_comment_was_rewared);
+                if(points!=-2 && points!=0)
+                    showSnackBar(R.string.message_comment_was_rewared);
             }
         });
     }

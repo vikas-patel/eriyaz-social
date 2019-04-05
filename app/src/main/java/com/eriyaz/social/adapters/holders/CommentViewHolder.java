@@ -287,7 +287,10 @@ CommentViewHolder extends RecyclerView.ViewHolder {
         if(!(comment.getAuthorId().equals(post.getAuthorId())) && profileId.equals(post.getAuthorId())) {
 
             userRewardSpinner.setVisibility(View.VISIBLE);
-            userRewardSpinner.setSelection(comment.getUserRewardPoints()+2);
+            if(comment.getUserRewardPoints() == 0)
+                userRewardSpinner.setSelection(0);
+            else
+                userRewardSpinner.setSelection(comment.getUserRewardPoints()+2);
             int initialPosition = userRewardSpinner.getSelectedItemPosition();
             userRewardSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
@@ -296,9 +299,8 @@ CommentViewHolder extends RecyclerView.ViewHolder {
                     String val = (String)parent.getItemAtPosition(position);
                     if(position == 0)
                         callback.onUserRewardClick(view, getAdapterPosition(), -2);
-                    else {
+                    else{
                         callback.onUserRewardClick(view, getAdapterPosition(), Integer.parseInt(val));
-                        notifyCommenter(comment, post);
                     }
 
                 }
@@ -310,10 +312,14 @@ CommentViewHolder extends RecyclerView.ViewHolder {
             });
         }
 
-        if(comment.getUserRewardPoints()> -2 ){
+        if(comment.getUserRewardPoints()> -2 && comment.getUserRewardPoints()!=0){
             userTitleTextView.setVisibility(View.VISIBLE);
             userRewardTextView.setVisibility(View.VISIBLE);
-            userRewardTextView.setText(Html.fromHtml(String.format(context.getString(R.string.comment_reward_points), comment.getUserRewardPoints())));
+            if(comment.getUserRewardPoints()!=-1)
+                userRewardTextView.setText(Html.fromHtml(String.format(context.getString(R.string.comment_reward_points), comment.getUserRewardPoints())));
+            else
+                userRewardTextView.setText(Html.fromHtml(String.format(context.getString(R.string.comment_reward_negative), comment.getUserRewardPoints())));
+
             userRewardTextView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -325,54 +331,6 @@ CommentViewHolder extends RecyclerView.ViewHolder {
             userRewardTextView.setVisibility(View.GONE);
             userTitleTextView.setVisibility(View.GONE);
         }
-    }
-
-    private void notifyCommenter(Comment comment, Post post) {
-
-        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-        DatabaseReference profileRef = firebaseDatabase.getReference("profiles").child(post.getAuthorId());
-
-        profileRef.child("username").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                postUserName = dataSnapshot.getValue(String.class);
-                sendNotification(comment, post);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-
-
-    }
-
-    private void sendNotification(Comment comment, Post post) {
-        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-        DatabaseReference notificationRef = firebaseDatabase.getReference("user-notifications").child(comment.getAuthorId());
-
-        String pushToNodeId = notificationRef.push().getKey();
-        String action = "com.eriyaz.social.activities.PostDetailsActivity";
-        String extraKey = "PostDetailsActivity.POST_ID_EXTRA_KEY";
-
-        Notification newNotification = new Notification(ItemType.ITEM);
-        newNotification.setId(pushToNodeId);
-        newNotification.setCreatedDate(Calendar.getInstance().getTimeInMillis());
-        newNotification.setFromUserId(post.getAuthorId());
-        newNotification.setAction(action);
-        newNotification.setExtraKey(extraKey);
-        newNotification.setExtraKeyValue(post.getId());
-        newNotification.setForCommentNotification(true);
-
-        newNotification.setMessage(postUserName+" rewarded your feedback with "+comment.getUserRewardPoints()+" points");
-
-        notificationRef.child(pushToNodeId).setValue(newNotification).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                Log.i("CommentViewHolder", "Notification Sent");
-            }
-        });
     }
 
     private void showReputationDialog(String str) {
