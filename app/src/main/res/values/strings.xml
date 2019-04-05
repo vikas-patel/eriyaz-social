@@ -195,6 +195,7 @@
     <string name="actual_rating_text"><![CDATA[Actual Rating : <font color=\'#17a1d7\'>%1$d</font>]]></string>
     <string name="average_rating_text"><![CDATA[<font color=\'#019B86\'><u>%1$s</u></font>\'s Average Rating : <font color=\'#17a1d7\'>%2$d</font>]]></string>
     <string name="comment_reward_points"><![CDATA[<font color=\'#019B86\'><u>+%1$d</u></font>]]></string>
+    <string name="comment_reward_negative"><![CDATA[<font color=\'#019B86\'><u>%1$d</u></font>]]></string>
     <string name="reputation_ranking_coming_soon"><u>Check out reputation ranking of feedbackers</u></string>
     <string name="average_rating_link"><![CDATA[<u>%1$d</u>]]></string>
     <string name="aggregate_post_percentile"><![CDATA[<u>%1$s</u>]]></string>

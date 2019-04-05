@@ -33,6 +33,7 @@ public class Profile implements Serializable {
     private String phone;
     private String photoUrl;
     private long points;
+    private long userPoints;
     private long reputationPoints;
     private long weeklyReputationPoints;
     private int lastweekReputationPoints;
@@ -131,6 +132,14 @@ public class Profile implements Serializable {
 
     public void setLastweekReputationPoints(int lastweekReputationPoints) {
         this.lastweekReputationPoints = lastweekReputationPoints;
+    }
+
+    public long getUserPoints() {
+        return userPoints;
+    }
+
+    public void setUserPoints(long userPoints) {
+        this.userPoints = userPoints;
     }
 
     public int getWeeklyRank() {

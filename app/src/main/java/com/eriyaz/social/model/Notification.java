@@ -18,7 +18,7 @@ public class Notification {
     private boolean openPlayStore;
     private boolean fromSystem;
     private ItemType itemType;
-    private boolean isForCommentNotification;
+    private boolean forCommentNotification;
 
     public Notification() {
     }
@@ -123,11 +123,11 @@ public class Notification {
     }
 
     public boolean isForCommentNotification() {
-        return isForCommentNotification;
+        return forCommentNotification;
     }
 
     public void setForCommentNotification(boolean forCommentNotification) {
-        isForCommentNotification = forCommentNotification;
+        this.forCommentNotification = forCommentNotification;
     }
 
     public ItemType getItemType() {

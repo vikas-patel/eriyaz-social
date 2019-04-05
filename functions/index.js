@@ -480,6 +480,7 @@ exports.updatePostLastCommentDate = functions.database.ref('/post-comments/{post
     });
 });
 
+/*
 exports.rewardReputationPoints = functions.database.ref('/post-comments/{postId}/{commentId}/reputationPoints').onCreate(event => {
     const newPoints = event.data.val();
     if (!newPoints) return 0;
@@ -493,7 +494,25 @@ exports.rewardReputationPoints = functions.database.ref('/post-comments/{postId}
         return updateUserReputationPoints(commentAuthorId, newPoints, postId);
     });
 });
+*/
 
+exports.rewardReputationPoints = functions.database.ref('/post-comments/{postId}/{commentId}/reputationPoints').onCreate((snapshot, context) => {
+
+  const newPoints = snapshot.val();
+  if(!newPoints) return 0;
+  const commentId = context.params.commentId
+  const postId = context.params.postId
+  const commentRef = snapshot.ref.parent
+
+  return commentRef.once('value').then(snap => {
+    let comment = snap.val();
+    const commentAuthorId = comment.authorId;
+    return updateUserReputationPoints(commentAuthorId, newPoints, postId);
+  });
+
+});
+
+/*
 exports.rewardReputationPointsUpdate = functions.database.ref('/post-comments/{postId}/{commentId}/reputationPoints').onUpdate(event => {
     const commentId = event.params.commentId;
     const postId = event.params.postId;
@@ -507,6 +526,114 @@ exports.rewardReputationPointsUpdate = functions.database.ref('/post-comments/{p
         const commentAuthorId = comment.authorId;
         return updateUserReputationPoints(commentAuthorId, newPoints - previousPoints, postId, previousPoints != 0);
     });
+});
+*/
+
+exports.rewardReputationPointsUpdate = functions.database.ref('/post-comments/{postId}/{commentId}/reputationPoints').onUpdate((snapshot, context) => {
+
+  const commentId = context.params.commentId
+  const postId = context.params.postId
+  const commentRef = snapshot.after.ref.parent
+  const newPoints = snapshot.after.val()
+  const previousPoints = snapshot.before.val()
+
+  //don't show notification if points decremented
+  if(newPoints<= previousPoints) return;
+
+  return commentRef.once('value').then(snap => {
+    let comment = snap.val()
+    const commentAuthorId = comment.authorId;
+    return updateUserReputationPoints(commentAuthorId, newPoints - previousPoints, postId, previousPoints != 0)
+  });
+
+});
+
+
+exports.rewardUserPoints = functions.database.ref('/post-comments/{postId}/{commentId}/userRewardPoints').onCreate((snapshot, context) => {
+
+  const newPoints = snapshot.val();
+  if(!newPoints && newPoints==-2) return 0;
+  const commentId = context.params.commentId
+  const postId = context.params.postId
+  const commentRef = snapshot.ref.parent
+
+  const postAuthorIdRef = admin.database().ref(`/posts/${postId}/authorId`).once('value');
+
+  return postAuthorIdRef.then(snapshot =>{
+    const postAuthorId = snapshot.val();
+    return postAuthorId;
+  })
+  .then(postAuthorId => {
+
+    const postAuthorNameRef = admin.database().ref(`profiles/${postAuthorId}/username`).once('value');
+
+    const postAuthorNameTask = postAuthorNameRef.then(snapshot => {
+      const name = snapshot.val();
+      return name;
+    });
+
+    return Promise.all([postAuthorNameTask, postAuthorId]);
+
+  })
+  .then(snapshot =>{
+
+    const postAuthorName = snapshot[0]
+    const postAuthorId = snapshot[1]
+
+    return commentRef.once('value').then(snap => {
+      let comment = snap.val();
+      const commentAuthorId = comment.authorId;
+      return updateUserRewardPoints(commentAuthorId, postAuthorId, postAuthorName, newPoints, postId);
+      });
+
+  })
+  .catch(error => {
+    console.log("Error "+error);
+  });
+
+});
+
+exports.rewardUserPointsUpdate = functions.database.ref('/post-comments/{postId}/{commentId}/userRewardPoints').onUpdate((snapshot, context) => {
+
+  const commentId = context.params.commentId
+  const postId = context.params.postId
+  const commentRef = snapshot.after.ref.parent
+  const newPoints = snapshot.after.val()
+  const previousPoints = snapshot.before.val()
+
+  //don't show notification if points decremented
+  if(newPoints<= previousPoints) return;
+
+  const postAuthorIdRef = admin.database().ref(`/posts/${postId}/authorId`).once('value');
+
+  return postAuthorIdRef.then(snapshot =>{
+    const postAuthorId = snapshot.val();
+    return postAuthorId;
+  })
+  .then(postAuthorId => {
+    const postAuthorNameRef = admin.database().ref(`profiles/${postAuthorId}/username`).once('value');
+
+    const postAuthorNameTask = postAuthorNameRef.then(snapshot => {
+      const name = snapshot.val();
+      return name;
+    });
+
+    return Promise.all([postAuthorNameTask, postAuthorId]);
+
+  })
+  .then(snapshot =>{
+
+    const postAuthorId = snapshot[1]
+    const postAuthorName = snapshot[0]
+
+    return commentRef.once('value').then(snap => {
+      let comment = snap.val();
+      const commentAuthorId = comment.authorId;
+      return updateUserRewardPoints(commentAuthorId, postAuthorId, postAuthorName, newPoints - previousPoints, postId, (previousPoints != -2 && previousPoints!=0));
+      });
+
+    });
+
 });
 
 exports.detailedFeedbackPoints = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
@@ -755,6 +882,62 @@ function updateUserRatingPoints(ratingAuthorId, point) {
         return current;
     }).then(() => {
         console.log('User rating points updated.');
+    });
+}
+
+function updateUserRewardPoints(commentAuthorId, postAuthorId, postAuthorName, points, postId, isUpdate) {
+    // Get rated post.
+    const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
+
+    const newNotificationTask =  getPostTask.then(post => {
+        const userNotificationsRef = admin.database().ref(`/user-notifications/${commentAuthorId}`);
+        var newNotificationRef = userNotificationsRef.push();
+        var msg;
+        if (isUpdate) {
+            msg =  `${postAuthorName} has incremented user points by ${Math.abs(points)} for your feedback on "${post.val().title}" recording.`;
+        } else if(points==-1){
+            msg = `You have been awarded -1 reputation points by ${postAuthorName} for your feedback on "${post.val().title}" recording.`;
+        } else {
+            msg = `You have been awarded +${points} reputation points by ${postAuthorName} for your feedback on "${post.val().title}" recording.`;
+        }
+
+        return newNotificationRef.set({
+            'action': 'com.eriyaz.social.activities.PostDetailsActivity',
+            'fromUserId' : postAuthorId,
+            'message': msg,
+            'extraKey' : 'PostDetailsActivity.POST_ID_EXTRA_KEY',
+            'extraKeyValue' : postId,
+            'createdDate': admin.database.ServerValue.TIMESTAMP,
+            'forCommentNotification' : true
+        });
+    });
+
+    const commentAuthorProfileRef = admin.database().ref(`/profiles/${commentAuthorId}`);
+    const profilePointTask = commentAuthorProfileRef.transaction(current => {
+        if (current == null) {
+            console.log("ignore: null object returned from cache, expect another event with fresh server value.");
+            return false;
+        }
+        current.userPoints = (current.userPoints || 0) + points;
+        return current;
+    }).then(() => {
+        console.log('User points updated.');
+    });
+    var promises = [newNotificationTask, profilePointTask];
+    return Promise.all(promises).then(results => {
+        console.log("task completed");
+    });
+
+}
+
+function addCommentLikeUser(commentId, profile) {
+    console.log("add comment like user", profile.id)
+    const likeUserRef = admin.database().ref(`/like-user/${commentId}/${profile.id}`);
+    const photoUrl = (profile.photoUrl || "");
+    return likeUserRef.set({
+        'photoUrl': photoUrl,
+        'username': profile.username,
+        'createdDate': admin.database.ServerValue.TIMESTAMP
     });
 }
 
