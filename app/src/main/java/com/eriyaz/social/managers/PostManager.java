@@ -28,14 +28,12 @@ import com.eriyaz.social.Constants;
 import com.eriyaz.social.enums.UploadImagePrefix;
 import com.eriyaz.social.interactors.FollowInteractor;
 import com.eriyaz.social.managers.listeners.OnDataChangedListener;
-import com.eriyaz.social.managers.listeners.OnFeedbackRequestCountListner;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
 import com.eriyaz.social.managers.listeners.OnObjectExistListener;
 import com.eriyaz.social.managers.listeners.OnPostChangedListener;
 import com.eriyaz.social.managers.listeners.OnPostCreatedListener;
 import com.eriyaz.social.managers.listeners.OnPostListChangedListener;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
-import com.eriyaz.social.model.FeedbackRequestCount;
 import com.eriyaz.social.model.Flag;
 import com.eriyaz.social.model.FollowingPost;
 import com.eriyaz.social.model.ItemListResult;
@@ -88,9 +86,9 @@ public class PostManager extends FirebaseListenersManager {
         this.context = context;
     }
 
-    public void createOrUpdatePost(Post post, final OnPostCreatedListener onPostCreatedListener) {
+    public void createOrUpdatePost(boolean isUpdate, Post post, final OnPostCreatedListener onPostCreatedListener) {
         try {
-            ApplicationHelper.getDatabaseHelper().createOrUpdatePost(post, onPostCreatedListener);
+            ApplicationHelper.getDatabaseHelper().createOrUpdatePost(isUpdate,post, onPostCreatedListener);
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
             Crashlytics.logException(e);
@@ -188,7 +186,7 @@ public class PostManager extends FirebaseListenersManager {
 
                     post.setImagePath(String.valueOf(downloadUrl));
                     post.setImageTitle(imageTitle);
-                    createOrUpdatePost(post, onPostCreatedListener);
+                    createOrUpdatePost(false, post, onPostCreatedListener);
 
 //                    onPostCreatedListener.onPostSaved(true);
                 }
@@ -223,7 +221,7 @@ public class PostManager extends FirebaseListenersManager {
 
                     post.setImagePath(String.valueOf(downloadUrl));
                     post.setImageTitle(imageTitle);
-                    createOrUpdatePost(post, onPostCreatedListener);
+                    createOrUpdatePost(false, post, onPostCreatedListener);
                 }
             });
         }

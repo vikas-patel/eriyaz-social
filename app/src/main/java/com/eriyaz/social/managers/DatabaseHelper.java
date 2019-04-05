@@ -257,7 +257,7 @@ public class DatabaseHelper {
         return databaseReference.child("post-comments").push().getKey();
     }
 
-    public void createOrUpdatePost(final Post post, final OnPostCreatedListener onPostCreatedListener) {
+    public void createOrUpdatePost(boolean isUpdate, final Post post, final OnPostCreatedListener onPostCreatedListener) {
         try {
             DatabaseReference databaseReference = database.getReference();
 
@@ -268,7 +268,11 @@ public class DatabaseHelper {
             databaseReference.updateChildren(childUpdates, new DatabaseReference.CompletionListener() {
                 @Override
                 public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                    if (databaseError == null) {
+                    if(!isUpdate){
+                        onPostCreatedListener.onPostSaved(true, databaseError.getMessage());
+
+                    }
+                    else if (databaseError == null ) {
                         DatabaseReference profileRef = database.getReference("profiles/" + post.getAuthorId());
                         incrementPostCount(profileRef);
                     } else {

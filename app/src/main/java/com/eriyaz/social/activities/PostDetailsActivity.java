@@ -1338,7 +1338,7 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
     public boolean onPrepareOptionsMenu(Menu menu) {
         if (profile == null || post == null) return true;
         if (deleteActionMenuItem != null && hasAccessToModifyPost()) {
-//            editActionMenuItem.setVisible(true);
+           editActionMenuItem.setVisible(true);
             deleteActionMenuItem.setVisible(true);
         }
 
@@ -1357,13 +1357,13 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.post_details_menu, menu);
-        if(post!=null&&!post.getAuthorId().equals(getCurrentUserId())){
-            editActionMenuItem=menu.findItem(R.id.edit_post);
-            editActionMenuItem.setVisible(false);
-        }
+//        if(post!=null&&!post.getAuthorId().equals(getCurrentUserId())){
+//            editActionMenuItem=menu.findItem(R.id.edit_post);
+//            editActionMenuItem.setVisible(false);
+//        }
         complainActionMenuItem = menu.findItem(R.id.complain_action);
         publicActionMenuItem = menu.findItem(R.id.make_public_action);
-//        editActionMenuItem = menu.findItem(R.id.edit_post_action);
+        editActionMenuItem = menu.findItem(R.id.edit_post);
         deleteActionMenuItem = menu.findItem(R.id.delete_post_action);
         return true;
     }
@@ -1392,11 +1392,11 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
                 makePublicAction();
                 return true;
 
-//            case R.id.edit_post_action:
-//                if (hasAccessToModifyPost()) {
-//                    openEditPostActivity();
-//                }
-//                return true;
+            case R.id.edit_post:
+                if (hasAccessToModifyPost()) {
+                    openEditPostActivity();
+                }
+                return true;
             case R.id.ratings_chart_menu_item:
                 openRatingsChartActivity();
                 return true;
@@ -1405,10 +1405,12 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
                     attemptToRemovePost();
                 }
                 return true;
-
-            case R.id.edit_post:
-                openEditPostActivity();
-                return true;
+//
+//            case R.id.edit_post:
+//                if (hasAccessToModifyPost()) {
+//                    openEditPostActivity();
+//                    }
+//                return true;
         }
 
         return super.onOptionsItemSelected(item);

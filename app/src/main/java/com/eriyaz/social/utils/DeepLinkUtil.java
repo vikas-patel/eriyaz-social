@@ -75,7 +75,8 @@ public class DeepLinkUtil {
         //Log.i(TAG,"getLink: domain: "+this.context.getString(R.string.dynamic_link_domain) + "  pkg :"+this.context.getApplicationContext().getPackageName() );
         FirebaseDynamicLinks.getInstance().createDynamicLink()
                 .setLink(Uri.parse(link))
-                .setDynamicLinkDomain(this.context.getString(R.string.dynamic_link_domain))
+                .setDomainUriPrefix(context.getString(R.string.dynamic_link_prefix))
+//                .setDynamicLinkDomain()
                 .setAndroidParameters(
                         new DynamicLink.AndroidParameters.Builder("com.eriyaz.social")
                                 .setMinimumVersion(minVersion)
@@ -95,31 +96,31 @@ public class DeepLinkUtil {
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        LogUtil.logDebug(TAG,"ShortDynamicLink creation failed");
-                        DynamicLink dynamicLink = FirebaseDynamicLinks.getInstance().createDynamicLink()
-                                .setLink(Uri.parse(link))
-                                .setDynamicLinkDomain(context.getString(R.string.dynamic_link_domain))
-                                .setAndroidParameters(new DynamicLink.AndroidParameters.Builder("com.eriyaz.social")
-                                        .setMinimumVersion(minVersion)
-                                         //.setFallbackUrl(Uri.parse("https://google.com"))
-                                        .build())
-                                .setSocialMetaTagParameters(   new DynamicLink.SocialMetaTagParameters.Builder()
-                                        .setTitle(context.getString(R.string.app_share_title))
-                                        .setDescription(context.getString(R.string.app_share_description))
-                                        .build())
-                                .buildDynamicLink();
-                        Uri dynamicLinkUri = dynamicLink.getUri();
-                        String dynamicLin = dynamicLinkUri.toString();
-                        dynamicLin = dynamicLin.replace("goo.gl", "goo.gl/");
-
-                        LogUtil.logInfo(TAG, "dynamicLinkUri :" + dynamicLinkUri);
-
+                        LogUtil.logDebug(TAG,"ShortDynamicLink creation failed"+e.toString());
+//                        DynamicLink dynamicLink = FirebaseDynamicLinks.getInstance().createDynamicLink()
+//                                .setLink(Uri.parse(link))
+//                                .setDynamicLinkDomain(context.getString(R.string.dynamic_link_domain))
+//                                .setAndroidParameters(new DynamicLink.AndroidParameters.Builder("com.eriyaz.social")
+//                                        .setMinimumVersion(minVersion)
+//                                         //.setFallbackUrl(Uri.parse("https://google.com"))
+//                                        .build())
+//                                .setSocialMetaTagParameters(   new DynamicLink.SocialMetaTagParameters.Builder()
+//                                        .setTitle(context.getString(R.string.app_share_title))
+//                                        .setDescription(context.getString(R.string.app_share_description))
+//                                        .build())
+//                                .buildDynamicLink();
+//                        Uri dynamicLinkUri = dynamicLink.getUri();
+//                        String dynamicLin = dynamicLinkUri.toString();
+//                        dynamicLin = dynamicLin.replace("goo.gl", "goo.gl/");
+//
+//                        LogUtil.logInfo(TAG, "dynamicLinkUri :" + dynamicLinkUri);
+//
 
                         //getshortLink(dynamicLin,dynamicLinkCallback);
 
 
                         //Toast.makeText(getApplicationContext(),dynamicLinkUri.toString(), Toast.LENGTH_SHORT).show();
-                        dynamicLinkCallback.getShortLinkFailed(dynamicLin);
+//                        dynamicLinkCallback.getShortLinkFailed(dynamicLin);
                     }
                 })
 
@@ -132,9 +133,7 @@ public class DeepLinkUtil {
                     }
 
                 });
-
     }
-
 
     public void onShare(String shareText, String shareEmailSub) {
         try {
