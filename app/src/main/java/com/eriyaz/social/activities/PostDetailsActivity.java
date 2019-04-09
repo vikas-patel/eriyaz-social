@@ -697,8 +697,6 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
 
             @Override
             public void onReplyClick(int position) {
-                Rating selectedRating = ratingsAdapter.getItemByPosition(position);
-                openRaterMessageActivity(selectedRating.getAuthorId());
             }
 
             @Override
@@ -740,16 +738,6 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
                 ((LinearLayoutManager) ratingsRecyclerView.getLayoutManager()).getOrientation()));
 
         postManager.getRatingsList(this, postId, createOnRatingsChangedDataListener());
-    }
-
-    private void openRaterMessageActivity(String userId) {
-        if (hasInternetConnection()) {
-            Intent intent = new Intent(PostDetailsActivity.this, MessageActivity.class);
-            intent.putExtra(ProfileActivity.USER_ID_EXTRA_KEY, userId);
-            startActivity(intent);
-        } else {
-            showSnackBar(R.string.internet_connection_failed);
-        }
     }
 
     private void showToastPointLost() {

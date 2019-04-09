@@ -9,7 +9,7 @@ import android.content.DialogInterface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.widget.Toast;
+import android.support.design.widget.Snackbar;
 
 import com.eriyaz.social.enums.ItemType;
 import com.eriyaz.social.managers.ProfileManager;
@@ -66,12 +66,12 @@ public class warningDialog extends DialogFragment {
                                 profileManager.sendNotification(notification, userID);
                                 profileManager.decrementUserPoints(currentUserId);
 
-                                Toast.makeText(activity, "Request sent", Toast.LENGTH_SHORT).show();
+                                showSnackbar("Feedback Request Sent");
                             } else
-                                Toast.makeText(activity, "Request failed", Toast.LENGTH_SHORT).show();
+                                showSnackbar("Request Failed");
                         } else
-                            Toast.makeText(activity, "You don't have enough points to send the feedback request", Toast.LENGTH_SHORT).show();
-
+                            //showSnackbar();
+                            showDialog(getActivity(), "You don't have enough points to send the feedback request");
                     }
                 }).setNegativeButton("No", null);
 
@@ -79,5 +79,24 @@ public class warningDialog extends DialogFragment {
         warningDialog.setCanceledOnTouchOutside(false);
         warningDialog.show();
         return warningDialog;
+    }
+
+    private void showSnackbar(String message){
+        Snackbar.make(getActivity().findViewById(android.R.id.content), message, Snackbar.LENGTH_SHORT).show();
+    }
+
+    private void showDialog(Context context, String message){
+        AlertDialog.Builder dialog = new AlertDialog.Builder(context);
+        dialog.setTitle("ERROR");
+        dialog.setCancelable(false);
+        dialog.setMessage(message);
+        dialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
     }
 }
