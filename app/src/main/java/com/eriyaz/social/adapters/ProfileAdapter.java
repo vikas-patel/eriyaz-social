@@ -22,6 +22,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.eriyaz.social.R;
 import com.eriyaz.social.activities.LeaderboardActivity;
@@ -178,6 +179,8 @@ public class ProfileAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                     }
                 } else {
                     isLoading = false;
+                    // Display a Toast for information when the list is empty
+                    Toast.makeText(activity, R.string.toast_empty_list, Toast.LENGTH_SHORT).show();
                 }
 
                 callback.onListLoadingFinished();

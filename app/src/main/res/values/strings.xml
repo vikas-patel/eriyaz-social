@@ -154,6 +154,7 @@
     <string name="error_general_post">Somthing went wrong with post, id: %1$s</string>
     <string name="internet_connection_failed">No internet connection</string>
     <string name="blocked_msg">This user has blocked you. You cannot %1$s him/her.</string>
+    <string name="toast_empty_list">We have just reset the weekly points. Top Feedbackers will be listed soon.</string>
 
     <!-- Strings related to login -->
 
