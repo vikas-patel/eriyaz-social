@@ -130,9 +130,6 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                 PopupMenu popup = new PopupMenu(context, optionMenuButton);
                 //inflating menu from xml resource
                 popup.inflate(R.menu.rating_context_menu);
-                if (showReplyOption(post, rating)) {
-                    popup.getMenu().findItem(R.id.messageMenuItem).setVisible(true);
-                }
                 if (hasAccessToModifyPost(post)) {
                     popup.getMenu().findItem(R.id.blockMenuItem).setVisible(true);
                     popup.getMenu().findItem(R.id.requestFeedbackMenuItem).setVisible(true);
@@ -145,9 +142,6 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
                         switch (item.getItemId()) {
-                            case R.id.messageMenuItem:
-                                callback.onReplyClick(getAdapterPosition());
-                                break;
                             case R.id.requestFeedbackMenuItem:
                                 callback.onRequestFeedbackClick(getAdapterPosition());
                                 break;
@@ -323,14 +317,6 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
 
         Pattern pattern = Pattern.compile("(Top|Bottom).*%");
         Linkify.addLinks(ratingTextView, pattern, "");
-    }
-
-    private boolean showReplyOption(Post post, Rating rating) {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser == null || post == null || !post.getAuthorId().equals(currentUser.getUid()))
-            return false;
-        if (currentUser.getUid().equals(rating.getAuthorId())) return false;
-        return true;
     }
 
     private boolean hasAccessToModifyPost(Post post) {

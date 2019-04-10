@@ -1,18 +1,16 @@
 package com.eriyaz.social.managers;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.support.annotation.NonNull;
-import android.widget.Toast;
 
 import com.eriyaz.social.dialogs.songListDialog;
 import com.eriyaz.social.dialogs.warningDialog;
-import com.eriyaz.social.managers.listeners.OnDataChangedListener;
 import com.eriyaz.social.model.Post;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -20,7 +18,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -60,14 +57,15 @@ public class requestFeedbackManager {
                 }
 
                 // check if list is empty, if yes it show toast message
-                if (items.size() != 0) {
-                    mProgressDialog.dismiss();
 
+                mProgressDialog.dismiss();
+
+                if (items.size() != 0) {
                     DialogFragment newFragment = songListDialog.newInstance(currentUserId, userID, currentUserName, currentUserPoints);
                     newFragment.show(((Activity) context).getFragmentManager(), "dialog");
 
                 } else
-                    Toast.makeText(context, "You don't have posted any song.", Toast.LENGTH_SHORT).show();
+                    showDialog(context, "You don't have enough points to send the feedback request");
             }
 
             @Override
@@ -76,5 +74,21 @@ public class requestFeedbackManager {
             }
         });
 
+    }
+
+    private void showDialog(Context context, String message){
+
+        AlertDialog.Builder dialog = new AlertDialog.Builder(context);
+        dialog.setTitle("ERROR");
+        dialog.setCancelable(false);
+        dialog.setMessage(message);
+        dialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
     }
 }
