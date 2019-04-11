@@ -173,14 +173,14 @@ public class ProfileAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
                 if (!list.isEmpty()) {
                     addList(list);
+                    callback.displayEmptyListMessage(false);
 
                     if (!PreferencesUtil.isPostWasLoadedAtLeastOnce(activity)) {
                         PreferencesUtil.setPostWasLoadedAtLeastOnce(activity, true);
                     }
                 } else {
                     isLoading = false;
-                    // Display a Toast for information when the list is empty
-                    Toast.makeText(activity, R.string.toast_empty_list, Toast.LENGTH_SHORT).show();
+                    callback.displayEmptyListMessage(true);
                 }
 
                 callback.onListLoadingFinished();
@@ -218,5 +218,6 @@ public class ProfileAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         void onItemClick(Profile profile, View view);
         void onListLoadingFinished();
         void onCanceled(String message);
+        void displayEmptyListMessage(boolean isEmpty);
     }
 }

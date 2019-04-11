@@ -28,6 +28,7 @@ public class FeedbackerListFragment extends Fragment {
     private ProfileAdapter profileAdapter;
     private RecyclerView recyclerView;
     private LeaderboardActivity activity;
+    private TextView empty_list_message;
     String queryParameter;
 
     @Nullable
@@ -38,6 +39,7 @@ public class FeedbackerListFragment extends Fragment {
 
         final ProgressBar progressBar = (ProgressBar) rootView.findViewById(R.id.progressBar);
         SwipeRefreshLayout swipeContainer = (SwipeRefreshLayout) rootView.findViewById(R.id.swipeContainer);
+        empty_list_message=(TextView)rootView.findViewById(R.id.message_leaderboard_list_empty);
 
         queryParameter=getArguments().getString("orderBy");
         activity=(LeaderboardActivity)getActivity();
@@ -62,6 +64,11 @@ public class FeedbackerListFragment extends Fragment {
             public void onCanceled(String message) {
                 progressBar.setVisibility(View.GONE);
                 Toast.makeText(getActivity().getApplicationContext(), message, Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void displayEmptyListMessage(boolean isEmpty) {
+                empty_list_message.setVisibility(isEmpty? View.VISIBLE: View.GONE);
             }
         });
 
