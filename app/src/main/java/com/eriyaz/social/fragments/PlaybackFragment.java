@@ -12,7 +12,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
+import android.text.Editable;
 import android.text.Html;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -97,6 +99,7 @@ public class PlaybackFragment extends BaseDialogFragment {
     private LinearLayout commentLayout;
     private LinearLayout textCommentLayout;
     private Button submitButton;
+    private Button sideSubmitButton;
 //    private RadioGroup melodyRadioGroup;
 //    private RadioGroup voiceQualityRadioGroup;
     private CommentManager commentManager;
@@ -241,6 +244,7 @@ public class PlaybackFragment extends BaseDialogFragment {
         }
 
         submitButton = view.findViewById(R.id.submitButton);
+        sideSubmitButton = view.findViewById(R.id.submit_side_button);
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
@@ -257,8 +261,44 @@ public class PlaybackFragment extends BaseDialogFragment {
             }
         });
 
+        sideSubmitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                submitDetailedFeedback();
+                v.setClickable(false);
+
+                v.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        v.setClickable(true);
+
+                    }
+                }, 2000);
+            }
+        });
+
         mistakesTextView = view.findViewById(R.id.mistakesTextView);
         mistakeTapButton = view.findViewById(R.id.mistakeTapButton);
+
+        mistakesTextView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if(s.toString().trim().length()>0)
+                    sideSubmitButton.setVisibility(View.VISIBLE);
+                else
+                    sideSubmitButton.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
 
         mistakesTextHashTagHelper = HashTagHelper.Creator.create(getResources().getColor(R.color.red), new HashTagHelper.OnHashTagClickListener() {
             @Override

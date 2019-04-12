@@ -480,7 +480,6 @@ exports.updatePostLastCommentDate = functions.database.ref('/post-comments/{post
     });
 });
 
-/*
 exports.rewardReputationPoints = functions.database.ref('/post-comments/{postId}/{commentId}/reputationPoints').onCreate(event => {
     const newPoints = event.data.val();
     if (!newPoints) return 0;
@@ -494,25 +493,7 @@ exports.rewardReputationPoints = functions.database.ref('/post-comments/{postId}
         return updateUserReputationPoints(commentAuthorId, newPoints, postId);
     });
 });
-*/
 
-exports.rewardReputationPoints = functions.database.ref('/post-comments/{postId}/{commentId}/reputationPoints').onCreate((snapshot, context) => {
-
-  const newPoints = snapshot.val();
-  if(!newPoints) return 0;
-  const commentId = context.params.commentId
-  const postId = context.params.postId
-  const commentRef = snapshot.ref.parent
-
-  return commentRef.once('value').then(snap => {
-    let comment = snap.val();
-    const commentAuthorId = comment.authorId;
-    return updateUserReputationPoints(commentAuthorId, newPoints, postId);
-  });
-
-});
-
-/*
 exports.rewardReputationPointsUpdate = functions.database.ref('/post-comments/{postId}/{commentId}/reputationPoints').onUpdate(event => {
     const commentId = event.params.commentId;
     const postId = event.params.postId;
@@ -527,35 +508,14 @@ exports.rewardReputationPointsUpdate = functions.database.ref('/post-comments/{p
         return updateUserReputationPoints(commentAuthorId, newPoints - previousPoints, postId, previousPoints != 0);
     });
 });
-*/
 
-exports.rewardReputationPointsUpdate = functions.database.ref('/post-comments/{postId}/{commentId}/reputationPoints').onUpdate((snapshot, context) => {
+exports.rewardUserPoints = functions.database.ref('/post-comments/{postId}/{commentId}/userRewardPoints').onCreate(event => {
 
-  const commentId = context.params.commentId
-  const postId = context.params.postId
-  const commentRef = snapshot.after.ref.parent
-  const newPoints = snapshot.after.val()
-  const previousPoints = snapshot.before.val()
-
-  //don't show notification if points decremented
-  if(newPoints<= previousPoints) return;
-
-  return commentRef.once('value').then(snap => {
-    let comment = snap.val()
-    const commentAuthorId = comment.authorId;
-    return updateUserReputationPoints(commentAuthorId, newPoints - previousPoints, postId, previousPoints != 0)
-  });
-
-});
-
-
-exports.rewardUserPoints = functions.database.ref('/post-comments/{postId}/{commentId}/userRewardPoints').onCreate((snapshot, context) => {
-
-  const newPoints = snapshot.val();
-  if(!newPoints && newPoints==-2) return 0;
-  const commentId = context.params.commentId
-  const postId = context.params.postId
-  const commentRef = snapshot.ref.parent
+  const newPoints = event.data.val();
+  if(newPoints==0 || newPoints==-2) return 0;
+  const commentId = event.params.commentId
+  const postId = event.params.postId
+  const commentRef = event.data.ref.parent
 
   const postAuthorIdRef = admin.database().ref(`/posts/${postId}/authorId`).once('value');
 
@@ -593,13 +553,13 @@ exports.rewardUserPoints = functions.database.ref('/post-comments/{postId}/{comm
 
 });
 
-exports.rewardUserPointsUpdate = functions.database.ref('/post-comments/{postId}/{commentId}/userRewardPoints').onUpdate((snapshot, context) => {
+exports.rewardUserPointsUpdate = functions.database.ref('/post-comments/{postId}/{commentId}/userRewardPoints').onUpdate(event => {
 
-  const commentId = context.params.commentId
-  const postId = context.params.postId
-  const commentRef = snapshot.after.ref.parent
-  const newPoints = snapshot.after.val()
-  const previousPoints = snapshot.before.val()
+  const commentId = event.params.commentId
+  const postId = event.params.postId
+  const commentRef = event.data.ref.parent
+  const newPoints = event.data.val()
+  const previousPoints = event.data.previous.val()
 
   //don't show notification if points decremented
   if(newPoints<= previousPoints) return;
@@ -629,7 +589,10 @@ exports.rewardUserPointsUpdate = functions.database.ref('/post-comments/{postId}
     return commentRef.once('value').then(snap => {
       let comment = snap.val();
       const commentAuthorId = comment.authorId;
-      return updateUserRewardPoints(commentAuthorId, postAuthorId, postAuthorName, newPoints - previousPoints, postId, (previousPoints != -2 && previousPoints!=0));
+      if(previousPoints == -2)
+        return updateUserRewardPoints(commentAuthorId, postAuthorId, postAuthorName, newPoints, postId, false);
+      else
+        return updateUserRewardPoints(commentAuthorId, postAuthorId, postAuthorName, newPoints - previousPoints, postId, true);
       });
 
     });
