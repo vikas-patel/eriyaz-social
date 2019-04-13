@@ -154,7 +154,6 @@
     <string name="error_general_post">Somthing went wrong with post, id: %1$s</string>
     <string name="internet_connection_failed">No internet connection</string>
     <string name="blocked_msg">This user has blocked you. You cannot %1$s him/her.</string>
-    <string name="toast_empty_list">We have just reset the weekly points. Top Feedbackers will be listed soon.</string>
 
     <!-- Strings related to login -->
 
@@ -182,6 +181,7 @@
     <string name="share_record">Download &amp; Share</string>
     <string name="tnc_menu_item">T&amp;C</string>
     <string name="message_following_posts_empty">You have not added any posts to favourites.</string>
+    <string name="message_leaderboard_list_empty">We have just reset the weekly points. Top Feedbackers will be listed soon.</string>
     <string name="following_post_menu_item">Favourites</string>
     <string name="follow_post_menu_item">Add to Favourites</string>
     <string name="complain_text">You can complain to this post if it contains violence,

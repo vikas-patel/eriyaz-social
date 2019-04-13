@@ -761,8 +761,6 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
             @Override
             public void onListChanged(List<String> list) {
                 Application application = (Application) getApplication();
-
-                Toast.makeText(MainActivity.this, ""+list.size(), Toast.LENGTH_LONG).show();
                 application.setBlockedByList(list);
             }
         };
