@@ -65,7 +65,7 @@ public class requestFeedbackManager {
                     newFragment.show(((Activity) context).getFragmentManager(), "dialog");
 
                 } else
-                    showDialog(context, "You don't have enough points to send the feedback request");
+                    showDialog(context, "You have not posted your first song yet.");
             }
 
             @Override

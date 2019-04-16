@@ -24,8 +24,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -67,6 +66,9 @@ import com.google.android.exoplayer2.util.Util;
 import com.google.firebase.auth.FirebaseAuth;
 import com.volokh.danylo.hashtaghelper.HashTagHelper;
 import com.xw.repo.BubbleSeekBar;
+
+import net.yslibrary.android.keyboardvisibilityevent.KeyboardVisibilityEvent;
+import net.yslibrary.android.keyboardvisibilityevent.KeyboardVisibilityEventListener;
 
 import java.io.File;
 import java.util.Calendar;
@@ -248,32 +250,14 @@ public class PlaybackFragment extends BaseDialogFragment {
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                submitDetailedFeedback();
-                v.setClickable(false);
-
-                v.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        v.setClickable(true);
-
-                    }
-                }, 2000);
+                onSubmitButton(v);
             }
         });
 
         sideSubmitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                submitDetailedFeedback();
-                v.setClickable(false);
-
-                v.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        v.setClickable(true);
-
-                    }
-                }, 2000);
+                onSubmitButton(v);
             }
         });
 
@@ -348,7 +332,41 @@ public class PlaybackFragment extends BaseDialogFragment {
             }
         });
 
+        KeyboardVisibilityEvent.setEventListener(getActivity(), new KeyboardVisibilityEventListener() {
+            @Override
+            public void onVisibilityChanged(boolean isOpen) {
+                if(!isOpen)
+                    sideSubmitButton.setVisibility(View.INVISIBLE);
+                else{
+                    if(mistakesTextView.getText().toString().trim().length()>0)
+                        sideSubmitButton.setVisibility(View.VISIBLE);
+                    else
+                        sideSubmitButton.setVisibility(View.INVISIBLE);
+                }
+            }
+        });
+
+        if(commentLayout.getVisibility() != View.VISIBLE && intialRatingValue !=0)
+            moreTextView.setVisibility(View.VISIBLE);
+        else {
+            moreTextView.setVisibility(View.GONE);
+            earnExtraTextView.setVisibility(View.GONE);
+        }
+
         return builder.create();
+    }
+
+    private void onSubmitButton(View v){
+        submitDetailedFeedback();
+        v.setClickable(false);
+
+        v.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                v.setClickable(true);
+
+            }
+        }, 2000);
     }
 
     private void onCloseButton() {
@@ -385,6 +403,11 @@ public class PlaybackFragment extends BaseDialogFragment {
         commentLayout.setVisibility(View.VISIBLE);
         textCommentLayout.setVisibility(View.VISIBLE);
         submitButton.setVisibility(View.VISIBLE);
+        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams)closeButton.getLayoutParams();
+        params.addRule(RelativeLayout.ALIGN_PARENT_END, 0);
+        params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, 0);
+        params.addRule(RelativeLayout.LEFT_OF, R.id.submitButton);
+        closeButton.setLayoutParams(params);
         moreTextView.setVisibility(View.GONE);
         earnExtraTextView.setVisibility(View.GONE);
     }
@@ -744,7 +767,13 @@ public class PlaybackFragment extends BaseDialogFragment {
                 } else {
                     earnExtraTextView.setVisibility(View.GONE);
                 }
-                moreTextView.setVisibility(View.VISIBLE);
+
+                if(commentLayout.getVisibility() != View.VISIBLE && ( progress!=0 || intialRatingValue !=0))
+                    moreTextView.setVisibility(View.VISIBLE);
+                else {
+                    moreTextView.setVisibility(View.GONE);
+                    earnExtraTextView.setVisibility(View.GONE);
+                }
 
                 if (progress > 0 && progress <= 10) {
                     AlertDialog.Builder builder = new BaseAlertDialogBuilder(getActivity());
