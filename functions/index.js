@@ -972,6 +972,10 @@ function updateUserReputationPoints(authorId, points, postId, isUpdate) {
             return false;
         }
         current.reputationPoints = (current.reputationPoints || 0) + points;
+        if (current.hasChild("weeklyReputationPoints"))
+        {
+            current.weeklyReputationPoints = (current.weeklyReputationPoints || 0) + points;
+        }
         return current;
     }).then(() => {
         console.log('User rating points updated.');
@@ -1865,6 +1869,47 @@ exports.grantSignupReward = functions.database.ref('/profiles/{uid}/id').onCreat
     });
 });
 
+// Firebase function that will be triggered when a new comment is added in /post-comments.
+// The new comment is copied into /user-comments
+
+exports.duplicateUserComments = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate((snap, context) => {
+
+    const commentId = context.params.commentId;
+    const postId = context.params.postId;
+    const comment = snap.val();
+
+    console.log("commentId", commentId);
+
+    var text, audioPath, audioTitle;
+    let reputationPoints = 0;
+    let likesCount = 0;
+    let authorId = 0;
+
+    text = (!comment.text)? "": comment.text;
+    reputationPoints = (!comment.reputationPoints)? 0: comment.reputationPoints;
+    likesCount = (!comment.likesCount)? 0: comment.likesCount;
+    audioPath = (!comment.audioPath)? null: comment.audioPath;
+    audioTitle = (!comment.audioTitle)? null: comment.audioTitle;
+    authorId = comment.authorId;
+
+    const commentsRef = admin.database().ref(`/user-comments/${authorId}/${commentId}`);
+
+    var newCommentDetails =
+    {
+         'postId': postId,
+         'text': text,
+         'reputationPoints': reputationPoints,
+         'likesCount': likesCount,
+         'createdDate': comment.createdDate
+    };
+    if (audioPath != null && audioTitle != null) {
+        newCommentDetails.audioPath = audioPath;
+        newCommentDetails.audioTitle = audioTitle;
+    }
+    return commentsRef.set(newCommentDetails);
+    console.log("Updated the comment in /user-comments.");
+});
+
 exports.appUpdateNotification = functions.https.onRequest((req, res) => {
     // check if security key is same
     const keyParam = req.query.key;
@@ -2307,7 +2352,7 @@ exports.profileStats = functions.https.onRequest((req, res) => {
             res.status(200).send(`No result found`);
         }
 
-    });
+});
 });
 
 exports.rankTaskRunner = functions.https.onRequest((req, res) => {
@@ -2372,29 +2417,23 @@ exports.weeklyPointsTaskRunner = functions.https.onRequest((req, res) => {
     let updated = 0;
 
     profileRef.once('value').then((snapshot) => {
-        // For each profile, calculate weeklyReputationPoints and update lastweekReputationPoints
+        // For each profile, calculate weeklyReputationPoints
 	    snapshot.forEach(child => {
 		let key = child.key;
-		const reputationPoints = child.val().reputationPoints;
-		const lastweekReputationPoints = child.val().lastweekReputationPoints;
 		const weeklyReputationPoints = child.val().weeklyReputationPoints;
 		const weeklyRank = child.val().weeklyRank;
 
-        if (!child.hasChild("weeklyReputationPoints") ||
-            !child.hasChild("reputationPoints") ||
-            !child.hasChild("lastweekReputationPoints")) {
+        if (!child.hasChild("weeklyReputationPoints")) {
 
-            console.log("unable to update profile with ID ",key);
+            console.log("unable to reset weekly points for profile with ID ",key);
         }
         else {
-            // Update weeklyReputationPoints and lastweekReputationPoints in database
-            const reputationPointsGained = reputationPoints - lastweekReputationPoints;
-            if (reputationPointsGained == 0 && child.hasChild("weeklyRank"))
+            // Reset weeklyReputationPoints
+            updateProfiles[`${key}/weeklyReputationPoints`] = 0;
+            if (child.hasChild("weeklyRank"))
             {
                 updateProfiles[`${key}/weeklyRank`] = 0;
             }
-            updateProfiles[`${key}/weeklyReputationPoints`] = reputationPointsGained;
-            updateProfiles[`${key}/lastweekReputationPoints`] = reputationPoints;
             updated++;
         }
         });
@@ -2403,6 +2442,59 @@ exports.weeklyPointsTaskRunner = functions.https.onRequest((req, res) => {
         return profileRef.update(updateProfiles);
     });
 });
+
+
+// Function to copy comments from post-comments node to user-comments node
+
+exports.copyUserComments = functions.https.onRequest((req, res) => {
+    console.log("Copying old comments");
+    var text, audioPath, audioTitle, postTitle;
+    var comments = [];
+    let reputationPoints = 0;
+    let likesCount = 0;
+    const postCommentsRef = admin.database().ref("/post-comments");
+
+    postCommentsRef.once('value').then((postSnapshot) => {
+       	postSnapshot.forEach(postComments => {
+		    let postId = postComments.key;
+		    var user_comments = postComments.val();
+
+            // Using postId, to get post title
+            const postRef = admin.database().ref("/posts/{postId}");
+            postTitle = postRef.title;
+
+		    Object.keys(user_comments).forEach(function(commentId) {
+			const userCommentsRef = admin.database().ref(`/user-comments/${user_comments[commentId].authorId}`);
+			const commentsRef = admin.database().ref(`/user-comments/${user_comments[commentId].authorId}/${commentId}`);
+
+			text = (!user_comments[commentId].text)? "": user_comments[commentId].text;
+			reputationPoints = (!user_comments[commentId].reputationPoints)? 0: user_comments[commentId].reputationPoints;
+            likesCount = (!user_comments[commentId].likesCount)? 0: user_comments[commentId].likesCount;
+            audioPath = (!user_comments[commentId].audioPath)? null: user_comments[commentId].audioPath;
+            audioTitle = (!user_comments[commentId].audioTitle)? null: user_comments[commentId].audioTitle;
+
+            var newCommentDetails =
+            {
+             	'postId': postId,
+             	'postTitle': postTitle,
+               	'text': text,
+               	'reputationPoints': reputationPoints,
+               	'likesCount': likesCount,
+               	'createdDate': user_comments[commentId].createdDate
+            };
+            // For audio comment
+            if (audioPath != null && audioTitle != null)
+            {
+                newCommentDetails.audioPath = audioPath;
+                newCommentDetails.audioTitle = audioTitle;
+            }
+            commentsRef.set(newCommentDetails);
+
+            });
+		    });
+        });
+        console.log("Successfully copied all comments");
+    });
 
 /// TASK RUNNER CLOUD FUNCTION ///
 
