@@ -1885,7 +1885,7 @@ exports.duplicateUserComments = functions.database.ref('/post-comments/{postId}/
     let likesCount = 0;
     let authorId = 0;
 
-    text = (!comment.text)? "": comment.text;
+    text = (!comment.text)? null: comment.text;
     reputationPoints = (!comment.reputationPoints)? 0: comment.reputationPoints;
     likesCount = (!comment.likesCount)? 0: comment.likesCount;
     audioPath = (!comment.audioPath)? null: comment.audioPath;
@@ -2467,7 +2467,7 @@ exports.copyUserComments = functions.https.onRequest((req, res) => {
 			const userCommentsRef = admin.database().ref(`/user-comments/${user_comments[commentId].authorId}`);
 			const commentsRef = admin.database().ref(`/user-comments/${user_comments[commentId].authorId}/${commentId}`);
 
-			text = (!user_comments[commentId].text)? "": user_comments[commentId].text;
+			text = (!user_comments[commentId].text)? null: user_comments[commentId].text;
 			reputationPoints = (!user_comments[commentId].reputationPoints)? 0: user_comments[commentId].reputationPoints;
             likesCount = (!user_comments[commentId].likesCount)? 0: user_comments[commentId].likesCount;
             audioPath = (!user_comments[commentId].audioPath)? null: user_comments[commentId].audioPath;
