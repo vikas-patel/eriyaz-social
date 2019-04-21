@@ -1880,7 +1880,7 @@ exports.duplicateUserComments = functions.database.ref('/post-comments/{postId}/
 
     console.log("commentId", commentId);
 
-    var text, audioPath, audioTitle;
+    var text, audioPath, audioTitle, createdDate;
     let reputationPoints = 0;
     let likesCount = 0;
     let authorId = 0;
@@ -1891,16 +1891,18 @@ exports.duplicateUserComments = functions.database.ref('/post-comments/{postId}/
     audioPath = (!comment.audioPath)? null: comment.audioPath;
     audioTitle = (!comment.audioTitle)? null: comment.audioTitle;
     authorId = comment.authorId;
+    createdDate = comment.createdDate;
 
     const commentsRef = admin.database().ref(`/user-comments/${authorId}/${commentId}`);
 
     var newCommentDetails =
     {
+         'id':commentId,
          'postId': postId,
+         'createdDate': createdDate,
          'text': text,
          'reputationPoints': reputationPoints,
-         'likesCount': likesCount,
-         'createdDate': comment.createdDate
+         'likesCount': likesCount
     };
     if (audioPath != null && audioTitle != null) {
         newCommentDetails.audioPath = audioPath;
@@ -2448,52 +2450,53 @@ exports.weeklyPointsTaskRunner = functions.https.onRequest((req, res) => {
 
 exports.copyUserComments = functions.https.onRequest((req, res) => {
     console.log("Copying old comments");
-    var text, audioPath, audioTitle, postTitle;
-    var comments = [];
+    var text, audioPath, audioTitle, authorId, createdDate;
+    var updateProfiles = {};
+    let updated = 0;
     let reputationPoints = 0;
     let likesCount = 0;
     const postCommentsRef = admin.database().ref("/post-comments");
+    const commentsRef = admin.database().ref('/user-comments');
 
     postCommentsRef.once('value').then((postSnapshot) => {
        	postSnapshot.forEach(postComments => {
 		    let postId = postComments.key;
+		    console.log(postId);
 		    var user_comments = postComments.val();
 
-            // Using postId, to get post title
-            const postRef = admin.database().ref("/posts/{postId}");
-            postTitle = postRef.title;
-
 		    Object.keys(user_comments).forEach(function(commentId) {
-			const userCommentsRef = admin.database().ref(`/user-comments/${user_comments[commentId].authorId}`);
-			const commentsRef = admin.database().ref(`/user-comments/${user_comments[commentId].authorId}/${commentId}`);
-
+//			commentsRef = admin.database().ref(`/user-comments/${user_comments[commentId].authorId}`);
+            authorId = user_comments[commentId].authorId;
+            createdDate = user_comments[commentId].createdDate;
 			text = (!user_comments[commentId].text)? null: user_comments[commentId].text;
 			reputationPoints = (!user_comments[commentId].reputationPoints)? 0: user_comments[commentId].reputationPoints;
             likesCount = (!user_comments[commentId].likesCount)? 0: user_comments[commentId].likesCount;
             audioPath = (!user_comments[commentId].audioPath)? null: user_comments[commentId].audioPath;
             audioTitle = (!user_comments[commentId].audioTitle)? null: user_comments[commentId].audioTitle;
 
-            var newCommentDetails =
-            {
-             	'postId': postId,
-             	'postTitle': postTitle,
-               	'text': text,
-               	'reputationPoints': reputationPoints,
-               	'likesCount': likesCount,
-               	'createdDate': user_comments[commentId].createdDate
+            var commentDetailsObject = {
+                'id': commentId,
+                'postId': postId,
+                'createdDate': createdDate,
+                'text': text,
+                'reputationPoints': reputationPoints,
+                'likesCount':likesCount
             };
+
             // For audio comment
             if (audioPath != null && audioTitle != null)
             {
-                newCommentDetails.audioPath = audioPath;
-                newCommentDetails.audioTitle = audioTitle;
+               commentDetailsObject.audioPath = audioPath;
+               commentDetailsObject.audioTitle = audioTitle;
             }
-            commentsRef.set(newCommentDetails);
-
+            updateProfiles[`${authorId}/${commentId}`] = commentDetailsObject;
+            updated++;
             });
-		    });
+            });
+            commentsRef.update(updateProfiles);
+            console.log("updated profiles", updated);
+            res.status(200).send(`updated profiles ${updated}`);
         });
-        console.log("Successfully copied all comments");
     });
 
 /// TASK RUNNER CLOUD FUNCTION ///
