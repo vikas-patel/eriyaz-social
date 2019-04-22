@@ -117,6 +117,7 @@ dependencies {
     // record share
     implementation 'com.github.yellowcath:PhotoMovie:1.5.5'
     implementation 'me.iwf.photopicker:PhotoPicker:0.9.12@aar'
+    implementation 'net.yslibrary.keyboardvisibilityevent:keyboardvisibilityevent:2.3.0'
 }
 
 apply plugin: 'com.google.gms.google-services'

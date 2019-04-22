@@ -111,30 +111,54 @@
                         <!--android:layout_height="4dp"-->
                         <!--android:background="@drawable/top_shadow" />-->
                     <LinearLayout
-                        android:id="@+id/newCommentContainer"
+                        android:id="@+id/detailed_feedback_container"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:orientation="vertical">
 
-                        <EditText
-                            android:id="@+id/mistakesTextView"
-                            android:layout_width="0dp"
+                        <LinearLayout
+                            android:id="@+id/newCommentContainer"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:layout_weight="1"
-                            android:background="@android:color/transparent"
-                            android:hint="@string/detailed_comment_text_hint"
-                            android:inputType="textMultiLine"
-                            android:maxHeight="@dimen/new_comment_max_height"
-                            android:minHeight="@dimen/new_comment_min_height" />
-                        <Button
-                            android:id="@+id/mistakeTapButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="@color/red"
-                            android:text="#time" />
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <EditText
+                                android:id="@+id/mistakesTextView"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_weight="1"
+                                android:background="@android:color/transparent"
+                                android:hint="@string/detailed_comment_text_hint"
+                                android:inputType="textMultiLine"
+                                android:maxHeight="@dimen/new_comment_max_height"
+                                android:minHeight="@dimen/new_comment_min_height" />
+                            <Button
+                                android:id="@+id/submit_side_button"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:visibility="invisible"
+                                android:minWidth="0dp"
+                                android:minHeight="0dp"
+                                android:textColor="@android:color/black"
+                                android:text="SUBMIT" />
+
+                        </LinearLayout>
+
+                    <Button
+                        android:id="@+id/mistakeTapButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/red"
+                        android:minHeight="0dp"
+                        android:minWidth="0dp"
+                        android:text="#time"
+                        android:layout_marginEnd="@dimen/small_intrinsic_padding"
+                        android:layout_marginStart="@dimen/small_intrinsic_padding" />
+
                     </LinearLayout>
+
                     <View
                         android:id="@+id/shadowAfterComment"
                         android:layout_width="match_parent"
@@ -291,23 +315,27 @@
                     android:layout_alignBaseline="@id/closeButton"
                     android:visibility="visible"
                     android:text="Detailed Feedback" />
-                <Button android:id="@+id/submitButton"
-                    android:layout_below="@id/commentLayout"
-                    android:text="submit"
-                    android:minHeight="0dp"
-                    android:minWidth="0dp"
-                    android:visibility="gone"
-                    android:layout_toLeftOf="@id/closeButton"
-                    android:layout_height="wrap_content"
-                    android:layout_width="wrap_content" />
+
                 <Button android:id="@+id/closeButton"
-                    android:layout_below="@id/commentLayout"
-                    android:text="close"
-                    android:minHeight="0dp"
-                    android:minWidth="0dp"
-                    android:layout_alignParentRight="true"
-                    android:layout_height="wrap_content"
-                    android:layout_width="wrap_content" />
+                android:layout_below="@id/commentLayout"
+                android:text="close"
+                android:minHeight="0dp"
+                android:minWidth="0dp"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content" />
+
+                <Button android:id="@+id/submitButton"
+                android:layout_below="@id/commentLayout"
+                android:text="submit"
+                android:minHeight="0dp"
+                android:minWidth="0dp"
+                android:visibility="gone"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content" />
             </RelativeLayout>
 
         </LinearLayout>
