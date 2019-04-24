@@ -252,7 +252,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
             }
 
             if(rating.isRatingRemoved())
-                extra = "Post Author removed the rating";
+                extra = "Post Author removed this rating";
             else
                 extra = ratingText;
 
