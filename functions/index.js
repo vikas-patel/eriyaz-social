@@ -1835,11 +1835,11 @@ exports.grantSignupReward = functions.database.ref('/profiles/{uid}/id').onCreat
 // Firebase function that will be triggered when a new comment is added in /post-comments.
 // The new comment is copied into /user-comments
 
-exports.duplicateUserComments = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate((snap, context) => {
+exports.duplicateUserComments = functions.database.ref('/post-comments/{postId}/{commentId}').onWrite(event => {
 
-    const commentId = context.params.commentId;
-    const postId = context.params.postId;
-    const comment = snap.val();
+    const commentId = event.params.commentId;
+    const postId = event.params.postId;
+    const comment = event.data.val();
 
     console.log("commentId", commentId);
 
