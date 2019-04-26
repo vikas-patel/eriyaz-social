@@ -36,7 +36,6 @@ public class Profile implements Serializable {
     private long userPoints;
     private long reputationPoints;
     private long weeklyReputationPoints;
-    private int lastweekReputationPoints;
     private int weeklyRank;
     private int postCount;
     private int ratingCount;
@@ -124,14 +123,6 @@ public class Profile implements Serializable {
 
     public void setWeeklyReputationPoints(long weeklyReputationPoints) {
         this.weeklyReputationPoints = weeklyReputationPoints;
-    }
-
-    public int getLastweekReputationPoints() {
-        return lastweekReputationPoints;
-    }
-
-    public void setLastweekReputationPoints(int lastweekReputationPoints) {
-        this.lastweekReputationPoints = lastweekReputationPoints;
     }
 
     public long getUserPoints() {

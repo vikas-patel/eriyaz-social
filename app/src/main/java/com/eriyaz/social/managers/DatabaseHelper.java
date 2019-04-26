@@ -35,6 +35,7 @@ import com.eriyaz.social.model.Notification;
 import com.eriyaz.social.model.Point;
 import com.eriyaz.social.model.ProfileListResult;
 import com.eriyaz.social.model.RecordingItem;
+import com.eriyaz.social.model.UserComment;
 import com.eriyaz.social.utils.Analytics;
 import com.eriyaz.social.utils.ValidationUtil;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -1288,6 +1289,37 @@ public class DatabaseHelper {
         return result;
     }
 
+    private ItemListResult parseCommentsList(DataSnapshot dataSnapshot) {
+        ItemListResult result = new ItemListResult();
+        List<UserComment> list = new ArrayList<UserComment>();
+        boolean isMoreDataAvailable = true;
+        long lastItemCreatedDate = 0;
+        isMoreDataAvailable = Constants.Post.POST_AMOUNT_ON_PAGE == dataSnapshot.getChildrenCount();
+        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+            UserComment userComment = snapshot.getValue(UserComment.class);
+            System.out.println("DataSnapshot" +snapshot);
+            System.out.println("UserComment"+userComment.getText());
+            if (userComment.getText() == null) {
+                userComment.setText(" ");
+            }
+            list.add(userComment);
+            if (lastItemCreatedDate == 0 || lastItemCreatedDate > userComment.getCreatedDate()) {
+                lastItemCreatedDate = userComment.getCreatedDate();
+            }
+        }
+
+        Collections.sort(list, new Comparator<UserComment>() {
+            @Override
+            public int compare(UserComment lhs, UserComment rhs) {
+                return ((Long) rhs.getCreatedDate()).compareTo(lhs.getCreatedDate());
+            }
+        });
+        result.setItems(list);
+        result.setLastItemCreatedDate(lastItemCreatedDate);
+        result.setMoreDataAvailable(isMoreDataAvailable);
+        return result;
+    }
+
 
     public void getProfileSingleValue(String id, final OnObjectChangedListener<Profile> listener) {
         DatabaseReference databaseReference = getDatabaseReference().child("profiles").child(id);
@@ -1372,6 +1404,32 @@ public class DatabaseHelper {
 
         activeListeners.put(valueEventListener, databaseReference);
         return valueEventListener;
+    }
+
+    public void getUserCommentsList(final OnObjectChangedListener<ItemListResult> onDataChangedListener, long date, final String userId) {
+        DatabaseReference databaseReference = database.getReference("user-comments").child(userId);
+        Query userCommentsQuery;
+        if (date == 0) {
+            userCommentsQuery = databaseReference.limitToLast(Constants.Post.POST_AMOUNT_ON_PAGE).orderByChild("createdDate");
+        } else {
+            userCommentsQuery = databaseReference.limitToLast(Constants.Post.POST_AMOUNT_ON_PAGE).endAt(date).orderByChild("createdDate");
+        }
+        userCommentsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ItemListResult result = parseCommentsList(dataSnapshot);
+                if (result.getItems().isEmpty() && result.isMoreDataAvailable()) {
+                    getUserCommentsList(onDataChangedListener, result.getLastItemCreatedDate() - 1, userId);
+                } else {
+                    onDataChangedListener.onObjectChanged(result);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                LogUtil.logError(TAG, "getRatingListByUser(), onCancelled", new Exception(databaseError.getMessage()));
+            }
+        });
     }
 
     public ValueEventListener getBlockedByList(String userId, final OnDataChangedListener<String> onDataChangedListener) {

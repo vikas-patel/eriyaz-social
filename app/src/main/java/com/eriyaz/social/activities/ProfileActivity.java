@@ -127,6 +127,7 @@ public class ProfileActivity extends BaseCurrentProfileActivity implements Googl
         profileTabViewPager = findViewById(R.id.profileTabPager);
         ProfileTabAdapter profileTabAdapter = new ProfileTabAdapter(getSupportFragmentManager(), userID);
         profileTabViewPager.setAdapter(profileTabAdapter);
+        profileTabViewPager.setOffscreenPageLimit(2);
 
         tabLayout = findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(profileTabViewPager);
