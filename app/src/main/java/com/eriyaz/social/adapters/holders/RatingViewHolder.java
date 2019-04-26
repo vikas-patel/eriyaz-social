@@ -252,7 +252,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
             }
 
             if(rating.isRatingRemoved())
-                extra = "Post Author removed this rating";
+                extra = context.getString(R.string.rating_removed_text);
             else
                 extra = ratingText;
 
@@ -275,7 +275,7 @@ public class RatingViewHolder extends RecyclerView.ViewHolder {
         final int actualRating = (int) rating.getRating();
         final int normalizedRating = rating.getNormalizedRating() == 0 ? actualRating : rating.getNormalizedRating();
         String ratingText = RatingUtil.getRatingPercentile(normalizedRating);
-        String removedRatings = "Post Author Removed ratings";
+        String removedRatings = context.getString(R.string.rating_removed_text);;
         int ratingLen = ratingText.length();
         if (rating.getDetailedText() != null && !rating.getDetailedText().isEmpty()) {
             ratingText = ratingText + "\n" + rating.getDetailedText();

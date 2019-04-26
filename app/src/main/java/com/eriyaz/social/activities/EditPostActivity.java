@@ -92,8 +92,6 @@ public class EditPostActivity extends CreatePostActivity {
 
 //    private FirebaseDatabase database;
 
-    private boolean isUpdate=false;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -400,7 +398,7 @@ public class EditPostActivity extends CreatePostActivity {
             post.setFeedbackScope(feedbackScope);
             post.setAnonymous(anonymousCheckBox.isChecked());
 
-            postManager.createOrUpdatePost(isUpdate,post, new OnPostCreatedListener() {
+            postManager.createOrUpdatePost(true, post, new OnPostCreatedListener() {
                 @Override
                 public void onPostSaved(boolean success, String error) {
 

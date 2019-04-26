@@ -43,7 +43,7 @@ public class songListDialog extends DialogFragment {
         String currentUserName = getArguments().getString("currentUserName");
 
         songsList = new ArrayList<>();
-        songsList.add("Select");
+        songsList.add("<--My Song List-->");
         // ArrayList to Array Conversion
         for (int j = 0; j < items.size(); j++)
             songsList.add(String.valueOf(items.get(j).getTitle()));

@@ -106,6 +106,8 @@
     <string name="rating_received">Your rating recieved. You earned 1 point.</string>
     <string name="earn_extra_point">Your rating recieved. You can earn 1 extra point by giving \'detailed feedback\'.</string>
     <string name="ratingInfo">Rating is closed for this post. You can still comment.</string>
+    <string name="rating_removed_text">Post author removed this rating</string>
+    <string name="error_request_no_post">You have not posted any song yet.</string>
 
     <string name="comment_text_hint">Enter your comment…</string>
     <string name="detailed_comment_text_hint">Enter your text comment…</string>

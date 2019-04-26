@@ -935,10 +935,7 @@ function updateUserReputationPoints(authorId, points, postId, isUpdate) {
             return false;
         }
         current.reputationPoints = (current.reputationPoints || 0) + points;
-        if (current.hasChild("weeklyReputationPoints"))
-        {
-            current.weeklyReputationPoints = (current.weeklyReputationPoints || 0) + points;
-        }
+        current.weeklyReputationPoints = (current.weeklyReputationPoints || 0) + points;
         return current;
     }).then(() => {
         console.log('User rating points updated.');
@@ -2201,7 +2198,7 @@ function getYesterdayFilteredPostList(resultList, ratedPostList, lastRecentDate,
         lastRecentDate = yesterdayPosts[yesterdayPosts.length - 1].createdDate;
         // filter removed and complained posts
         yesterdayPosts = yesterdayPosts.filter(post => {
-            return !post.removed && !post.hasComplain && post.ratingsCount <= 10;
+            return !post.removed && !post.hasComplain && post.ratingsCount < 10;
         });
         yesterdayPosts = yesterdayPosts.filter(post => {
             if (!ratedPostList.includes(post.id)) return true;
@@ -2251,7 +2248,7 @@ function getRecentPostList() {
             recentPosts.push(post);
         });
         recentPosts = recentPosts.filter(post => {
-            return !post.removed && !post.hasComplain && post.ratingsCount <= 10;
+            return !post.removed && !post.hasComplain && post.ratingsCount < 10;
         });
         recentPosts.reverse();
         console.log("return after filter", recentPosts.length);

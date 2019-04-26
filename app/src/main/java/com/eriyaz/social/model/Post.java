@@ -267,12 +267,15 @@ public class Post implements Serializable, LazyLoading {
         this.feedbackScope = feedbackScope;
     }
 
-    public Map<String, Object> toMap() {
+    public Map<String, Object> toMap(boolean isUpdate) {
         HashMap<String, Object> result = new HashMap<>();
-
         result.put("title", title);
         result.put("description", description);
-        result.put("createdDate", ServerValue.TIMESTAMP);
+        if (isUpdate) {
+            result.put("createdDate", createdDate);
+        } else {
+            result.put("createdDate", ServerValue.TIMESTAMP);
+        }
         result.put("imagePath", imagePath);
         result.put("imageTitle", imageTitle);
         result.put("authorId", authorId);

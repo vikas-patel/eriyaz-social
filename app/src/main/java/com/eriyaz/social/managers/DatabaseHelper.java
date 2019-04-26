@@ -261,23 +261,24 @@ public class DatabaseHelper {
         try {
             DatabaseReference databaseReference = database.getReference();
 
-            Map<String, Object> postValues = post.toMap();
+            Map<String, Object> postValues = post.toMap(isUpdate);
             Map<String, Object> childUpdates = new HashMap<>();
             childUpdates.put("/posts/" + post.getId(), postValues);
 
             databaseReference.updateChildren(childUpdates, new DatabaseReference.CompletionListener() {
                 @Override
                 public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                    if(!isUpdate){
-                        onPostCreatedListener.onPostSaved(true, databaseError.getMessage());
-
-                    }
-                    else if (databaseError == null ) {
-                        DatabaseReference profileRef = database.getReference("profiles/" + post.getAuthorId());
-                        incrementPostCount(profileRef);
-                    } else {
+                    if (databaseError != null) {
                         onPostCreatedListener.onPostSaved(false, databaseError.getMessage());
                         LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
+                    } else {
+                        if (isUpdate) {
+                            onPostCreatedListener.onPostSaved(true, "");
+                            LogUtil.logInfo(TAG, "Updating post count transaction is completed.");
+                        } else {
+                            DatabaseReference profileRef = database.getReference("profiles/" + post.getAuthorId());
+                            incrementPostCount(profileRef);
+                        }
                     }
                 }
 

@@ -121,6 +121,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
+                            android:layout_marginLeft="@dimen/intrinsic_padding"
+                            android:layout_marginRight="@dimen/intrinsic_padding"
                             android:orientation="horizontal">
 
                             <EditText
@@ -153,9 +155,8 @@
                         android:textColor="@color/red"
                         android:minHeight="0dp"
                         android:minWidth="0dp"
-                        android:text="#time"
-                        android:layout_marginEnd="@dimen/small_intrinsic_padding"
-                        android:layout_marginStart="@dimen/small_intrinsic_padding" />
+                        android:textAllCaps="false"
+                        android:text="Tap for #timestamp" />
 
                     </LinearLayout>
 

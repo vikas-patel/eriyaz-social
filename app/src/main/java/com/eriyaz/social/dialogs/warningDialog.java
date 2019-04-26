@@ -87,7 +87,7 @@ public class warningDialog extends DialogFragment {
 
     private void showDialog(Context context, String message){
         AlertDialog.Builder dialog = new AlertDialog.Builder(context);
-        dialog.setTitle("ERROR");
+        dialog.setTitle("Sorry");
         dialog.setCancelable(false);
         dialog.setMessage(message);
         dialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {

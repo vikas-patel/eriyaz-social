@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 
+import com.eriyaz.social.R;
 import com.eriyaz.social.dialogs.songListDialog;
 import com.eriyaz.social.dialogs.warningDialog;
 import com.eriyaz.social.model.Post;
@@ -65,7 +66,7 @@ public class requestFeedbackManager {
                     newFragment.show(((Activity) context).getFragmentManager(), "dialog");
 
                 } else
-                    showDialog(context, "You have not posted your first song yet.");
+                    showDialog(context, R.string.error_request_no_post);
             }
 
             @Override
@@ -76,12 +77,12 @@ public class requestFeedbackManager {
 
     }
 
-    private void showDialog(Context context, String message){
+    private void showDialog(Context context, int messageId){
 
         AlertDialog.Builder dialog = new AlertDialog.Builder(context);
-        dialog.setTitle("ERROR");
+        dialog.setTitle("Sorry");
         dialog.setCancelable(false);
-        dialog.setMessage(message);
+        dialog.setMessage(messageId);
         dialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
