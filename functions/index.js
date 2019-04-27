@@ -464,6 +464,18 @@ exports.pushNotificationNewBoughtFeedback = functions.database.ref('/bought-feed
 
 });
 
+exports.pushNotificationRequestFeedback = functions.database.ref('/user-notifications/{userID}/{postId}').onCreate((snapshot, context) => {
+    const postId = context.params.postId;
+    const userid = context.params.userid;
+    const value = snapshot.val();
+
+    if(value.forCommentNotification=="false"){
+    return sendPushNotification( value.fromUserId, userid, postId, value.message);}
+    return ;
+
+});
+
+
 exports.updatePostLastCommentDate = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
     const postId = event.params.postId;
     console.log('updating post last comment date ', postId);
@@ -2404,7 +2416,6 @@ exports.weeklyPointsTaskRunner = functions.https.onRequest((req, res) => {
         return profileRef.update(updateProfiles);
     });
 });
-
 
 // Function to copy comments from post-comments node to user-comments node
 
