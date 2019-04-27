@@ -17,7 +17,7 @@ import com.eriyaz.social.model.Notification;
 
 public class warningDialog extends DialogFragment {
 
-    public static String notificationMessage = " has requested you to give feedback on his song.";
+    public static String notificationMessage = " has requested you to give feedback on post ";
     public static String songname;
 
     public static warningDialog newInstance(String currentUserId, String userID, String extraKeyValue, String currentUserName, Long currentUserPoints , String songname1) {
@@ -55,7 +55,7 @@ public class warningDialog extends DialogFragment {
                         if (currentUserPoints > 0) {
                             ProfileManager profileManager = ProfileManager.getInstance(activity);
 
-                            String message = currentUserName + notificationMessage;
+                            String message = currentUserName + notificationMessage + songname;
                             String action = "com.eriyaz.social.activities.PostDetailsActivity";
                             String extraKey = "PostDetailsActivity.POST_ID_EXTRA_KEY";
 

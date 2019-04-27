@@ -464,14 +464,18 @@ exports.pushNotificationNewBoughtFeedback = functions.database.ref('/bought-feed
 
 });
 
-exports.pushNotificationRequestFeedback = functions.database.ref('/user-notifications/{userID}/{postId}').onCreate((snapshot, context) => {
-    const postId = context.params.postId;
-    const userid = context.params.userid;
-    const value = snapshot.val();
+exports.pushNotificationRequestFeedback = functions.database.ref('/user-notifications/{userID}/{postId}').onCreate(event => {
+    const postId = event.params.postId;
+    const userid = event.params.userID;
+    const value = event.data.val();
+
+    console.log(value);
+    console.log(userid);
+    console.log(postId);
 
     if(value.forCommentNotification=="false"){
     return sendPushNotification( value.fromUserId, userid, postId, value.message);}
-    return ;
+    return null;
 
 });
 

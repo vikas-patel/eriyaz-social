@@ -32,7 +32,7 @@ public class requestFeedbackManager {
 
 
     public requestFeedbackManager(Context context, String currentUserId, String userID, String extraKeyValue, String currentUserName, Long currentUserPoints) {
-        DialogFragment newFragment = warningDialog.newInstance(currentUserId, userID, extraKeyValue, currentUserName, currentUserPoints);
+        DialogFragment newFragment = warningDialog.newInstance(currentUserId, userID, extraKeyValue, currentUserName, currentUserPoints,"");
         newFragment.show(((Activity) context).getFragmentManager(), "dialog");
     }
 
