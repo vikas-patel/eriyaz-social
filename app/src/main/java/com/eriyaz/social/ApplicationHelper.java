@@ -27,6 +27,7 @@ public class ApplicationHelper {
     private static final String TAG = ApplicationHelper.class.getSimpleName();
     private static DatabaseHelper databaseHelper;
 
+
     public static DatabaseHelper getDatabaseHelper() {
         return databaseHelper;
     }

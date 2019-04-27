@@ -67,7 +67,7 @@ public class songListDialog extends DialogFragment {
                         int position = spinner.getSelectedItemPosition();
                         if(position>0) {
                             String extraKeyValue = items.get(position - 1).getImageTitle().substring(5);
-                            DialogFragment newFragment = warningDialog.newInstance(currentUserId, userID, extraKeyValue, currentUserName, currentUserPoints);
+                            DialogFragment newFragment = warningDialog.newInstance(currentUserId, userID, extraKeyValue, currentUserName, currentUserPoints ,songsList.get(position));
                             newFragment.show(((Activity) profileActivity).getFragmentManager(), "dialog");
                         }
                         else{
