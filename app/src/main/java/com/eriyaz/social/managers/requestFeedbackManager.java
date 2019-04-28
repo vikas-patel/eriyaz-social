@@ -11,39 +11,61 @@ import android.support.annotation.NonNull;
 import com.eriyaz.social.R;
 import com.eriyaz.social.dialogs.songListDialog;
 import com.eriyaz.social.dialogs.warningDialog;
+import com.eriyaz.social.managers.listeners.OnDataChangedListener;
 import com.eriyaz.social.model.Post;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class requestFeedbackManager {
+public class requestFeedbackManager implements OnDataChangedListener {
 
     private DatabaseReference databaseReference;
     public static List<Post> items = new ArrayList<>();
     private ProgressDialog mProgressDialog;
+    DatabaseHelper databaseHelper;
+    Context context1;
+    String userID1;
+    String currentUserName1;
+    Long currentUserPoints1;
+    String currentUserId1;
+
 
     protected List<Post> postList = new LinkedList<>();
 
 
     public requestFeedbackManager(Context context, String currentUserId, String userID, String extraKeyValue, String currentUserName, Long currentUserPoints) {
+        context1=context;
+        userID1=userID;
+        currentUserName1=currentUserName;
+        currentUserPoints1=currentUserPoints;
+        currentUserId1=currentUserId;
         DialogFragment newFragment = warningDialog.newInstance(currentUserId, userID, extraKeyValue, currentUserName, currentUserPoints,"");
         newFragment.show(((Activity) context).getFragmentManager(), "dialog");
     }
 
     public requestFeedbackManager(Context context, String currentUserId, String userID, String currentUserName, Long currentUserPoints) {
+        context1=context;
+        userID1=userID;
+        currentUserName1=currentUserName;
+        currentUserPoints1=currentUserPoints;
+        currentUserId1=currentUserId;
         mProgressDialog = new ProgressDialog(context);
         mProgressDialog.setMessage("Loading..");
         mProgressDialog.setCanceledOnTouchOutside(false);
         mProgressDialog.setCancelable(false);
         mProgressDialog.show();
 
-        databaseReference = FirebaseDatabase.getInstance().getReference("posts");
+        databaseHelper.getPostListByUser(this,currentUserId);
+
+
+        /*databaseReference = FirebaseDatabase.getInstance().getReference("posts");
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
 
             @Override
@@ -73,7 +95,7 @@ public class requestFeedbackManager {
             public void onCancelled(DatabaseError databaseError) {
 
             }
-        });
+        });*/
 
     }
 
@@ -92,4 +114,17 @@ public class requestFeedbackManager {
 
         dialog.show();
     }
+
+    @Override
+    public void onListChanged(List list) {
+        mProgressDialog.dismiss();
+        if (list.size() != 0) {
+            DialogFragment newFragment = songListDialog.newInstance(currentUserId1, userID1, currentUserName1, currentUserPoints1);
+            newFragment.show(((Activity) context1).getFragmentManager(), "dialog");
+
+        } else
+            showDialog(context1, R.string.error_request_no_post);
+
+    }
+
 }
