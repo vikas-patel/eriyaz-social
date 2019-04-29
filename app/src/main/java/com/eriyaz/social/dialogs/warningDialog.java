@@ -65,7 +65,7 @@ public class warningDialog extends DialogFragment {
                             NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
 
                             if (activeNetwork != null && activeNetwork.isConnectedOrConnecting()) {
-                                profileManager.sendNotification(notification, userID);
+                                profileManager.sendRequestNotification(notification, userID);
                                 profileManager.decrementUserPoints(currentUserId);
 
                                 showSnackbar("Feedback Request Sent");

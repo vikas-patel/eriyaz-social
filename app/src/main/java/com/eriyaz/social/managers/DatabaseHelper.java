@@ -741,6 +741,20 @@ public class DatabaseHelper {
         databaseReference.child(childNode).setValue(notification);
         analytics.logFeedbackRequestNotification();
     }
+    public void sendRequestNotification(Notification notification, String userID) {
+
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference databaseReference = database.getReference("request-feedback").child(userID);
+
+        String childNode = databaseReference.push().getKey();
+        long createdDate = Calendar.getInstance().getTimeInMillis();
+
+        notification.setCreatedDate(createdDate);
+        notification.setId(childNode);
+
+        databaseReference.child(childNode).setValue(notification);
+        analytics.logFeedbackRequestNotification();
+    }
 
     public void incrementWatchersCount(String postId) {
         DatabaseReference postRef = database.getReference("posts/" + postId + "/watchersCount");

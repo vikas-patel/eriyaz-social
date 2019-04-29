@@ -464,7 +464,7 @@ exports.pushNotificationNewBoughtFeedback = functions.database.ref('/bought-feed
 
 });
 
-exports.pushNotificationRequestFeedback = functions.database.ref('/user-notifications/{userID}/{postId}').onCreate(event => {
+exports.pushNotificationRequestFeedback = functions.database.ref('/request-feedback/{userID}/{postId}').onCreate(event => {
     const postId = event.params.postId;
     const userid = event.params.userID;
     const value = event.data.val();
@@ -473,12 +473,72 @@ exports.pushNotificationRequestFeedback = functions.database.ref('/user-notifica
     console.log(userid);
     console.log(postId);
 
-    if(value.forCommentNotification=="false"){
-    return sendPushNotification( value.fromUserId, userid, postId, value.message);}
-    return null;
+    return sendPushNotification( value.fromUserId, userid, postId, value.message);
+
 
 });
 
+exports.userNotificationRequestFeedback = functions.database.ref('/request-feedback/{userID}/{postId}').onCreate(event => {
+    console.log('App notification for new request feedback');
+
+    const postCommentRef = event.data.ref.parent;
+    const commentId = event.params.commentId;
+    const postId = event.params.postId;
+    const comment = event.data.val();
+    const commentAuthorId = comment.authorId;
+
+    // Get commented post.
+    const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
+
+    return getPostTask.then(post => {
+        const postVal = post.val();
+        console.log("new comment on post '", postVal.title,"'.");
+        var postAuthorId = postVal.authorId;
+        if (postAuthorId != commentAuthorId) return console.log("no notification if comment not from post author");
+        // process all post comments
+        return postCommentRef.once('value').then(snapshot => {
+            const authorToNotify = [];
+            snapshot.forEach(function(commentSnap) {
+                // exclude post author & comment user
+                const notifyAuthorId = commentSnap.val().authorId;
+                if (notifyAuthorId  != postAuthorId && notifyAuthorId != commentAuthorId ) {
+                    if (!authorToNotify.includes(notifyAuthorId)) {
+                        authorToNotify.push(notifyAuthorId);
+                    }
+                }
+            });
+            if (authorToNotify.length == 0) return;
+            // Get comment author.
+            const getCommentAuthorProfileTask = admin.database().ref(`/profiles/${commentAuthorId}`).once('value');
+            return getCommentAuthorProfileTask.then(profile => {
+                const promisePool = new PromisePool(() => {
+                  if (authorToNotify.length > 0) {
+                    const authorId = authorToNotify.pop();
+                    // Get user notification ref
+                    const userNotificationsRef = admin.database().ref(`/user-notifications/${authorId}`);
+                    var newNotificationRef = userNotificationsRef.push();
+                    var msg = profile.val().username + " commented on the post '" + postVal.title + "' on which you also commented.";
+                    return newNotificationRef.set({
+                        'action': 'com.eriyaz.social.activities.PostDetailsActivity',
+                        'fromUserId' : commentAuthorId,
+                        'message': msg,
+                        'extraKey' : 'PostDetailsActivity.POST_ID_EXTRA_KEY',
+                        'extraKeyValue' : postId,
+                        'createdDate': admin.database.ServerValue.TIMESTAMP
+                    }).then(() => {
+                        console.log('sent new request feedback notification on post you commented to ', authorId);
+                    });
+                  }
+                  return null;
+                }, MAX_CONCURRENT);
+                const poolTask =  promisePool.start();
+                return poolTask.then(() => {
+                    return console.log('sent notification task completed.');
+                });
+            });
+        });
+    });
+});
 
 exports.updatePostLastCommentDate = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
     const postId = event.params.postId;
