@@ -28,6 +28,7 @@ import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.TextAppearanceSpan;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -142,13 +143,14 @@ public class ProfileActivity extends BaseCurrentProfileActivity implements Googl
             @Override
             public void onClick(View v) {
 
-                if (hasInternetConnection())
+                if (hasInternetConnection()){
+                    Log.d(TAG, "onClick: "+currentUserId);
                     f = new requestFeedbackManager(
                             ProfileActivity.this,
                             currentUserId,
                             userID,
                             currentProfile.getUsername(),
-                            currentProfile.getPoints());
+                            currentProfile.getPoints());}
                 else
                     showSnackBar(R.string.internet_connection_failed);
 

@@ -1023,7 +1023,7 @@ public class DatabaseHelper {
     }
 
     public void getPostListByUser(final OnDataChangedListener<Post> onDataChangedListener, String userId) {
-        DatabaseReference databaseReference = database.getReference("posts");
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("posts");
         Query postsQuery;
         postsQuery = databaseReference.orderByChild("authorId").equalTo(userId);
 //        postsQuery.keepSynced(true);

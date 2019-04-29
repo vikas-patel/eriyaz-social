@@ -7,6 +7,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.eriyaz.social.R;
 import com.eriyaz.social.dialogs.songListDialog;
@@ -61,8 +62,9 @@ public class requestFeedbackManager implements OnDataChangedListener {
         mProgressDialog.setCanceledOnTouchOutside(false);
         mProgressDialog.setCancelable(false);
         mProgressDialog.show();
-
-        databaseHelper.getPostListByUser(this,currentUserId);
+        databaseHelper=new DatabaseHelper(context1);
+        Log.e("check", "requestFeedbackManager: "+currentUserId);
+        databaseHelper.getPostListByUser(this,currentUserId1);
 
 
         /*databaseReference = FirebaseDatabase.getInstance().getReference("posts");
@@ -117,6 +119,7 @@ public class requestFeedbackManager implements OnDataChangedListener {
 
     @Override
     public void onListChanged(List list) {
+        items = list;
         mProgressDialog.dismiss();
         if (list.size() != 0) {
             DialogFragment newFragment = songListDialog.newInstance(currentUserId1, userID1, currentUserName1, currentUserPoints1);
