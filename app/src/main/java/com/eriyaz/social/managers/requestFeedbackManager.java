@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.eriyaz.social.ApplicationHelper;
 import com.eriyaz.social.R;
 import com.eriyaz.social.dialogs.songListDialog;
 import com.eriyaz.social.dialogs.warningDialog;
@@ -30,7 +31,6 @@ public class requestFeedbackManager implements OnDataChangedListener {
     private DatabaseReference databaseReference;
     public static List<Post> items = new ArrayList<>();
     private ProgressDialog mProgressDialog;
-    DatabaseHelper databaseHelper;
     Context context1;
     String userID1;
     String currentUserName1;
@@ -62,9 +62,8 @@ public class requestFeedbackManager implements OnDataChangedListener {
         mProgressDialog.setCanceledOnTouchOutside(false);
         mProgressDialog.setCancelable(false);
         mProgressDialog.show();
-        databaseHelper=new DatabaseHelper(context1);
         Log.e("check", "requestFeedbackManager: "+currentUserId);
-        databaseHelper.getPostListByUser(this,currentUserId1);
+        ApplicationHelper.getDatabaseHelper().getPostListByUser(this,currentUserId1);
 
 
         /*databaseReference = FirebaseDatabase.getInstance().getReference("posts");

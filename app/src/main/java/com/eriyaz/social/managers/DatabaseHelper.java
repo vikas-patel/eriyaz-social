@@ -742,7 +742,7 @@ public class DatabaseHelper {
         databaseReference.child(childNode).setValue(notification);
         analytics.logFeedbackRequestNotification();
     }
-    public void sendRequestNotification(RequestFeedback notification, String userID) {
+    public void sendRequestNotification(RequestFeedback requestFeedback, String userID) {
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference databaseReference = database.getReference("request-feedback").child(userID);
@@ -750,10 +750,10 @@ public class DatabaseHelper {
         String childNode = databaseReference.push().getKey();
         long createdDate = Calendar.getInstance().getTimeInMillis();
 
-        notification.setTimestamp(createdDate);
-        notification.setFeedbackid(childNode);
+        requestFeedback.setTimestamp(createdDate);
+        requestFeedback.setFeedbackid(childNode);
 
-        databaseReference.child(childNode).setValue(notification);
+        databaseReference.child(childNode).setValue(requestFeedback);
         analytics.logFeedbackRequestNotification();
     }
 

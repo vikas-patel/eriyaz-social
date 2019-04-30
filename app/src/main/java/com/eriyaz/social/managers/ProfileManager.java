@@ -164,8 +164,8 @@ public class ProfileManager extends FirebaseListenersManager {
         ApplicationHelper.getDatabaseHelper().sendNotification(notification, userID);
     }
 
-    public void sendRequestNotification(RequestFeedback notification, String userID) {
-        ApplicationHelper.getDatabaseHelper().sendRequestNotification(notification, userID);
+    public void sendRequestNotification(RequestFeedback requestFeedback, String userID) {
+        ApplicationHelper.getDatabaseHelper().sendRequestNotification(requestFeedback, userID);
     }
     public void blockUser(String blockUserId, String reason, OnTaskCompleteListener onTaskCompleteListener) {
         ApplicationHelper.getDatabaseHelper().blockUser(blockUserId, reason, onTaskCompleteListener);
