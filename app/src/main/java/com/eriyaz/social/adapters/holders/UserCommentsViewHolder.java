@@ -5,23 +5,14 @@ import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.text.SpannableString;
 import android.text.style.UnderlineSpan;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ImageView;
-import android.widget.PopupMenu;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.eriyaz.social.R;
-import com.eriyaz.social.activities.BaseActivity;
 import com.eriyaz.social.adapters.CommentsByUserAdapter;
-import com.eriyaz.social.controllers.LikeController;
-import com.eriyaz.social.model.Comment;
-import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.UserComment;
 import com.eriyaz.social.utils.FormatterUtil;
-import com.google.firebase.auth.FirebaseAuth;
 
 public class UserCommentsViewHolder extends RecyclerView.ViewHolder {
 

@@ -49,50 +49,6 @@
                 android:ellipsize="end"
                 android:textAppearance="@style/TextAppearance.Second" />
         </LinearLayout>
-        <!--<LinearLayout
-            android:id="@+id/likesContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="@dimen/small_intrinsic_padding"
-            android:paddingBottom="@dimen/small_intrinsic_padding"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/postTitleTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="ABC"
-            android:textAppearance="@style/TextAppearance.Second.Light" />
-            <TextView
-                android:id="@+id/dateTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="day ago"
-                android:textAppearance="@style/TextAppearance.Second.Light" />
-
-            <ImageView
-                android:id="@+id/likesImageView"
-                app:srcCompat="@drawable/ic_like"
-                android:layout_width="wrap_content"
-                android:paddingRight="@dimen/intrinsic_padding"
-                android:paddingLeft="@dimen/intrinsic_padding"
-                android:visibility="gone"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:id="@+id/likeCounterTextView"
-                android:layout_width="20dp"
-                android:layout_height="wrap_content"
-                android:textAppearance="@style/TextAppearance.Second.Light" />
-
-            <TextView
-                android:id="@+id/reputationsCountersTextView"
-                android:layout_width="20dp"
-                android:layout_height="wrap_content"
-                android:textAppearance="@style/TextAppearance.Second.Light" />
-
-        </LinearLayout>-->
 
         <LinearLayout
             android:id="@+id/attributesContainer"
