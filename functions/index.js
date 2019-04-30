@@ -491,7 +491,7 @@ exports.userNotificationRequestFeedback = functions.database.ref('/request-feedb
     console.log(userid);
     console.log(feedbackId);
 
-    sendAppNotificationPostAction(value.feedbackerid, value.requesterid, value.message, feedbackId, feedbackId);
+    sendAppNotificationPostAction(value.feedbackerid, value.requesterid, value.message, feedbackId, value.postid);
     return null;
 
 
