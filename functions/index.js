@@ -476,8 +476,8 @@ exports.pushNotificationRequestFeedback = functions.database.ref('/request-feedb
     console.log(feedbackId);
 
 
-    return sendPushNotification( value.fromUserId, userid, feedbackId, value.message);
-
+    sendPushNotification( value.requesterid, value.feedbackerid, feedbackId, value.message);
+    return null;
 
 });
 
@@ -491,8 +491,8 @@ exports.userNotificationRequestFeedback = functions.database.ref('/request-feedb
     console.log(userid);
     console.log(feedbackId);
 
-    return sendAppNotificationPostAction(userid, value.fromUserId, value.message, feedbackId, feedbackId);
-
+    sendAppNotificationPostAction(value.feedbackerid, value.requesterid, value.message, feedbackId, feedbackId);
+    return null;
 
 
 });

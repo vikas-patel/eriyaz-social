@@ -47,7 +47,7 @@ public class requestFeedbackManager implements OnDataChangedListener {
         currentUserName1=currentUserName;
         currentUserPoints1=currentUserPoints;
         currentUserId1=currentUserId;
-        DialogFragment newFragment = warningDialog.newInstance(currentUserId, userID, extraKeyValue, currentUserName, currentUserPoints,"");
+        DialogFragment newFragment = warningDialog.newInstance(currentUserId, userID, extraKeyValue, currentUserName, currentUserPoints,"","");
         newFragment.show(((Activity) context).getFragmentManager(), "dialog");
     }
 

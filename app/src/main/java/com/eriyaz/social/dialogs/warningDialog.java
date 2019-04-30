@@ -14,13 +14,15 @@ import android.support.design.widget.Snackbar;
 import com.eriyaz.social.enums.ItemType;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.model.Notification;
+import com.eriyaz.social.model.RequestFeedback;
 
 public class warningDialog extends DialogFragment {
 
     public static String notificationMessage = " has requested you to give feedback on post ";
     public static String songname;
+    public static String postid;
 
-    public static warningDialog newInstance(String currentUserId, String userID, String extraKeyValue, String currentUserName, Long currentUserPoints , String songname1) {
+    public static warningDialog newInstance(String currentUserId, String userID, String extraKeyValue, String currentUserName, Long currentUserPoints , String songname1, String postid1) {
         warningDialog frag = new warningDialog();
         Bundle args = new Bundle();
         args.putString("currentUserId", currentUserId);
@@ -30,6 +32,7 @@ public class warningDialog extends DialogFragment {
         args.putString("extraKeyValue", extraKeyValue);
         frag.setArguments(args);
         songname=songname1;
+        postid=postid1;
         return frag;
 
     }
@@ -59,13 +62,13 @@ public class warningDialog extends DialogFragment {
                             String action = "com.eriyaz.social.activities.PostDetailsActivity";
                             String extraKey = "PostDetailsActivity.POST_ID_EXTRA_KEY";
 
-                            Notification notification = new Notification(currentUserId, message, action, extraKey, extraKeyValue, false, false, false, ItemType.ITEM);
+                            RequestFeedback requestFeedback = new RequestFeedback(userID,currentUserId,postid,message);
 
                             ConnectivityManager cm = (ConnectivityManager) activity.getSystemService(Context.CONNECTIVITY_SERVICE);
                             NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
 
                             if (activeNetwork != null && activeNetwork.isConnectedOrConnecting()) {
-                                profileManager.sendRequestNotification(notification, userID);
+                                profileManager.sendRequestNotification(requestFeedback, userID);
                                 profileManager.decrementUserPoints(currentUserId);
 
                                 showSnackbar("Feedback Request Sent");

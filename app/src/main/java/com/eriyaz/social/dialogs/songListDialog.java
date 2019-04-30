@@ -22,6 +22,7 @@ import static com.eriyaz.social.managers.requestFeedbackManager.items;
 public class songListDialog extends DialogFragment {
 
     public static ArrayList<String> songsList;
+    public static ArrayList<String> postidList;
 
     public static songListDialog newInstance(String currentUserId, String userID, String currentUserName, Long currentUserPoints) {
         songListDialog frag = new songListDialog();
@@ -46,8 +47,9 @@ public class songListDialog extends DialogFragment {
         songsList = new ArrayList<>();
         songsList.add("<--My Song List-->");
         // ArrayList to Array Conversion
-        for (int j = 0; j < items.size(); j++)
-            songsList.add(String.valueOf(items.get(j).getTitle()));
+        for (int j = 0; j < items.size(); j++){
+            postidList.add(String.valueOf(items.get(j).getId()));
+            songsList.add(String.valueOf(items.get(j).getTitle()));}
 
         Activity profileActivity = this.getActivity();
 
@@ -68,7 +70,7 @@ public class songListDialog extends DialogFragment {
                         int position = spinner.getSelectedItemPosition();
                         if(position>0) {
                             String extraKeyValue = items.get(position - 1).getImageTitle().substring(5);
-                            DialogFragment newFragment = warningDialog.newInstance(currentUserId, userID, extraKeyValue, currentUserName, currentUserPoints, songsList.get(position));
+                            DialogFragment newFragment = warningDialog.newInstance(currentUserId, userID, extraKeyValue, currentUserName, currentUserPoints, songsList.get(position),postidList.get(position));
                             newFragment.show(((Activity) profileActivity).getFragmentManager(), "dialog");
                         }
                         else{

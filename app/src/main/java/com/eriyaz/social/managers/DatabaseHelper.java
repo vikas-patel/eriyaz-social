@@ -35,6 +35,7 @@ import com.eriyaz.social.model.Notification;
 import com.eriyaz.social.model.Point;
 import com.eriyaz.social.model.ProfileListResult;
 import com.eriyaz.social.model.RecordingItem;
+import com.eriyaz.social.model.RequestFeedback;
 import com.eriyaz.social.utils.Analytics;
 import com.eriyaz.social.utils.ValidationUtil;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -741,7 +742,7 @@ public class DatabaseHelper {
         databaseReference.child(childNode).setValue(notification);
         analytics.logFeedbackRequestNotification();
     }
-    public void sendRequestNotification(Notification notification, String userID) {
+    public void sendRequestNotification(RequestFeedback notification, String userID) {
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference databaseReference = database.getReference("request-feedback").child(userID);
@@ -749,8 +750,8 @@ public class DatabaseHelper {
         String childNode = databaseReference.push().getKey();
         long createdDate = Calendar.getInstance().getTimeInMillis();
 
-        notification.setCreatedDate(createdDate);
-        notification.setId(childNode);
+        notification.setTimestamp(createdDate);
+        notification.setFeedbackid(childNode);
 
         databaseReference.child(childNode).setValue(notification);
         analytics.logFeedbackRequestNotification();

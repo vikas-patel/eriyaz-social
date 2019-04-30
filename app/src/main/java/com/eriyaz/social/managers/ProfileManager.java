@@ -29,6 +29,7 @@ import com.eriyaz.social.model.Notification;
 import com.eriyaz.social.model.Point;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.model.RecordingItem;
+import com.eriyaz.social.model.RequestFeedback;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -163,7 +164,7 @@ public class ProfileManager extends FirebaseListenersManager {
         ApplicationHelper.getDatabaseHelper().sendNotification(notification, userID);
     }
 
-    public void sendRequestNotification(Notification notification, String userID) {
+    public void sendRequestNotification(RequestFeedback notification, String userID) {
         ApplicationHelper.getDatabaseHelper().sendRequestNotification(notification, userID);
     }
     public void blockUser(String blockUserId, String reason, OnTaskCompleteListener onTaskCompleteListener) {
