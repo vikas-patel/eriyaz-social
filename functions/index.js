@@ -469,13 +469,25 @@ exports.pushNotificationRequestFeedback = functions.database.ref('/request-feedb
     const feedbackId = event.params.feedbackId;
     const userid = event.params.userID;
     const value = event.data.val();
+    var promises = [];
+    const profileRef = admin.database().ref(`/profiles`);
+
+    const promise = profileRef.once('value').then(ProfilesSnap => {
+            ProfilesSnap.forEach(function(ProfileSnap) {
+                if(ProfileSnap.key==value.requesterid){
+                promises.push(sendPushNotification( value.requesterid, value.feedbackerid, feedbackId, value.message));}
+            });
+        });
+    promises.push(promise);
 
     console.log(value);
     console.log(userid);
     console.log(feedbackId);
 
-    sendPushNotification( value.requesterid, value.feedbackerid, feedbackId, value.message);
-    return null;
+
+    return Promise.all(promises).then(results => {
+            console.log("sent push notifications");
+        });
 
 
 });
