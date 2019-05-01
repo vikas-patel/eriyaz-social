@@ -154,6 +154,7 @@ function sendPushNotification(senderId, receiverId, postId, body) {
         return admin.messaging().sendToDevice(tokens, payload).then(response => {
                     // For each message check if there was an error.
                     const tokensToRemove = [];
+                    console.log('tokens:', tokens[0]);
             response.results.forEach((result, index) => {
                 const error = result.error;
                 if (error) {
@@ -470,17 +471,11 @@ exports.pushNotificationRequestFeedback = functions.database.ref('/request-feedb
     const userid = event.params.userID;
     const value = event.data.val();
     const promises = [];
-    var msg='';
+    var msg=' has requested you to give feedback on his song ';
 
     console.log(value);
     console.log(userid);
     console.log(feedbackId);
-    const promise = admin.database().ref(`/profiles/${value.requesterid}`).once('value').then(function(profileSnap) {
-        var profile = profileSnap.val();
-        console.log(profile)
-        msg = `${profile.username} has requested you to give feedback on his song `;
-    });
-    promises.push(promise);
     const promise1 = admin.database().ref(`/posts/${value.postid}`).once('value').then(function(postSnap) {
         var post = postSnap.val();
         console.log(post);
@@ -488,10 +483,10 @@ exports.pushNotificationRequestFeedback = functions.database.ref('/request-feedb
         });
     promises.push(promise1);
 
-    return Promise.all(promises).then(results => {
-            return sendPushNotification( value.requesterid, value.feedbackerid, feedbackId, msg);
-        });
 
+    return Promise.all(promises).then(results => {
+        return sendPushNotification( value.requesterid, value.feedbackerid, value.postid, msg);
+            });
 
 });
 
