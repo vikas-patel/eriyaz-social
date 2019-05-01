@@ -174,7 +174,6 @@ function sendChatPushNotification(senderId, receiverId, body, clickActivity, ext
     // Get the list of device notification tokens.
     const getDeviceTokensTask = admin.database().ref(`/profiles/${receiverId}/notificationTokens`).once('value');
     console.log('getDeviceTokensTask path: ', `/profiles/${receiverId}/notificationTokens`)
-
     // Get rating author.
     const getReceiverProfileTask = admin.database().ref(`/profiles/${senderId}`).once('value');
 
@@ -475,9 +474,9 @@ exports.pushNotificationRequestFeedback = functions.database.ref('/request-feedb
     console.log(userid);
     console.log(feedbackId);
 
-
     sendPushNotification( value.requesterid, value.feedbackerid, feedbackId, value.message);
     return null;
+
 
 });
 
@@ -486,15 +485,28 @@ exports.userNotificationRequestFeedback = functions.database.ref('/request-feedb
     const feedbackId = event.params.feedbackId;
     const userid = event.params.userID;
     const value = event.data.val();
+    var msg='';
+    const promises = [];
 
     console.log(value);
     console.log(userid);
     console.log(feedbackId);
+    const promise = admin.database().ref(`/profiles/${value.requesterid}`).once('value').then(function(profileSnap) {
+        var profile = profileSnap.val();
+        console.log(profile)
+        msg = `${profile.username} has requested you to give feedback on his song `;
+    });
+    promises.push(promise);
+    const promise1 = admin.database().ref(`/posts/${value.postid}`).once('value').then(function(postSnap) {
+        var post = postSnap.val();
+        console.log(post);
+        msg = msg + `${post.title}`
+        });
+    promises.push(promise1);
 
-    sendAppNotificationPostAction(value.feedbackerid, value.requesterid, value.message, feedbackId, value.postid);
-    return null;
-
-
+    return Promise.all(promises).then(() => {
+          return sendAppNotificationPostAction(value.feedbackerid, value.requesterid, msg, feedbackId, value.postid);
+        });
 });
 
 
