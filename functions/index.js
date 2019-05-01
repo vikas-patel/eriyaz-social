@@ -470,24 +470,17 @@ exports.pushNotificationRequestFeedback = functions.database.ref('/request-feedb
     const feedbackId = event.params.feedbackId;
     const userid = event.params.userID;
     const value = event.data.val();
-    const promises = [];
     var msg=' has requested you to give feedback on his song ';
 
     console.log(value);
     console.log(userid);
     console.log(feedbackId);
-    const promise1 = admin.database().ref(`/posts/${value.postid}`).once('value').then(function(postSnap) {
+    return admin.database().ref(`/posts/${value.postid}`).once('value').then(function(postSnap) {
         var post = postSnap.val();
         console.log(post);
-        msg = msg + `${post.title}`
-        });
-    promises.push(promise1);
-
-
-    return Promise.all(promises).then(results => {
+        msg = msg + `${post.title}`;
         return sendPushNotification( value.requesterid, value.feedbackerid, value.postid, msg);
-            });
-
+        });
 });
 
 
