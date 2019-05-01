@@ -469,24 +469,27 @@ exports.pushNotificationRequestFeedback = functions.database.ref('/request-feedb
     const feedbackId = event.params.feedbackId;
     const userid = event.params.userID;
     const value = event.data.val();
-    var promises = [];
-    const profileRef = admin.database().ref(`/profiles`);
-
-    const promise = profileRef.once('value').then(ProfilesSnap => {
-            ProfilesSnap.forEach(function(ProfileSnap) {
-                if(ProfileSnap.key==value.requesterid){
-                promises.push(sendPushNotification( value.requesterid, value.feedbackerid, feedbackId, value.message));}
-            });
-        });
-    promises.push(promise);
+    const promises = [];
+    var msg='';
 
     console.log(value);
     console.log(userid);
     console.log(feedbackId);
-
+    const promise = admin.database().ref(`/profiles/${value.requesterid}`).once('value').then(function(profileSnap) {
+        var profile = profileSnap.val();
+        console.log(profile)
+        msg = `${profile.username} has requested you to give feedback on his song `;
+    });
+    promises.push(promise);
+    const promise1 = admin.database().ref(`/posts/${value.postid}`).once('value').then(function(postSnap) {
+        var post = postSnap.val();
+        console.log(post);
+        msg = msg + `${post.title}`
+        });
+    promises.push(promise1);
 
     return Promise.all(promises).then(results => {
-            console.log("sent push notifications");
+            return sendPushNotification( value.requesterid, value.feedbackerid, feedbackId, msg);
         });
 
 
