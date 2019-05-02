@@ -116,16 +116,14 @@ exports.pushNotificationRatings = functions.database.ref('/post-ratings/{postId}
 });
 
 function sendPushNotification(senderId, receiverId, postId, body) {
-    const promises = [];
     // Get the list of device notification tokens.
     const getDeviceTokensTask = admin.database().ref(`/profiles/${receiverId}/notificationTokens`).once('value');
     console.log('getDeviceTokensTask path: ', `/profiles/${receiverId}/notificationTokens`)
-    promises.push(getDeviceTokensTask);
+
     // Get rating author.
     const getRatingAuthorProfileTask = admin.database().ref(`/profiles/${senderId}`).once('value');
-    promises.push(getRatingAuthorProfileTask);
 
-    Promise.all(promises).then(results => {
+    Promise.all([getDeviceTokensTask, getRatingAuthorProfileTask]).then(results => {
         const tokensSnapshot = results[0];
         const ratingAuthorProfile = results[1].val();
 
@@ -134,7 +132,6 @@ function sendPushNotification(senderId, receiverId, postId, body) {
             return console.log('There are no notification tokens to send to.');
         }
 
-        else{
         console.log('There are', tokensSnapshot.numChildren(), 'tokens to send notifications to.');
         console.log('Fetched rating Author profile', ratingAuthorProfile);
 
@@ -171,7 +168,6 @@ function sendPushNotification(senderId, receiverId, postId, body) {
             });
             return Promise.all(tokensToRemove);
         });
-        }
     });
 }
 
