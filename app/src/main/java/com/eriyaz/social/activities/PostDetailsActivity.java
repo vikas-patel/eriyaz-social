@@ -1657,14 +1657,15 @@ public class PostDetailsActivity extends BaseCurrentProfileActivity implements E
             @Override
             public void onTaskComplete(boolean success) {
                 hideProgress();
-                if(points!=-2 && points!=0)
-                    showSnackBar(R.string.message_comment_was_rewared);
+                if(points!=-2 && points!=0){
+                    showSnackBar(R.string.message_comment_was_rewared);}
             }
         });
     }
 
     @Override
     public void onCommentChanged(String newText, String commentId) {
+
         updateComment(newText, commentId);
     }
 

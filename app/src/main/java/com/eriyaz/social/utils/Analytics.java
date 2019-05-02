@@ -42,7 +42,7 @@ public class Analytics {
     public static final String InviteAppInstall = "InviteAppInstall";
     public static final String APP_RATER = "AppRater";
     public static final String APP_RATER_ACTION = "Action";
-    public static final String UserRewardComment = "UserRewardFeedback";
+
 
     public Analytics(Context context) {
         firebase = FirebaseAnalytics.getInstance(context);
@@ -264,14 +264,6 @@ public class Analytics {
         Bundle bundle = new Bundle();
         if (currentUser != null) bundle.putString("UserName", currentUser.getDisplayName());
         firebase.logEvent(CREATE_PROFILE, bundle);
-    }
-
-    public void UserRewardcomment(String Authorid, String Posttitle,String profileid){
-        Bundle bundle = new Bundle();
-        if (profileid != null) bundle.putString("Rewarderid", profileid);
-        if(Authorid !=null) bundle.putString("Anthorid",Authorid);
-        if(Posttitle !=null) bundle.putString("Posttitle",Posttitle);
-        firebase.logEvent(UserRewardComment,bundle);
     }
 
     public FirebaseAnalytics getFirebase() {
