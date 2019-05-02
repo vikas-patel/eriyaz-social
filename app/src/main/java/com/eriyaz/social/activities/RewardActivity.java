@@ -30,7 +30,6 @@ import java.util.List;
 public class RewardActivity extends BaseActivity {
     private PostsAdapter postsAdapter;
     private RecyclerView recyclerView;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -2,7 +2,10 @@ package com.eriyaz.social.utils;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.Toast;
 
+import com.eriyaz.social.Constants;
 import com.eriyaz.social.enums.AppRaterAction;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
@@ -43,6 +46,7 @@ public class Analytics {
     public static final String InviteAppInstall = "InviteAppInstall";
     public static final String APP_RATER = "AppRater";
     public static final String APP_RATER_ACTION = "Action";
+    public static final String UserRewardComment = "CommentViewHolder";
 
     public Analytics(Context context) {
         firebase = FirebaseAnalytics.getInstance(context);
@@ -264,6 +268,14 @@ public class Analytics {
         Bundle bundle = new Bundle();
         if (currentUser != null) bundle.putString("UserName", currentUser.getDisplayName());
         firebase.logEvent(CREATE_PROFILE, bundle);
+    }
+
+    public void UserRewardcomment(String Authorid, String Posttitle,String profileid){
+        Bundle bundle = new Bundle();
+        if (profileid != null) bundle.putString("Rewarderid", profileid);
+        if(Authorid !=null) bundle.putString("Anthorid",Authorid);
+        if(Posttitle !=null) bundle.putString("Posttitle",Posttitle);
+        firebase.logEvent(UserRewardComment,bundle);
     }
 
     public FirebaseAnalytics getFirebase() {
