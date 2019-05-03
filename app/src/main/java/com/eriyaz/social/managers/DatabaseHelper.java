@@ -23,20 +23,38 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.eriyaz.social.ApplicationHelper;
+import com.eriyaz.social.Constants;
+import com.eriyaz.social.R;
+import com.eriyaz.social.managers.listeners.OnDataChangedListener;
+import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
+import com.eriyaz.social.managers.listeners.OnObjectExistListener;
+import com.eriyaz.social.managers.listeners.OnPostChangedListener;
 import com.eriyaz.social.managers.listeners.OnPostCreatedListener;
+import com.eriyaz.social.managers.listeners.OnPostListChangedListener;
+import com.eriyaz.social.managers.listeners.OnProfileCreatedListener;
 import com.eriyaz.social.managers.listeners.OnProfileListChangedListener;
+import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteMessageListener;
 import com.eriyaz.social.model.Avatar;
 import com.eriyaz.social.model.BoughtFeedback;
+import com.eriyaz.social.model.Comment;
 import com.eriyaz.social.model.Flag;
 import com.eriyaz.social.model.ItemListResult;
+import com.eriyaz.social.model.Like;
 import com.eriyaz.social.model.Message;
 import com.eriyaz.social.model.Notification;
 import com.eriyaz.social.model.Point;
+import com.eriyaz.social.model.Post;
+import com.eriyaz.social.model.PostListResult;
+import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.ProfileListResult;
+import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.model.RecordingItem;
 import com.eriyaz.social.model.RequestFeedback;
+import com.eriyaz.social.model.UserComment;
 import com.eriyaz.social.utils.Analytics;
+import com.eriyaz.social.utils.LogUtil;
 import com.eriyaz.social.utils.ValidationUtil;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -61,23 +79,6 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.eriyaz.social.ApplicationHelper;
-import com.eriyaz.social.Constants;
-import com.eriyaz.social.R;
-import com.eriyaz.social.managers.listeners.OnDataChangedListener;
-import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
-import com.eriyaz.social.managers.listeners.OnObjectExistListener;
-import com.eriyaz.social.managers.listeners.OnPostChangedListener;
-import com.eriyaz.social.managers.listeners.OnPostListChangedListener;
-import com.eriyaz.social.managers.listeners.OnProfileCreatedListener;
-import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
-import com.eriyaz.social.model.Comment;
-import com.eriyaz.social.model.Like;
-import com.eriyaz.social.model.Post;
-import com.eriyaz.social.model.PostListResult;
-import com.eriyaz.social.model.Profile;
-import com.eriyaz.social.model.Rating;
-import com.eriyaz.social.utils.LogUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -1304,6 +1305,37 @@ public class DatabaseHelper {
         return result;
     }
 
+    private ItemListResult parseCommentsList(DataSnapshot dataSnapshot) {
+        ItemListResult result = new ItemListResult();
+        List<UserComment> list = new ArrayList<UserComment>();
+        boolean isMoreDataAvailable = true;
+        long lastItemCreatedDate = 0;
+        isMoreDataAvailable = Constants.Post.POST_AMOUNT_ON_PAGE == dataSnapshot.getChildrenCount();
+        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+            UserComment userComment = snapshot.getValue(UserComment.class);
+            System.out.println("DataSnapshot" +snapshot);
+            System.out.println("UserComment"+userComment.getText());
+            if (userComment.getText() == null) {
+                userComment.setText(" ");
+            }
+            list.add(userComment);
+            if (lastItemCreatedDate == 0 || lastItemCreatedDate > userComment.getCreatedDate()) {
+                lastItemCreatedDate = userComment.getCreatedDate();
+            }
+        }
+
+        Collections.sort(list, new Comparator<UserComment>() {
+            @Override
+            public int compare(UserComment lhs, UserComment rhs) {
+                return ((Long) rhs.getCreatedDate()).compareTo(lhs.getCreatedDate());
+            }
+        });
+        result.setItems(list);
+        result.setLastItemCreatedDate(lastItemCreatedDate);
+        result.setMoreDataAvailable(isMoreDataAvailable);
+        return result;
+    }
+
 
     public void getProfileSingleValue(String id, final OnObjectChangedListener<Profile> listener) {
         DatabaseReference databaseReference = getDatabaseReference().child("profiles").child(id);
@@ -1388,6 +1420,32 @@ public class DatabaseHelper {
 
         activeListeners.put(valueEventListener, databaseReference);
         return valueEventListener;
+    }
+
+    public void getUserCommentsList(final OnObjectChangedListener<ItemListResult> onDataChangedListener, long date, final String userId) {
+        DatabaseReference databaseReference = database.getReference("user-comments").child(userId);
+        Query userCommentsQuery;
+        if (date == 0) {
+            userCommentsQuery = databaseReference.limitToLast(Constants.Post.POST_AMOUNT_ON_PAGE).orderByChild("createdDate");
+        } else {
+            userCommentsQuery = databaseReference.limitToLast(Constants.Post.POST_AMOUNT_ON_PAGE).endAt(date).orderByChild("createdDate");
+        }
+        userCommentsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ItemListResult result = parseCommentsList(dataSnapshot);
+                if (result.getItems().isEmpty() && result.isMoreDataAvailable()) {
+                    getUserCommentsList(onDataChangedListener, result.getLastItemCreatedDate() - 1, userId);
+                } else {
+                    onDataChangedListener.onObjectChanged(result);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                LogUtil.logError(TAG, "getRatingListByUser(), onCancelled", new Exception(databaseError.getMessage()));
+            }
+        });
     }
 
     public ValueEventListener getBlockedByList(String userId, final OnDataChangedListener<String> onDataChangedListener) {

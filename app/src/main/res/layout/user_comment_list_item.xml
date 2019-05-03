@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingLeft="@dimen/intrinsic_padding"
+    android:paddingRight="@dimen/intrinsic_padding"
+    android:paddingTop="@dimen/intrinsic_padding">
+
+    <android.support.v7.widget.CardView
+        android:id="@+id/comments_card_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        card_view:cardBackgroundColor="@android:color/white"
+        card_view:cardCornerRadius="2dp"
+        card_view:cardElevation="@dimen/post_card_elevation"
+        card_view:cardUseCompatPadding="true">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/commentLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <ImageView
+                android:id="@+id/audioPlayimageView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:srcCompat="@drawable/ic_play_circle_filled"
+                android:visibility="gone"
+                android:layout_gravity="center_vertical"/>
+
+            <TextView
+                android:id="@+id/user_comment_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:textSize="15sp"
+                android:paddingTop="@dimen/small_intrinsic_padding"
+                android:singleLine="true"
+                android:maxLength="50"
+                android:scrollHorizontally="true"
+                android:ellipsize="end"
+                android:textAppearance="@style/TextAppearance.Second" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/attributesContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/intrinsic_padding"
+            android:paddingBottom="@dimen/intrinsic_padding"
+            android:paddingRight="@dimen/intrinsic_padding"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/dateImageView"
+                app:srcCompat="@drawable/ic_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/dateTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingLeft="@dimen/small_intrinsic_padding"
+                android:textAppearance="@style/TextAppearance.Second.Light" />
+
+            <ImageView
+                android:id="@+id/likesImageView"
+                app:srcCompat="@drawable/ic_like_active"
+                android:layout_width="wrap_content"
+                android:paddingRight="@dimen/intrinsic_padding"
+                android:paddingLeft="@dimen/intrinsic_padding"
+                android:visibility="gone"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/likeCounterTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/small_intrinsic_padding"
+                android:textAppearance="@style/TextAppearance.Second.Light" />
+
+            <TextView
+                android:id="@+id/reputationsCountersTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/small_intrinsic_padding"
+                android:textAppearance="@style/TextAppearance.Second.Light" />
+
+        </LinearLayout>
+    </LinearLayout>
+</android.support.v7.widget.CardView>
+</LinearLayout>
