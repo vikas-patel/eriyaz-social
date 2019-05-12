@@ -32,7 +32,7 @@ public class UserCommentsViewHolder extends RecyclerView.ViewHolder {
         this.context = itemView.getContext();
         this.callBack = callBack;
         commentTextView = itemView.findViewById(R.id.user_comment_text);
-        //postTitleTextView = itemView.findViewById(R.id.postTitleTextView);
+        postTitleTextView = itemView.findViewById(R.id.postTitleTextView);
         dateTextView = itemView.findViewById(R.id.dateTextView);
         likesCounterTextView = itemView.findViewById(R.id.likeCounterTextView);
         reputationCounterTextView = itemView.findViewById(R.id.reputationsCountersTextView);
@@ -83,6 +83,11 @@ public class UserCommentsViewHolder extends RecyclerView.ViewHolder {
             likesImageView.setVisibility(View.GONE);
             likesCounterTextView.setText("");
         }
+
+        // Set post title
+        System.out.println("post title: "+comment.getPostTitle());
+
+        postTitleTextView.setText(comment.getPostTitle());
 
         // For audio comment, display play icon
         if (comment.getAudioPath() != null && !comment.getAudioPath().isEmpty()) {

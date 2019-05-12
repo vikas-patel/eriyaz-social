@@ -14,7 +14,7 @@ public class UserComment {
     private long createdDate;
     private int reputationPoints;
     private int likesCount;
-//    private String postTitle;
+    private String postTitle;
     private ItemType itemType;
 
     public UserComment(ItemType itemType) {
@@ -115,11 +115,11 @@ public class UserComment {
         this.likesCount = likesCount;
     }
 
-//    public String getPostTitle() {
-//        return postTitle;
-//    }
-//
-//    public void setPostTitle(String postTitle) {
-//        this.postTitle = postTitle;
-//    }
+    public String getPostTitle() {
+        return postTitle;
+    }
+
+    public void setPostTitle(String postTitle) {
+        this.postTitle = postTitle;
+    }
 }

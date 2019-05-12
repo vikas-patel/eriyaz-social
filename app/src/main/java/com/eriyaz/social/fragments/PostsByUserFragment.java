@@ -22,6 +22,7 @@ import com.eriyaz.social.adapters.CommentsByUserAdapter;
 import com.eriyaz.social.adapters.PostsByUserAdapter;
 import com.eriyaz.social.adapters.ProfileTabInterface;
 import com.eriyaz.social.adapters.RatedPostsByUserAdapter;
+import com.eriyaz.social.adapters.holders.ProfileInterface;
 import com.eriyaz.social.adapters.holders.ProfileTabForCommentsInterface;
 import com.eriyaz.social.model.Post;
 import com.eriyaz.social.model.RecordingItem;
@@ -246,7 +247,10 @@ public class PostsByUserFragment extends BaseFragment {
         getActivity().startActivityForResult(intent, ProfileActivity.CREATE_POST_FROM_PROFILE_REQUEST);
     }
 
-    public ProfileTabInterface getPostsAdapter() {
-        return (ProfileTabInterface) postsAdapter;
+    public ProfileInterface getPostsAdapter() {
+        if (postsAdapter instanceof ProfileTabInterface)
+            return (ProfileTabInterface) postsAdapter;
+        else
+            return (ProfileTabForCommentsInterface) postsAdapter;
     }
 }
