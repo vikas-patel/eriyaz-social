@@ -470,14 +470,10 @@ exports.pushNotificationRequestFeedback = functions.database.ref('/request-feedb
     const feedbackId = event.params.feedbackId;
     const userid = event.params.userID;
     const value = event.data.val();
-    var msg=' has requested you to give feedback on his song ';
-
-    console.log(value);
-    console.log(userid);
-    console.log(feedbackId);
+    var msg=' has requested you to give feedback on song ';
+    console.log(`feedback request by ${userid}`);
     return admin.database().ref(`/posts/${value.postid}`).once('value').then(function(postSnap) {
         var post = postSnap.val();
-        console.log(post);
         msg = msg + `${post.title}`;
         return sendPushNotification( value.requesterid, value.feedbackerid, value.postid, msg);
         });
@@ -1881,45 +1877,45 @@ exports.grantSignupReward = functions.database.ref('/profiles/{uid}/id').onCreat
 // Firebase function that will be triggered when a new comment is added in /post-comments.
 // The new comment is copied into /user-comments
 
-exports.duplicateUserComments = functions.database.ref('/post-comments/{postId}/{commentId}').onWrite(event => {
+// exports.duplicateUserComments = functions.database.ref('/post-comments/{postId}/{commentId}').onWrite(event => {
 
-    const commentId = event.params.commentId;
-    const postId = event.params.postId;
-    const comment = event.data.val();
+//     const commentId = event.params.commentId;
+//     const postId = event.params.postId;
+//     const comment = event.data.val();
 
-    console.log("commentId", commentId);
+//     console.log("commentId", commentId);
 
-    var text, audioPath, audioTitle, createdDate;
-    let reputationPoints = 0;
-    let likesCount = 0;
-    let authorId = 0;
+//     var text, audioPath, audioTitle, createdDate;
+//     let reputationPoints = 0;
+//     let likesCount = 0;
+//     let authorId = 0;
 
-    text = (!comment.text)? null: comment.text;
-    reputationPoints = (!comment.reputationPoints)? 0: comment.reputationPoints;
-    likesCount = (!comment.likesCount)? 0: comment.likesCount;
-    audioPath = (!comment.audioPath)? null: comment.audioPath;
-    audioTitle = (!comment.audioTitle)? null: comment.audioTitle;
-    authorId = comment.authorId;
-    createdDate = comment.createdDate;
+//     text = (!comment.text)? null: comment.text;
+//     reputationPoints = (!comment.reputationPoints)? 0: comment.reputationPoints;
+//     likesCount = (!comment.likesCount)? 0: comment.likesCount;
+//     audioPath = (!comment.audioPath)? null: comment.audioPath;
+//     audioTitle = (!comment.audioTitle)? null: comment.audioTitle;
+//     authorId = comment.authorId;
+//     createdDate = comment.createdDate;
 
-    const commentsRef = admin.database().ref(`/user-comments/${authorId}/${commentId}`);
+//     const commentsRef = admin.database().ref(`/user-comments/${authorId}/${commentId}`);
 
-    var newCommentDetails =
-    {
-         'id':commentId,
-         'postId': postId,
-         'createdDate': createdDate,
-         'text': text,
-         'reputationPoints': reputationPoints,
-         'likesCount': likesCount
-    };
-    if (audioPath != null && audioTitle != null) {
-        newCommentDetails.audioPath = audioPath;
-        newCommentDetails.audioTitle = audioTitle;
-    }
-    return commentsRef.set(newCommentDetails);
-    console.log("Updated the comment in /user-comments.");
-});
+//     var newCommentDetails =
+//     {
+//          'id':commentId,
+//          'postId': postId,
+//          'createdDate': createdDate,
+//          'text': text,
+//          'reputationPoints': reputationPoints,
+//          'likesCount': likesCount
+//     };
+//     if (audioPath != null && audioTitle != null) {
+//         newCommentDetails.audioPath = audioPath;
+//         newCommentDetails.audioTitle = audioTitle;
+//     }
+//     return commentsRef.set(newCommentDetails);
+//     console.log("Updated the comment in /user-comments.");
+// });
 
 exports.appUpdateNotification = functions.https.onRequest((req, res) => {
     // check if security key is same
@@ -2421,6 +2417,7 @@ exports.rankTaskRunner = functions.https.onRequest((req, res) => {
         });
     });
 
+//TODO: too risky as it could trigger by mistake and weekly points get reset, add passowrd in request param
 exports.weeklyPointsTaskRunner = functions.https.onRequest((req, res) => {
     console.log("Weekly points task runner");
     const profileRef = admin.database().ref("/profiles");
@@ -2456,56 +2453,56 @@ exports.weeklyPointsTaskRunner = functions.https.onRequest((req, res) => {
 
 // Function to copy comments from post-comments node to user-comments node
 
-exports.copyUserComments = functions.https.onRequest((req, res) => {
-    console.log("Copying old comments");
-    var text, audioPath, audioTitle, authorId, createdDate;
-    var updateProfiles = {};
-    let updated = 0;
-    let reputationPoints = 0;
-    let likesCount = 0;
-    const postCommentsRef = admin.database().ref("/post-comments");
-    const commentsRef = admin.database().ref('/user-comments');
+// exports.copyUserComments = functions.https.onRequest((req, res) => {
+//     console.log("Copying old comments");
+//     var text, audioPath, audioTitle, authorId, createdDate;
+//     var updateProfiles = {};
+//     let updated = 0;
+//     let reputationPoints = 0;
+//     let likesCount = 0;
+//     const postCommentsRef = admin.database().ref("/post-comments");
+//     const commentsRef = admin.database().ref('/user-comments');
 
-    postCommentsRef.once('value').then((postSnapshot) => {
-       	postSnapshot.forEach(postComments => {
-		    let postId = postComments.key;
-		    console.log(postId);
-		    var user_comments = postComments.val();
+//     postCommentsRef.once('value').then((postSnapshot) => {
+//        	postSnapshot.forEach(postComments => {
+// 		    let postId = postComments.key;
+// 		    console.log(postId);
+// 		    var user_comments = postComments.val();
 
-		    Object.keys(user_comments).forEach(function(commentId) {
-//			commentsRef = admin.database().ref(`/user-comments/${user_comments[commentId].authorId}`);
-            authorId = user_comments[commentId].authorId;
-            createdDate = user_comments[commentId].createdDate;
-			text = (!user_comments[commentId].text)? null: user_comments[commentId].text;
-			reputationPoints = (!user_comments[commentId].reputationPoints)? 0: user_comments[commentId].reputationPoints;
-            likesCount = (!user_comments[commentId].likesCount)? 0: user_comments[commentId].likesCount;
-            audioPath = (!user_comments[commentId].audioPath)? null: user_comments[commentId].audioPath;
-            audioTitle = (!user_comments[commentId].audioTitle)? null: user_comments[commentId].audioTitle;
+// 		    Object.keys(user_comments).forEach(function(commentId) {
+// //			commentsRef = admin.database().ref(`/user-comments/${user_comments[commentId].authorId}`);
+//             authorId = user_comments[commentId].authorId;
+//             createdDate = user_comments[commentId].createdDate;
+// 			text = (!user_comments[commentId].text)? null: user_comments[commentId].text;
+// 			reputationPoints = (!user_comments[commentId].reputationPoints)? 0: user_comments[commentId].reputationPoints;
+//             likesCount = (!user_comments[commentId].likesCount)? 0: user_comments[commentId].likesCount;
+//             audioPath = (!user_comments[commentId].audioPath)? null: user_comments[commentId].audioPath;
+//             audioTitle = (!user_comments[commentId].audioTitle)? null: user_comments[commentId].audioTitle;
 
-            var commentDetailsObject = {
-                'id': commentId,
-                'postId': postId,
-                'createdDate': createdDate,
-                'text': text,
-                'reputationPoints': reputationPoints,
-                'likesCount':likesCount
-            };
+//             var commentDetailsObject = {
+//                 'id': commentId,
+//                 'postId': postId,
+//                 'createdDate': createdDate,
+//                 'text': text,
+//                 'reputationPoints': reputationPoints,
+//                 'likesCount':likesCount
+//             };
 
-            // For audio comment
-            if (audioPath != null && audioTitle != null)
-            {
-               commentDetailsObject.audioPath = audioPath;
-               commentDetailsObject.audioTitle = audioTitle;
-            }
-            updateProfiles[`${authorId}/${commentId}`] = commentDetailsObject;
-            updated++;
-            });
-            });
-            commentsRef.update(updateProfiles);
-            console.log("updated profiles", updated);
-            res.status(200).send(`updated profiles ${updated}`);
-        });
-    });
+//             // For audio comment
+//             if (audioPath != null && audioTitle != null)
+//             {
+//                commentDetailsObject.audioPath = audioPath;
+//                commentDetailsObject.audioTitle = audioTitle;
+//             }
+//             updateProfiles[`${authorId}/${commentId}`] = commentDetailsObject;
+//             updated++;
+//             });
+//             });
+//             commentsRef.update(updateProfiles);
+//             console.log("updated profiles", updated);
+//             res.status(200).send(`updated profiles ${updated}`);
+//         });
+//     });
 
 /// TASK RUNNER CLOUD FUNCTION ///
 
