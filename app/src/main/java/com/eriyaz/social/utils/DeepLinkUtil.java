@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.text.Html;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.eriyaz.social.R;
@@ -60,7 +61,7 @@ public class DeepLinkUtil {
                             Uri flowchartLink = task.getResult().getPreviewLink();
                             dynamicLinkCallback.getLinkSuccess(shortLink);
                             LogUtil.logInfo(TAG,shortLink.toString());
-                            Toast.makeText(context.getApplicationContext(),shortLink.toString(), Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(context.getApplicationContext(),shortLink.toString(), Toast.LENGTH_SHORT).show();
                         } else {
                             // Error
                             // ...
@@ -97,30 +98,30 @@ public class DeepLinkUtil {
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         LogUtil.logDebug(TAG,"ShortDynamicLink creation failed"+e.toString());
-//                        DynamicLink dynamicLink = FirebaseDynamicLinks.getInstance().createDynamicLink()
-//                                .setLink(Uri.parse(link))
-//                                .setDynamicLinkDomain(context.getString(R.string.dynamic_link_domain))
-//                                .setAndroidParameters(new DynamicLink.AndroidParameters.Builder("com.eriyaz.social")
-//                                        .setMinimumVersion(minVersion)
-//                                         //.setFallbackUrl(Uri.parse("https://google.com"))
-//                                        .build())
-//                                .setSocialMetaTagParameters(   new DynamicLink.SocialMetaTagParameters.Builder()
-//                                        .setTitle(context.getString(R.string.app_share_title))
-//                                        .setDescription(context.getString(R.string.app_share_description))
-//                                        .build())
-//                                .buildDynamicLink();
-//                        Uri dynamicLinkUri = dynamicLink.getUri();
-//                        String dynamicLin = dynamicLinkUri.toString();
-//                        dynamicLin = dynamicLin.replace("goo.gl", "goo.gl/");
-//
-//                        LogUtil.logInfo(TAG, "dynamicLinkUri :" + dynamicLinkUri);
-//
+                        DynamicLink dynamicLink = FirebaseDynamicLinks.getInstance().createDynamicLink()
+                                .setLink(Uri.parse(link))
+                                .setDynamicLinkDomain(context.getString(R.string.dynamic_link_domain))
+                                .setAndroidParameters(new DynamicLink.AndroidParameters.Builder("com.eriyaz.social")
+                                        .setMinimumVersion(minVersion)
+                                         //.setFallbackUrl(Uri.parse("https://google.com"))
+                                        .build())
+                                .setSocialMetaTagParameters(   new DynamicLink.SocialMetaTagParameters.Builder()
+                                        .setTitle(context.getString(R.string.app_share_title))
+                                        .setDescription(context.getString(R.string.app_share_description))
+                                        .build())
+                                .buildDynamicLink();
+                        Uri dynamicLinkUri = dynamicLink.getUri();
+                        String dynamicLin = dynamicLinkUri.toString();
+                        dynamicLin = dynamicLin.replace("goo.gl", "goo.gl/");
 
-                        //getshortLink(dynamicLin,dynamicLinkCallback);
+                        LogUtil.logInfo(TAG, "dynamicLinkUri :" + dynamicLinkUri);
+
+
+                        getshortLink(dynamicLin,dynamicLinkCallback);
 
 
                         //Toast.makeText(getApplicationContext(),dynamicLinkUri.toString(), Toast.LENGTH_SHORT).show();
-//                        dynamicLinkCallback.getShortLinkFailed(dynamicLin);
+                        //dynamicLinkCallback.getShortLinkFailed(dynamicLin);
                     }
                 })
 

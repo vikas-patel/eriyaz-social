@@ -703,15 +703,17 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
         //getAnalytics().logShare(uid);
         getAnalytics().logShare();
         final Integer minVersion = 0;
-        getDeepLinkUtil().getLink(linkStr, minVersion, new DeepLinkUtil.DynamicLinkCallback() {
+        DeepLinkUtil deepLinkUtil = getDeepLinkUtil();
+        deepLinkUtil.getLink(linkStr, minVersion, new DeepLinkUtil.DynamicLinkCallback() {
             @Override
             public void getLinkSuccess(Uri uri) {
-                getDeepLinkUtil().onShare(uri.toString(), emailSub);
+                deepLinkUtil.onShare(uri.toString(), emailSub);
+
             }
 
             @Override
             public void getShortLinkFailed(String dynamicLinkStr) {
-                getDeepLinkUtil().onShare(dynamicLinkStr, emailSub);
+                deepLinkUtil.onShare(dynamicLinkStr, emailSub);
 
             }
         });
