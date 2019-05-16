@@ -282,9 +282,7 @@ CommentViewHolder extends RecyclerView.ViewHolder {
             adminTitleTextView.setVisibility(View.GONE);
         }
 
-        String profileId = FirebaseAuth.getInstance().getUid();
-
-        if(!(comment.getAuthorId().equals(post.getAuthorId())) && profileId.equals(post.getAuthorId())) {
+        if(!(comment.getAuthorId().equals(post.getAuthorId())) && hasAccessToModifyPost(post)) {
 
             userRewardSpinner.setVisibility(View.VISIBLE);
             if(comment.getUserRewardPoints() == 0)

@@ -393,7 +393,7 @@ public class RecordSharePresenter implements MovieFilterView.FilterCallback, IMo
 
                 @Override
                 public void onPrepared(PhotoMoviePlayer moviePlayer, int prepared, int total) {
-                    if (mRecordShareView.getActivity() == null) {
+                    if (mRecordShareView == null || mRecordShareView.getActivity() == null) {
                         // activity has destroyed
                         return;
                     }
