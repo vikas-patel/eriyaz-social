@@ -76,8 +76,8 @@ public class DeepLinkUtil {
         //Log.i(TAG,"getLink: domain: "+this.context.getString(R.string.dynamic_link_domain) + "  pkg :"+this.context.getApplicationContext().getPackageName() );
         FirebaseDynamicLinks.getInstance().createDynamicLink()
                 .setLink(Uri.parse(link))
-                .setDomainUriPrefix(context.getString(R.string.dynamic_link_prefix))
-//                .setDynamicLinkDomain()
+                //.setDomainUriPrefix(context.getString(R.string.dynamic_link_domain))
+                .setDynamicLinkDomain(context.getString(R.string.dynamic_link_domain))
                 .setAndroidParameters(
                         new DynamicLink.AndroidParameters.Builder("com.eriyaz.social")
                                 .setMinimumVersion(minVersion)

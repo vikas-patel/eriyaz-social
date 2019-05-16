@@ -54,6 +54,7 @@ import static android.content.Context.MODE_PRIVATE;
  * Created by huangwei on 2018/9/9.
  */
 public class RecordSharePresenter implements MovieFilterView.FilterCallback, IMovieTimer.MovieListener, MovieTransferView.TransferCallback {
+    private static final String TAG = RecordSharePresenter.class.getSimpleName();
     private IRecordShareView mRecordShareView;
 
     private PhotoMovie mPhotoMovie;
@@ -298,11 +299,12 @@ public class RecordSharePresenter implements MovieFilterView.FilterCallback, IMo
     }
 
 
-
+    //TODO: reuse DeepLinkUtil method
     private void generateShortLink(File outputFile) {
         FirebaseDynamicLinks.getInstance().createDynamicLink()
                 .setLink(Uri.parse("https://play.google.com/store/apps/details?id=com.eriyaz.social&hl=en&invitedby=Ott9ue8YWBhLYpyXE5Vj2ZEKLGA3"))
-                .setDomainUriPrefix(mRecordShareView.getActivity().getString(R.string.dynamic_link_prefix))
+                //.setDomainUriPrefix(mRecordShareView.getActivity().getString(R.string.dynamic_link_prefix))
+                .setDynamicLinkDomain(mRecordShareView.getActivity().getString(R.string.dynamic_link_domain))
                 //new dynamic url prefix
                 // Set parameters
                 // ...
@@ -331,7 +333,7 @@ public class RecordSharePresenter implements MovieFilterView.FilterCallback, IMo
                         } else {
                             // Error
                             // ...
-                            Log.d("hello",task.getException().toString());
+                            Log.e(TAG,task.getException().getMessage(), task.getException());
                         }
                     }
                 });
