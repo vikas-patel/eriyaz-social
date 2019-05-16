@@ -97,15 +97,15 @@ public class NotificationHolder extends RecyclerView.ViewHolder {
                 intent.putExtra(notification.getExtraKey(), notification.getExtraKeyValue());
                 intent.putExtra(PostDetailsActivity.POST_ORIGIN_EXTRA_KEY, PostOrigin.APP_NOTIFICATION);
                 intent.putExtra(PostDetailsActivity.IS_COMMENT_NOTIFICATION, notification.isForCommentNotification());
-
-                int l = notification.getMessage().length() - notificationMessage.length();
-                int l2 = notification.getMessage().length();
-                String m = notification.getMessage().substring(l, l2);
-                boolean isFeedbackRequest = false;
-                if(m.equals(notificationMessage)) isFeedbackRequest = true;
-                Log.d("TAG", String.valueOf(isFeedbackRequest));
-
-                intent.putExtra(PostDetailsActivity.IS_FEEDBACK_REQUEST_NOTIFICATION, isFeedbackRequest);
+                //TODO: crashing in production
+//                int l = notification.getMessage().length() - notificationMessage.length();
+//                int l2 = notification.getMessage().length();
+//                String m = notification.getMessage().substring(l, l2);
+//                boolean isFeedbackRequest = false;
+//                if(m.equals(notificationMessage)) isFeedbackRequest = true;
+//                Log.d("TAG", String.valueOf(isFeedbackRequest));
+//
+//                intent.putExtra(PostDetailsActivity.IS_FEEDBACK_REQUEST_NOTIFICATION, isFeedbackRequest);
 
                 ((Activity)context).startActivity(intent);
             } catch (ClassNotFoundException e) {
