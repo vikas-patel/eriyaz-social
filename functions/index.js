@@ -1876,46 +1876,110 @@ exports.grantSignupReward = functions.database.ref('/profiles/{uid}/id').onCreat
 
 // Firebase function that will be triggered when a new comment is added in /post-comments.
 // The new comment is copied into /user-comments
+exports.duplicateUserComments = functions.database.ref('/post-comments/{postId}/{commentId}').onWrite(event => {
 
-// exports.duplicateUserComments = functions.database.ref('/post-comments/{postId}/{commentId}').onWrite(event => {
+    // Exit when the data is deleted.
+    if (!event.data.exists()) {
+        return 0;
+    }
 
-//     const commentId = event.params.commentId;
-//     const postId = event.params.postId;
-//     const comment = event.data.val();
+    const commentId = event.params.commentId;
+    const postId = event.params.postId;
+    const comment = event.data.val();
 
-//     console.log("commentId", commentId);
+    var text, audioPath, audioTitle, createdDate;
+    var postTitle='';
+    let reputationPoints = 0;
+    let likesCount = 0;
+    let authorId = 0;
 
-//     var text, audioPath, audioTitle, createdDate;
-//     let reputationPoints = 0;
-//     let likesCount = 0;
-//     let authorId = 0;
+    console.log("postId", postId);
+    console.log("commentId", commentId);
 
-//     text = (!comment.text)? null: comment.text;
-//     reputationPoints = (!comment.reputationPoints)? 0: comment.reputationPoints;
-//     likesCount = (!comment.likesCount)? 0: comment.likesCount;
-//     audioPath = (!comment.audioPath)? null: comment.audioPath;
-//     audioTitle = (!comment.audioTitle)? null: comment.audioTitle;
-//     authorId = comment.authorId;
-//     createdDate = comment.createdDate;
+    const postsRef = admin.database().ref(`/posts/${postId}`).once('value');
 
-//     const commentsRef = admin.database().ref(`/user-comments/${authorId}/${commentId}`);
+    return postsRef.then(snapshot => {
+        var exists = (snapshot.val() !== null);
+        console.log("post exists", exists);
+        if (!exists)
+        {
+            postTitle = "Post has been deleted";
+        }
+        else {
+            postTitle = snapshot.val().title;
+            console.log("postTitle", postTitle);
+        }
+	return postTitle;
+    })
+    .then(postTitle => {
+    	text = (!comment.text)? null: comment.text;
+    	reputationPoints = (!comment.reputationPoints)? 0: comment.reputationPoints;
+    	likesCount = (!comment.likesCount)? 0: comment.likesCount;
+    	audioPath = (!comment.audioPath)? null: comment.audioPath;
+    	audioTitle = (!comment.audioTitle)? null: comment.audioTitle;
+    	authorId = comment.authorId;
+    	createdDate = comment.createdDate;
 
-//     var newCommentDetails =
-//     {
-//          'id':commentId,
-//          'postId': postId,
-//          'createdDate': createdDate,
-//          'text': text,
-//          'reputationPoints': reputationPoints,
-//          'likesCount': likesCount
-//     };
-//     if (audioPath != null && audioTitle != null) {
-//         newCommentDetails.audioPath = audioPath;
-//         newCommentDetails.audioTitle = audioTitle;
-//     }
-//     return commentsRef.set(newCommentDetails);
-//     console.log("Updated the comment in /user-comments.");
-// });
+    	const commentsRef = admin.database().ref(`/user-comments/${authorId}/${commentId}`);
+
+    	var newCommentDetails =
+    	{
+         	'id':commentId,
+         	'postId': postId,
+         	'createdDate': createdDate,
+         	'text': text,
+         	'reputationPoints': reputationPoints,
+         	'likesCount': likesCount,
+         	'postTitle' : postTitle
+    	};
+    	if (audioPath != null && audioTitle != null) {
+        	newCommentDetails.audioPath = audioPath;
+        	newCommentDetails.audioTitle = audioTitle;
+    	}
+    	return commentsRef.set(newCommentDetails);
+    	console.log("Updated the comment in /user-comments.");
+     });
+});
+
+// Update postTitle in /user-comments when a post is deleted
+exports.deletePostTitle = functions.database.ref('/posts/{postId}').onDelete(event => {
+    const postId = event.params.postId;
+    const post = event.data.previous.val();
+    const authorId = post.authorId;
+    const postAuthorId = 0;
+    const postCommentId = 0;
+    var postTitle;
+
+    console.log("postId authorId", postId, authorId);
+
+    const postCommentsRef = admin.database().ref(`/post-comments/${postId}`);
+    postCommentsRef.once('value').then(postComment => {
+        let commentId = postComment.key;
+        let comment = postComment.val();
+        console.log('commentId', commentId);
+        console.log('comment', comment);
+
+        if (comment.val().authorId == authorId)
+        {
+            postAuthorId = authorId;
+            postCommentId = commentId;
+
+            console.log("postAuthorId postCommentId", postAuthorId, postCommentId);
+        }
+        return Promise.all([postAuthorId, postCommentId]);
+    }).then(snapshot => {
+        const postAuthorId = snapshot[0];
+        const postComentId = snapshot[1];
+        const userCommentsRef = admin.database().ref(`/user-comments/${postAuthorId}/${postCommentId}`);
+
+        userCommentsRef.once('value').then(snapshot => {
+            const commentDetails = snapshot.val();
+            commentDetails.postTitle = "Post has been deleted.";
+
+            return userCommentsRef.set(commentDetails);
+        });
+    });
+});
 
 exports.appUpdateNotification = functions.https.onRequest((req, res) => {
     // check if security key is same
@@ -2453,56 +2517,103 @@ exports.weeklyPointsTaskRunner = functions.https.onRequest((req, res) => {
 
 // Function to copy comments from post-comments node to user-comments node
 
-// exports.copyUserComments = functions.https.onRequest((req, res) => {
-//     console.log("Copying old comments");
-//     var text, audioPath, audioTitle, authorId, createdDate;
-//     var updateProfiles = {};
-//     let updated = 0;
-//     let reputationPoints = 0;
-//     let likesCount = 0;
-//     const postCommentsRef = admin.database().ref("/post-comments");
-//     const commentsRef = admin.database().ref('/user-comments');
 
-//     postCommentsRef.once('value').then((postSnapshot) => {
-//        	postSnapshot.forEach(postComments => {
-// 		    let postId = postComments.key;
-// 		    console.log(postId);
-// 		    var user_comments = postComments.val();
+exports.migrateOldPostComments = functions.https.onRequest((req, res) => {
 
-// 		    Object.keys(user_comments).forEach(function(commentId) {
-// //			commentsRef = admin.database().ref(`/user-comments/${user_comments[commentId].authorId}`);
-//             authorId = user_comments[commentId].authorId;
-//             createdDate = user_comments[commentId].createdDate;
-// 			text = (!user_comments[commentId].text)? null: user_comments[commentId].text;
-// 			reputationPoints = (!user_comments[commentId].reputationPoints)? 0: user_comments[commentId].reputationPoints;
-//             likesCount = (!user_comments[commentId].likesCount)? 0: user_comments[commentId].likesCount;
-//             audioPath = (!user_comments[commentId].audioPath)? null: user_comments[commentId].audioPath;
-//             audioTitle = (!user_comments[commentId].audioTitle)? null: user_comments[commentId].audioTitle;
+    return copyNextSetComments(res);
 
-//             var commentDetailsObject = {
-//                 'id': commentId,
-//                 'postId': postId,
-//                 'createdDate': createdDate,
-//                 'text': text,
-//                 'reputationPoints': reputationPoints,
-//                 'likesCount':likesCount
-//             };
+});
 
-//             // For audio comment
-//             if (audioPath != null && audioTitle != null)
-//             {
-//                commentDetailsObject.audioPath = audioPath;
-//                commentDetailsObject.audioTitle = audioTitle;
-//             }
-//             updateProfiles[`${authorId}/${commentId}`] = commentDetailsObject;
-//             updated++;
-//             });
-//             });
-//             commentsRef.update(updateProfiles);
-//             console.log("updated profiles", updated);
-//             res.status(200).send(`updated profiles ${updated}`);
-//         });
-//     });
+let postMigrated = 0;
+function copyNextSetComments(res, postId) {
+
+	if (postId == null) {
+		return admin.database().ref(`/post-comments/`).orderByKey().limitToFirst(26).once('value').then(snapshot => {
+            return copyCurrentSetOfComments(res, snapshot);
+		});
+	}
+	else {
+        postMigrated = postMigrated + 26;
+		return admin.database().ref(`/post-comments/`).orderByKey().startAt(postId).limitToFirst(26).once('value').then(snapshot => {
+		    return copyCurrentSetOfComments(res, snapshot);
+		});
+	}
+}
+
+function copyCurrentSetOfComments(res, snapshot)
+{
+    const commentsRef = admin.database().ref("/user-comments");
+    var text, audioPath, audioTitle, authorId, createdDate, postId, commentId;
+    var updateProfiles = {};
+    var updated = 0;
+    var reputationPoints = 0;
+    var likesCount = 0;
+    var lastPostId = 0;
+    let counter = 0;
+
+	snapshot.forEach(function(postSnapshot) {
+	        counter++;
+            postId = postSnapshot.key;
+            if (counter == 26) {
+            	lastPostId = postId;
+                console.log('lastPostId ', lastPostId);
+                return copyNextSetComments(res, lastPostId);
+            }
+
+       		postSnapshot.forEach(postComments => {
+            commentId = postComments.key;
+		    var user_comments = postComments.val();
+
+		    Object.keys(user_comments).forEach((snap) => {
+
+            authorId = user_comments.authorId;
+            createdDate = user_comments.createdDate;
+			text = (!user_comments.text)? null: user_comments.text;
+			reputationPoints = (!user_comments.reputationPoints)? 0: user_comments.reputationPoints;
+            likesCount = (!user_comments.likesCount)? 0: user_comments.likesCount;
+            audioPath = (!user_comments.audioPath)? null: user_comments.audioPath;
+            audioTitle = (!user_comments.audioTitle)? null: user_comments.audioTitle;
+
+            var commentDetailsObject = {
+                'id': commentId,
+                'postId': postId,
+                'createdDate': createdDate,
+                'text': text,
+                'reputationPoints': reputationPoints,
+                'likesCount':likesCount
+            };
+
+            // For audio comment
+            if (audioPath != null && audioTitle != null)
+            {
+               commentDetailsObject.audioPath = audioPath;
+               commentDetailsObject.audioTitle = audioTitle;
+            }
+            if (authorId) {
+                updateProfiles[`${authorId}/${commentId}`] = commentDetailsObject;
+                updated++;
+            }
+            });
+            });
+        });
+        //res.status(200).send(`updated comments ${updated}`);
+        commentsRef.update(updateProfiles)
+        .catch(function(error) {
+            console.log('one of the updates failed ', error);
+        });
+
+        console.log("No of nodes: ", snapshot.numChildren());
+        if (snapshot.numChildren() < 26 && snapshot.numChildren() > 1)
+        {
+            lastPostId = postId;
+            console.log('lastPostId ', lastPostId);
+            return copyNextSetComments(res, lastPostId);
+        }
+	    if (snapshot.numChildren() <= 1) {
+            console.log("post migrated:", postMigrated);
+	        return res.status(200).send("Exit migration script, updated: " + postMigrated);
+	    }
+}
 
 /// TASK RUNNER CLOUD FUNCTION ///
 

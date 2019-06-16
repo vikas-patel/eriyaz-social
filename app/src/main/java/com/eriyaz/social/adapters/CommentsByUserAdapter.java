@@ -91,6 +91,16 @@ public class CommentsByUserAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         PostManager.getInstance(activity.getApplicationContext()).clearNewPostsCounter();
     }
 
+    @Override
+    public void removeSelectedPost() {
+        System.out.println("removeSelectedPost() for CommentsByUserAdapter");
+    }
+
+    @Override
+    public void updateSelectedPost() {
+        System.out.println("updateSelectedPost() for CommentsByUserAdapter");
+    }
+
     public void loadNext(final long nextItemCreatedDate) {
 
         if (!activity.hasInternetConnection()) {
