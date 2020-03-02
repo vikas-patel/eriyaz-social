@@ -1923,19 +1923,21 @@ exports.profileSearch = functions.https.onRequest((req, res) => {
 exports.postList = functions.https.onCall((data, context) => {
     const lastRecentDate = data.lastRecentDate;
     const lastFriendDate = data.lastFriendDate;
+    const result_size = 10;
     console.log("lastRecentDate, lastFriendDate", lastRecentDate, lastFriendDate);
-    return getRecentPostList().then(postList => {
-        if (!context.auth || !context.auth.uid) {
-            return filterPostList(postList, lastRecentDate, lastFriendDate);
-        }
-        const uid = context.auth.uid;
-        let yesterday = Date.now() - cacheDays;
-        return Promise.all([getFriends(uid), getRatedPosts(uid, yesterday)]).then(results => {
-            const friends = results[0];
-            const ratedPosts = results[1];
-            return filterPostList(postList, lastRecentDate, lastFriendDate, friends, ratedPosts, uid);
-        });
-    });
+    return getYesterdayFilteredPostList([], lastRecentDate, lastFriendDate, result_size);
+    // return getRecentPostList().then(postList => {
+    //     if (!context.auth || !context.auth.uid) {
+    //         return filterPostList(postList, lastRecentDate, lastFriendDate);
+    //     }
+    //     const uid = context.auth.uid;
+    //     let yesterday = Date.now() - cacheDays;
+    //     return Promise.all([getFriends(uid), getRatedPosts(uid, yesterday)]).then(results => {
+    //         const friends = results[0];
+    //         const ratedPosts = results[1];
+    //         return filterPostList(postList, lastRecentDate, lastFriendDate, friends, ratedPosts, uid);
+    //     });
+    // });
 });
 
 function filterPostList(recentPosts, lastRecentDate = Date.now(), lastFriendDate = Date.now(), friends = [], ratedPosts = [], uid) {
@@ -1983,7 +1985,7 @@ function filterPostList(recentPosts, lastRecentDate = Date.now(), lastFriendDate
     }
 }
 
-function getYesterdayFilteredPostList(resultList, ratedPostList, lastRecentDate, lastFriendDate, limit) {
+function getYesterdayFilteredPostList(resultList, lastRecentDate = Date.now(), lastFriendDate = Date.now(), limit) {
     // get yesterday post list
     // filter rated post
     // if more than limit
@@ -2002,10 +2004,10 @@ function getYesterdayFilteredPostList(resultList, ratedPostList, lastRecentDate,
         yesterdayPosts = yesterdayPosts.filter(post => {
             return !post.removed && !post.hasComplain && post.ratingsCount <= 10;
         });
-        yesterdayPosts = yesterdayPosts.filter(post => {
-            if (!ratedPostList.includes(post.id)) return true;
-            return false;
-        });
+        // yesterdayPosts = yesterdayPosts.filter(post => {
+        //     if (!ratedPostList.includes(post.id)) return true;
+        //     return false;
+        // });
         if (yesterdayPosts.length + resultList.length >= limit) {
             let subArray = yesterdayPosts.slice(0, limit - resultList.length);
             resultList = resultList.concat(subArray);
@@ -2017,7 +2019,7 @@ function getYesterdayFilteredPostList(resultList, ratedPostList, lastRecentDate,
             };
         }
         resultList = resultList.concat(yesterdayPosts);
-        return getYesterdayFilteredPostList(resultList, ratedPostList, lastRecentDate, lastFriendDate, limit);
+        return getYesterdayFilteredPostList(resultList, lastRecentDate, lastFriendDate, limit);
     });
 }
 
