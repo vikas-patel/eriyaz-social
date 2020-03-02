@@ -94,6 +94,8 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentViewHolder> {
 
         void onRewardClick(View view, int position, int points);
 
+        void onUserRewardClick(View view, int position, int points);
+
         void onPlayClick(View view, int position, String authorName);
 
         void onReportClick(View view, int position);

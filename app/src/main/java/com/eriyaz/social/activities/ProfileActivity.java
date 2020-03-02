@@ -28,6 +28,7 @@ import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.TextAppearanceSpan;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -47,6 +48,7 @@ import com.eriyaz.social.enums.PostStatus;
 import com.eriyaz.social.fragments.PostsByUserFragment;
 import com.eriyaz.social.managers.ProfileManager;
 import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
+import com.eriyaz.social.managers.requestFeedbackManager;
 import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.utils.GlideApp;
 import com.eriyaz.social.utils.ImageUtil;
@@ -67,7 +69,7 @@ public class ProfileActivity extends BaseCurrentProfileActivity implements Googl
 
     // UI references.
     private TextView nameEditText;
-    private View messageTextLayout;
+    private View messageTextLayout, requestFeedback;
     private ImageView imageView;
     private ProgressBar progressBar;
 //    private TextView postsLabelTextView;
@@ -89,6 +91,7 @@ public class ProfileActivity extends BaseCurrentProfileActivity implements Googl
     private TextView likesCountTextView;
     private ProfileManager profileManager;
     final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
+    requestFeedbackManager f;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,11 +115,12 @@ public class ProfileActivity extends BaseCurrentProfileActivity implements Googl
         }
 
         // Set up the login form.
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        imageView = (ImageView) findViewById(R.id.imageView);
-        nameEditText = (TextView) findViewById(R.id.nameEditText);
+        progressBar = findViewById(R.id.progressBar);
+        imageView = findViewById(R.id.imageView);
+        nameEditText = findViewById(R.id.nameEditText);
         messageTextLayout = findViewById(R.id.messageTextLayout);
-        pointsCountersTextView = (TextView) findViewById(R.id.pointsCountersTextView);
+        requestFeedback = findViewById(R.id.requestFeedbackLayout);
+        pointsCountersTextView = findViewById(R.id.pointsCountersTextView);
         reputationsCountersTextView = findViewById(R.id.reputationsCountersTextView);
         likesCountTextView = findViewById(R.id.likesCountTextView);
 //        postsLabelTextView = (TextView) findViewById(R.id.postsLabelTextView);
@@ -124,12 +128,35 @@ public class ProfileActivity extends BaseCurrentProfileActivity implements Googl
         profileTabViewPager = findViewById(R.id.profileTabPager);
         ProfileTabAdapter profileTabAdapter = new ProfileTabAdapter(getSupportFragmentManager(), userID);
         profileTabViewPager.setAdapter(profileTabAdapter);
+        profileTabViewPager.setOffscreenPageLimit(3);
 
-        tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout = findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(profileTabViewPager);
         if (isRatingTabDefault) {
             profileTabViewPager.setCurrentItem(1);
         }
+
+        if (firebaseUser != null && firebaseUser.getUid().equals(userID)) {
+            requestFeedback.setVisibility(View.GONE);
+        }
+
+        requestFeedback.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if (hasInternetConnection()){
+                    Log.d(TAG, "onClick: "+currentUserId);
+                    f = new requestFeedbackManager(
+                            ProfileActivity.this,
+                            currentUserId,
+                            userID,
+                            currentProfile.getUsername(),
+                            currentProfile.getPoints());}
+                else
+                    showSnackBar(R.string.internet_connection_failed);
+
+            }
+        });
 
         messageTextLayout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -182,7 +209,8 @@ public class ProfileActivity extends BaseCurrentProfileActivity implements Googl
                     selectedFragment = tabAdapter.getSelectedFragment(profileTabViewPager.getCurrentItem());
                     if (data != null) {
                         PostStatus postStatus = (PostStatus) data.getSerializableExtra(PostDetailsActivity.POST_STATUS_EXTRA_KEY);
-                        if (selectedFragment == null || selectedFragment.getPostsAdapter() == null) return;
+                        if (selectedFragment == null || selectedFragment.getPostsAdapter() == null)
+                            return;
                         if (postStatus.equals(PostStatus.REMOVED)) {
                             selectedFragment.getPostsAdapter().removeSelectedPost();
 

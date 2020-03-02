@@ -7,11 +7,15 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
+import android.text.Editable;
 import android.text.Html;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -20,8 +24,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -64,6 +67,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.volokh.danylo.hashtaghelper.HashTagHelper;
 import com.xw.repo.BubbleSeekBar;
 
+import net.yslibrary.android.keyboardvisibilityevent.KeyboardVisibilityEvent;
+import net.yslibrary.android.keyboardvisibilityevent.KeyboardVisibilityEventListener;
+
 import java.io.File;
 import java.util.Calendar;
 import java.util.Date;
@@ -95,10 +101,11 @@ public class PlaybackFragment extends BaseDialogFragment {
     private LinearLayout commentLayout;
     private LinearLayout textCommentLayout;
     private Button submitButton;
+    private Button sideSubmitButton;
 //    private RadioGroup melodyRadioGroup;
 //    private RadioGroup voiceQualityRadioGroup;
     private CommentManager commentManager;
-    private TextView ratingTextView;
+    private TextView ratingTextView, rateBelowText, rateInfoText;
     private TextView earnExtraTextView;
     private TextView recordErrorTextView;
 //    private TextView melodyPercentageLabel;
@@ -119,6 +126,8 @@ public class PlaybackFragment extends BaseDialogFragment {
     private ImageButton mRecordButton;
     private RecordLayout commentRecordLayout;
 
+    private boolean isFeedbakRequest;
+
     public PlaybackFragment newInstance(RecordingItem item) {
         PlaybackFragment f = new PlaybackFragment();
         Bundle b = new Bundle();
@@ -127,13 +136,14 @@ public class PlaybackFragment extends BaseDialogFragment {
         return f;
     }
 
-    public PlaybackFragment newInstance(RecordingItem item, Post post, Rating rating, String authorName) {
+    public PlaybackFragment newInstance(RecordingItem item, Post post, Rating rating, String authorName, boolean isFeedbackRequest) {
         PlaybackFragment f = new PlaybackFragment();
         Bundle b = new Bundle();
         b.putParcelable(RECORDING_ITEM, item);
         b.putSerializable(PostDetailsActivity.POST_ID_EXTRA_KEY, post);
         b.putSerializable(Rating.RATING_ID_EXTRA_KEY, rating);
         b.putString(Profile.AUTHOR_NAME_EXTRA_KEY, authorName);
+        b.putBoolean(PostDetailsActivity.IS_FEEDBACK_REQUEST_NOTIFICATION, isFeedbackRequest);
         f.setArguments(b);
         return f;
     }
@@ -145,7 +155,10 @@ public class PlaybackFragment extends BaseDialogFragment {
         post = (Post) getArguments().getSerializable(PostDetailsActivity.POST_ID_EXTRA_KEY);
         rating = (Rating) getArguments().getSerializable(Rating.RATING_ID_EXTRA_KEY);
         authorName = getArguments().getString(Profile.AUTHOR_NAME_EXTRA_KEY);
+        isFeedbakRequest = getArguments().getBoolean(PostDetailsActivity.IS_FEEDBACK_REQUEST_NOTIFICATION);
+        Log.d("FEEDBACK", String.valueOf(isFeedbakRequest));
         if (rating == null) rating = new Rating();
+
     }
 
     @Override
@@ -191,6 +204,9 @@ public class PlaybackFragment extends BaseDialogFragment {
 
         mFileNameTextView = (TextView) view.findViewById(R.id.file_name_text_view);
         ratingBar = (BubbleSeekBar) view.findViewById(R.id.ratingBar);
+        View seekbarView=view.findViewById(R.id.seekbarContainer);
+        LinearLayout mainLayout=view.findViewById(R.id.mainLayout);
+        rateBelowText=view.findViewById(R.id.ratingTextView);
         closeButton = view.findViewById(R.id.closeButton);
         closeButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -211,25 +227,62 @@ public class PlaybackFragment extends BaseDialogFragment {
         if (!PreferencesUtil.isUserRatedMany(getActivity())) {
             moreTextView.setVisibility(View.GONE);
         }
+
+        // Changes for issue 103
+        if (post.getRatingsCount() >= 15) {
+            // Hide ratings bar
+            rateBelowText.setVisibility(View.GONE);
+            seekbarView.setVisibility(View.GONE);
+            //rateInfoText.setVisibility(View.VISIBLE);
+
+            LinearLayout.LayoutParams layoutParams=new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            TextView ratingTextInfo=new TextView(getContext());
+            ratingTextInfo.setLayoutParams(layoutParams);
+            ratingTextInfo.setText(R.string.ratingInfo);
+            ratingTextInfo.setTextSize(16);
+            ratingTextInfo.setTextColor(getResources().getColor(R.color.primary_dark));
+            ratingTextInfo.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
+            mainLayout.addView(ratingTextInfo, 2);
+        }
+
         submitButton = view.findViewById(R.id.submitButton);
+        sideSubmitButton = view.findViewById(R.id.submit_side_button);
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                submitDetailedFeedback();
-                v.setClickable(false);
+                onSubmitButton(v);
+            }
+        });
 
-                v.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        v.setClickable(true);
-
-                    }
-                }, 2000);
+        sideSubmitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onSubmitButton(v);
             }
         });
 
         mistakesTextView = view.findViewById(R.id.mistakesTextView);
         mistakeTapButton = view.findViewById(R.id.mistakeTapButton);
+
+        mistakesTextView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if(s.toString().trim().length()>0)
+                    sideSubmitButton.setVisibility(View.VISIBLE);
+                else
+                    sideSubmitButton.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
 
         mistakesTextHashTagHelper = HashTagHelper.Creator.create(getResources().getColor(R.color.red), new HashTagHelper.OnHashTagClickListener() {
             @Override
@@ -279,7 +332,41 @@ public class PlaybackFragment extends BaseDialogFragment {
             }
         });
 
+        KeyboardVisibilityEvent.setEventListener(getActivity(), new KeyboardVisibilityEventListener() {
+            @Override
+            public void onVisibilityChanged(boolean isOpen) {
+                if(!isOpen)
+                    sideSubmitButton.setVisibility(View.INVISIBLE);
+                else{
+                    if(mistakesTextView.getText().toString().trim().length()>0)
+                        sideSubmitButton.setVisibility(View.VISIBLE);
+                    else
+                        sideSubmitButton.setVisibility(View.INVISIBLE);
+                }
+            }
+        });
+
+        if(commentLayout.getVisibility() != View.VISIBLE && intialRatingValue !=0)
+            moreTextView.setVisibility(View.VISIBLE);
+        else {
+            moreTextView.setVisibility(View.GONE);
+            earnExtraTextView.setVisibility(View.GONE);
+        }
+
         return builder.create();
+    }
+
+    private void onSubmitButton(View v){
+        submitDetailedFeedback();
+        v.setClickable(false);
+
+        v.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                v.setClickable(true);
+
+            }
+        }, 2000);
     }
 
     private void onCloseButton() {
@@ -316,6 +403,11 @@ public class PlaybackFragment extends BaseDialogFragment {
         commentLayout.setVisibility(View.VISIBLE);
         textCommentLayout.setVisibility(View.VISIBLE);
         submitButton.setVisibility(View.VISIBLE);
+        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams)closeButton.getLayoutParams();
+        params.addRule(RelativeLayout.ALIGN_PARENT_END, 0);
+        params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, 0);
+        params.addRule(RelativeLayout.LEFT_OF, R.id.submitButton);
+        closeButton.setLayoutParams(params);
         moreTextView.setVisibility(View.GONE);
         earnExtraTextView.setVisibility(View.GONE);
     }
@@ -366,6 +458,8 @@ public class PlaybackFragment extends BaseDialogFragment {
                 }
         };
         ((BaseActivity) getActivity()).showProgress(R.string.message_submit_detailed_feedback);
+        if(isFeedbakRequest)
+            analytics.logFeedbackRequestAccepted();
         if (commentRecordLayout.getRecordItem() != null) {
             Uri audioUri = Uri.fromFile(new File(commentRecordLayout.getRecordItem().getFilePath()));
             commentManager.createOrUpdateCommentWithAudio(audioUri, detailed_comment, post.getId(), listener);
@@ -377,10 +471,14 @@ public class PlaybackFragment extends BaseDialogFragment {
     private void submitDetailedFeedback() {
         if (!isAuthorized()) return;
         boolean error = false;
-        if (ratingBar.getProgress() == 0) {
+        if (ratingBar.getProgress() == 0 && post.getRatingsCount() < 10) {
             ratingTextView.setError("Rating is not set.");
             error = true;
-        } else {
+        } else if (ratingBar.getProgress() == 0 && post.getRatingsCount() >= 15) {
+            ratingTextView.setError(null);
+            error = false;
+        }
+        else {
             ratingTextView.setError(null);
         }
         String commentText = mistakesTextView.getText().toString();
@@ -669,7 +767,13 @@ public class PlaybackFragment extends BaseDialogFragment {
                 } else {
                     earnExtraTextView.setVisibility(View.GONE);
                 }
-                moreTextView.setVisibility(View.VISIBLE);
+
+                if(commentLayout.getVisibility() != View.VISIBLE && ( progress!=0 || intialRatingValue !=0))
+                    moreTextView.setVisibility(View.VISIBLE);
+                else {
+                    moreTextView.setVisibility(View.GONE);
+                    earnExtraTextView.setVisibility(View.GONE);
+                }
 
                 if (progress > 0 && progress <= 10) {
                     AlertDialog.Builder builder = new BaseAlertDialogBuilder(getActivity());

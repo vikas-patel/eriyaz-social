@@ -182,8 +182,10 @@ public class CreatePostActivity extends BaseActivity implements OnRecordingEndLi
                 case 1:{
                     return SavedRecordingsFragment.newInstance();
                 }
+                default:
+                    return null;
             }
-            return null;
+//            return null;
         }
 
         @Override
@@ -204,7 +206,9 @@ public class CreatePostActivity extends BaseActivity implements OnRecordingEndLi
 
         public void replaceFragment(Fragment fragment) {
             if (isTransactionSafe) {
-                hostFragment.replaceFragment(fragment, false);
+                if (hostFragment != null) {
+                    hostFragment.replaceFragment(fragment, false);
+                }
             }
         }
     }

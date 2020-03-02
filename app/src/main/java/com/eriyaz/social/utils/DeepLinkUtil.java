@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.text.Html;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.eriyaz.social.R;
@@ -60,7 +61,7 @@ public class DeepLinkUtil {
                             Uri flowchartLink = task.getResult().getPreviewLink();
                             dynamicLinkCallback.getLinkSuccess(shortLink);
                             LogUtil.logInfo(TAG,shortLink.toString());
-                            Toast.makeText(context.getApplicationContext(),shortLink.toString(), Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(context.getApplicationContext(),shortLink.toString(), Toast.LENGTH_SHORT).show();
                         } else {
                             // Error
                             // ...
@@ -75,7 +76,8 @@ public class DeepLinkUtil {
         //Log.i(TAG,"getLink: domain: "+this.context.getString(R.string.dynamic_link_domain) + "  pkg :"+this.context.getApplicationContext().getPackageName() );
         FirebaseDynamicLinks.getInstance().createDynamicLink()
                 .setLink(Uri.parse(link))
-                .setDynamicLinkDomain(this.context.getString(R.string.dynamic_link_domain))
+                //.setDomainUriPrefix(context.getString(R.string.dynamic_link_domain))
+                .setDynamicLinkDomain(context.getString(R.string.dynamic_link_domain))
                 .setAndroidParameters(
                         new DynamicLink.AndroidParameters.Builder("com.eriyaz.social")
                                 .setMinimumVersion(minVersion)
@@ -95,7 +97,7 @@ public class DeepLinkUtil {
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        LogUtil.logDebug(TAG,"ShortDynamicLink creation failed");
+                        LogUtil.logDebug(TAG,"ShortDynamicLink creation failed"+e.toString());
                         DynamicLink dynamicLink = FirebaseDynamicLinks.getInstance().createDynamicLink()
                                 .setLink(Uri.parse(link))
                                 .setDynamicLinkDomain(context.getString(R.string.dynamic_link_domain))
@@ -115,11 +117,11 @@ public class DeepLinkUtil {
                         LogUtil.logInfo(TAG, "dynamicLinkUri :" + dynamicLinkUri);
 
 
-                        //getshortLink(dynamicLin,dynamicLinkCallback);
+                        getshortLink(dynamicLin,dynamicLinkCallback);
 
 
                         //Toast.makeText(getApplicationContext(),dynamicLinkUri.toString(), Toast.LENGTH_SHORT).show();
-                        dynamicLinkCallback.getShortLinkFailed(dynamicLin);
+                        //dynamicLinkCallback.getShortLinkFailed(dynamicLin);
                     }
                 })
 
@@ -132,9 +134,7 @@ public class DeepLinkUtil {
                     }
 
                 });
-
     }
-
 
     public void onShare(String shareText, String shareEmailSub) {
         try {

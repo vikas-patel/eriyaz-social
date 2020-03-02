@@ -86,9 +86,9 @@ public class PostManager extends FirebaseListenersManager {
         this.context = context;
     }
 
-    public void createOrUpdatePost(Post post, final OnPostCreatedListener onPostCreatedListener) {
+    public void createOrUpdatePost(boolean isUpdate, Post post, final OnPostCreatedListener onPostCreatedListener) {
         try {
-            ApplicationHelper.getDatabaseHelper().createOrUpdatePost(post, onPostCreatedListener);
+            ApplicationHelper.getDatabaseHelper().createOrUpdatePost(isUpdate,post, onPostCreatedListener);
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
             Crashlytics.logException(e);
@@ -186,7 +186,7 @@ public class PostManager extends FirebaseListenersManager {
 
                     post.setImagePath(String.valueOf(downloadUrl));
                     post.setImageTitle(imageTitle);
-                    createOrUpdatePost(post, onPostCreatedListener);
+                    createOrUpdatePost(false, post, onPostCreatedListener);
 
 //                    onPostCreatedListener.onPostSaved(true);
                 }
@@ -221,7 +221,7 @@ public class PostManager extends FirebaseListenersManager {
 
                     post.setImagePath(String.valueOf(downloadUrl));
                     post.setImageTitle(imageTitle);
-                    createOrUpdatePost(post, onPostCreatedListener);
+                    createOrUpdatePost(false, post, onPostCreatedListener);
                 }
             });
         }

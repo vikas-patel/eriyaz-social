@@ -14,7 +14,8 @@ import com.eriyaz.social.fragments.PostsByUserFragment;
 public class ProfileTabAdapter extends FragmentPagerAdapter {
     private PostsByUserFragment postsByUserFragment;
     private PostsByUserFragment ratedPostsByUserFragment;
-    private String title[] = {"Recordings", "Ratings On Others"};
+    private PostsByUserFragment commentsByUserFragment;
+    private String title[] = {"Recordings", "Ratings On Others", "Comments"};
     private String userId;
 
     public ProfileTabAdapter(FragmentManager manager, String userId) {
@@ -29,6 +30,8 @@ public class ProfileTabAdapter extends FragmentPagerAdapter {
                 return PostsByUserFragment.newInstance(userId, PostsByUserFragment.POST_TYPE);
             case 1:
                 return PostsByUserFragment.newInstance(userId, PostsByUserFragment.RATED_POST_TYPE);
+            case 2:
+                return PostsByUserFragment.newInstance(userId, PostsByUserFragment.USER_COMMENTS_TYPE);
             default:
                 return null;
         }
@@ -44,6 +47,9 @@ public class ProfileTabAdapter extends FragmentPagerAdapter {
                 break;
             case 1:
                 ratedPostsByUserFragment = (PostsByUserFragment) createdFragment;
+                break;
+            case 2:
+                commentsByUserFragment = (PostsByUserFragment) createdFragment;
                 break;
         }
         return createdFragment;
@@ -65,6 +71,8 @@ public class ProfileTabAdapter extends FragmentPagerAdapter {
                 return postsByUserFragment;
             case 1:
                 return ratedPostsByUserFragment;
+            case 2:
+                return commentsByUserFragment;
         }
         return null;
     }

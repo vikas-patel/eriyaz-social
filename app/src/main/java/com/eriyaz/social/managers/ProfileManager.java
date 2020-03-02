@@ -29,6 +29,7 @@ import com.eriyaz.social.model.Notification;
 import com.eriyaz.social.model.Point;
 import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.model.RecordingItem;
+import com.eriyaz.social.model.RequestFeedback;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -159,6 +160,13 @@ public class ProfileManager extends FirebaseListenersManager {
         ApplicationHelper.getDatabaseHelper().createMessage(message, onTaskCompleteListener);
     }
 
+    public void sendNotification(Notification notification, String userID) {
+        ApplicationHelper.getDatabaseHelper().sendNotification(notification, userID);
+    }
+
+    public void sendRequestNotification(RequestFeedback requestFeedback, String userID) {
+        ApplicationHelper.getDatabaseHelper().sendRequestNotification(requestFeedback, userID);
+    }
     public void blockUser(String blockUserId, String reason, OnTaskCompleteListener onTaskCompleteListener) {
         ApplicationHelper.getDatabaseHelper().blockUser(blockUserId, reason, onTaskCompleteListener);
     }
@@ -210,8 +218,8 @@ public class ProfileManager extends FirebaseListenersManager {
         databaseHelper.removeMessage(messageId, userId, onTaskCompleteListener);
     }
 
-    public void getProfilesByRank(OnProfileListChangedListener<Profile> onDataChangedListener, int rank) {
-        ApplicationHelper.getDatabaseHelper().getProfilesByRank(onDataChangedListener, rank);
+    public void getProfilesByRank(OnProfileListChangedListener<Profile> onDataChangedListener, int rank, String queryParameter) {
+        ApplicationHelper.getDatabaseHelper().getProfilesByRank(onDataChangedListener, rank, queryParameter);
     }
 
     public ProfileStatus checkProfile() {

@@ -20,6 +20,7 @@ package com.eriyaz.social.activities;
 import android.app.ActivityOptions;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.drawable.LayerDrawable;
 import android.net.Uri;
 import android.os.Build;
@@ -35,6 +36,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SimpleItemAnimator;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -67,12 +69,15 @@ import com.eriyaz.social.utils.AnimationUtils;
 import com.eriyaz.social.utils.DeepLinkUtil;
 import com.eriyaz.social.utils.LogUtil;
 import com.eriyaz.social.utils.PreferencesUtil;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
 import com.google.firebase.dynamiclinks.PendingDynamicLinkData;
+import com.google.firebase.dynamiclinks.ShortDynamicLink;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.uxcam.UXCam;
 
@@ -103,11 +108,13 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
     }
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         postManager = PostManager.getInstance(this);
@@ -141,6 +148,7 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
         appRater = new AppRater(this);
         appRater.setAppRaterCallback(new AppRaterCallbackImp(MainActivity.this));
         appRater.markAppLaunched();
+
     }
 
     @Override
@@ -319,7 +327,7 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
     private void initContentView() {
         if (recyclerView == null) {
 //            recordButton = (FloatingActionButton) findViewById(R.id.addNewPostFab);
-            recordButton = (Button) findViewById(R.id.addNewPostFab);
+            recordButton = findViewById(R.id.addNewPostFab);
             MoveUpwardBehavior fancyBehavior = new MoveUpwardBehavior();
             CoordinatorLayout.LayoutParams params =
                     (CoordinatorLayout.LayoutParams) recordButton.getLayoutParams();
@@ -337,7 +345,7 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
                 });
             }
 
-            newPostsCounterTextView = (TextView) findViewById(R.id.newPostsCounterTextView);
+            newPostsCounterTextView = findViewById(R.id.newPostsCounterTextView);
             newPostsCounterTextView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -345,9 +353,9 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
                 }
             });
 
-            final ProgressBar progressBar = (ProgressBar) findViewById(R.id.progressBar);
-            SwipeRefreshLayout swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
-            recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+            final ProgressBar progressBar = findViewById(R.id.progressBar);
+            SwipeRefreshLayout swipeContainer =findViewById(R.id.swipeContainer);
+            recyclerView = findViewById(R.id.recycler_view);
             postsAdapter = new PostsAdapter(this, swipeContainer);
             postsAdapter.setCallback(new PostsAdapter.Callback() {
                 @Override
@@ -695,15 +703,17 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
         //getAnalytics().logShare(uid);
         getAnalytics().logShare();
         final Integer minVersion = 0;
-        getDeepLinkUtil().getLink(linkStr, minVersion, new DeepLinkUtil.DynamicLinkCallback() {
+        DeepLinkUtil deepLinkUtil = getDeepLinkUtil();
+        deepLinkUtil.getLink(linkStr, minVersion, new DeepLinkUtil.DynamicLinkCallback() {
             @Override
             public void getLinkSuccess(Uri uri) {
-                getDeepLinkUtil().onShare(uri.toString(), emailSub);
+                deepLinkUtil.onShare(uri.toString(), emailSub);
+
             }
 
             @Override
             public void getShortLinkFailed(String dynamicLinkStr) {
-                getDeepLinkUtil().onShare(dynamicLinkStr, emailSub);
+                deepLinkUtil.onShare(dynamicLinkStr, emailSub);
 
             }
         });
@@ -753,8 +763,6 @@ public class MainActivity extends BaseCurrentProfileActivity implements ForceUpd
             @Override
             public void onListChanged(List<String> list) {
                 Application application = (Application) getApplication();
-
-                Toast.makeText(MainActivity.this, ""+list.size(), Toast.LENGTH_LONG);
                 application.setBlockedByList(list);
             }
         };

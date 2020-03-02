@@ -20,21 +20,41 @@ package com.eriyaz.social.managers;
 import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.eriyaz.social.ApplicationHelper;
+import com.eriyaz.social.Constants;
+import com.eriyaz.social.R;
+import com.eriyaz.social.managers.listeners.OnDataChangedListener;
+import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
+import com.eriyaz.social.managers.listeners.OnObjectExistListener;
+import com.eriyaz.social.managers.listeners.OnPostChangedListener;
 import com.eriyaz.social.managers.listeners.OnPostCreatedListener;
+import com.eriyaz.social.managers.listeners.OnPostListChangedListener;
+import com.eriyaz.social.managers.listeners.OnProfileCreatedListener;
 import com.eriyaz.social.managers.listeners.OnProfileListChangedListener;
+import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
 import com.eriyaz.social.managers.listeners.OnTaskCompleteMessageListener;
 import com.eriyaz.social.model.Avatar;
 import com.eriyaz.social.model.BoughtFeedback;
+import com.eriyaz.social.model.Comment;
 import com.eriyaz.social.model.Flag;
 import com.eriyaz.social.model.ItemListResult;
+import com.eriyaz.social.model.Like;
 import com.eriyaz.social.model.Message;
 import com.eriyaz.social.model.Notification;
 import com.eriyaz.social.model.Point;
+import com.eriyaz.social.model.Post;
+import com.eriyaz.social.model.PostListResult;
+import com.eriyaz.social.model.Profile;
 import com.eriyaz.social.model.ProfileListResult;
+import com.eriyaz.social.model.Rating;
 import com.eriyaz.social.model.RecordingItem;
+import com.eriyaz.social.model.RequestFeedback;
+import com.eriyaz.social.model.UserComment;
 import com.eriyaz.social.utils.Analytics;
+import com.eriyaz.social.utils.LogUtil;
 import com.eriyaz.social.utils.ValidationUtil;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -59,23 +79,6 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.eriyaz.social.ApplicationHelper;
-import com.eriyaz.social.Constants;
-import com.eriyaz.social.R;
-import com.eriyaz.social.managers.listeners.OnDataChangedListener;
-import com.eriyaz.social.managers.listeners.OnObjectChangedListener;
-import com.eriyaz.social.managers.listeners.OnObjectExistListener;
-import com.eriyaz.social.managers.listeners.OnPostChangedListener;
-import com.eriyaz.social.managers.listeners.OnPostListChangedListener;
-import com.eriyaz.social.managers.listeners.OnProfileCreatedListener;
-import com.eriyaz.social.managers.listeners.OnTaskCompleteListener;
-import com.eriyaz.social.model.Comment;
-import com.eriyaz.social.model.Like;
-import com.eriyaz.social.model.Post;
-import com.eriyaz.social.model.PostListResult;
-import com.eriyaz.social.model.Profile;
-import com.eriyaz.social.model.Rating;
-import com.eriyaz.social.utils.LogUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -111,6 +114,7 @@ public class DatabaseHelper {
     public static final String LIKE_USER_DB_KEY = "like-user";
     public static final String COMMENT_LIKES_DB_KEY = "comment-likes";
     public static final String BOOKMARK_POSTS_DB_KEY = "bookmark-posts";
+    public static final String POST_RATINGS_DB_KEY = "post-ratings";
 
     public static DatabaseHelper getInstance(Context context) {
         if (instance == null) {
@@ -174,20 +178,20 @@ public class DatabaseHelper {
 
     public void setReferrerInfo(final String referrerUid) {
         FirebaseAuth.getInstance()
-            .signInAnonymously()
-            .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
-                @Override
-                public void onSuccess(AuthResult authResult) {
-                    // Keep track of the referrer in the RTDB. Database calls
-                    // will depend on the structure of your app's RTDB.
-                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                    DatabaseReference databaseReference = ApplicationHelper.getDatabaseHelper().getDatabaseReference();
-                    DatabaseReference userRecord =
-                            databaseReference.child("profiles")
-                                    .child(user.getUid());
-                    userRecord.child("referred_by").setValue(referrerUid);
-                }
-            });
+                .signInAnonymously()
+                .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+                    @Override
+                    public void onSuccess(AuthResult authResult) {
+                        // Keep track of the referrer in the RTDB. Database calls
+                        // will depend on the structure of your app's RTDB.
+                        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                        DatabaseReference databaseReference = ApplicationHelper.getDatabaseHelper().getDatabaseReference();
+                        DatabaseReference userRecord =
+                                databaseReference.child("profiles")
+                                        .child(user.getUid());
+                        userRecord.child("referred_by").setValue(referrerUid);
+                    }
+                });
     }
 
     public void createOrUpdateProfile(final Profile profile, final OnProfileCreatedListener onProfileCreatedListener) {
@@ -211,7 +215,7 @@ public class DatabaseHelper {
             getProfileSingleValue(currentUserId, new OnObjectChangedListener<Profile>() {
                 @Override
                 public void onObjectChanged(Profile obj) {
-                    if(obj != null) {
+                    if (obj != null) {
                         addRegistrationToken(token, currentUserId);
                     } else {
                         LogUtil.logError(TAG, "updateRegistrationToken",
@@ -255,23 +259,28 @@ public class DatabaseHelper {
         return databaseReference.child("post-comments").push().getKey();
     }
 
-    public void createOrUpdatePost(final Post post, final OnPostCreatedListener onPostCreatedListener) {
+    public void createOrUpdatePost(boolean isUpdate, final Post post, final OnPostCreatedListener onPostCreatedListener) {
         try {
             DatabaseReference databaseReference = database.getReference();
 
-            Map<String, Object> postValues = post.toMap();
+            Map<String, Object> postValues = post.toMap(isUpdate);
             Map<String, Object> childUpdates = new HashMap<>();
             childUpdates.put("/posts/" + post.getId(), postValues);
 
             databaseReference.updateChildren(childUpdates, new DatabaseReference.CompletionListener() {
                 @Override
                 public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                    if (databaseError == null) {
-                        DatabaseReference profileRef = database.getReference("profiles/" + post.getAuthorId());
-                        incrementPostCount(profileRef);
-                    } else {
+                    if (databaseError != null) {
                         onPostCreatedListener.onPostSaved(false, databaseError.getMessage());
                         LogUtil.logError(TAG, databaseError.getMessage(), databaseError.toException());
+                    } else {
+                        if (isUpdate) {
+                            onPostCreatedListener.onPostSaved(true, "");
+                            LogUtil.logInfo(TAG, "Updating post count transaction is completed.");
+                        } else {
+                            DatabaseReference profileRef = database.getReference("profiles/" + post.getAuthorId());
+                            incrementPostCount(profileRef);
+                        }
                     }
                 }
 
@@ -308,30 +317,31 @@ public class DatabaseHelper {
         DatabaseReference postRef = databaseReference.child("posts").child(post.getId());
         return postRef.removeValue();
     }
-/*
-    public void updateProfileLikeCountAfterRemovingPost(Post post) {
-        DatabaseReference profileRef = database.getReference("profiles/" + post.getAuthorId() + "/likesCount");
-        final long likesByPostCount = post.getLikesCount();
 
-        profileRef.runTransaction(new Transaction.Handler() {
-            @Override
-            public Transaction.Result doTransaction(MutableData mutableData) {
-                Integer currentValue = mutableData.getValue(Integer.class);
-                if (currentValue != null && currentValue >= likesByPostCount) {
-                    mutableData.setValue(currentValue - likesByPostCount);
+    /*
+        public void updateProfileLikeCountAfterRemovingPost(Post post) {
+            DatabaseReference profileRef = database.getReference("profiles/" + post.getAuthorId() + "/likesCount");
+            final long likesByPostCount = post.getLikesCount();
+
+            profileRef.runTransaction(new Transaction.Handler() {
+                @Override
+                public Transaction.Result doTransaction(MutableData mutableData) {
+                    Integer currentValue = mutableData.getValue(Integer.class);
+                    if (currentValue != null && currentValue >= likesByPostCount) {
+                        mutableData.setValue(currentValue - likesByPostCount);
+                    }
+
+                    return Transaction.success(mutableData);
                 }
 
-                return Transaction.success(mutableData);
-            }
+                @Override
+                public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+                    LogUtil.logInfo(TAG, "Updating likes count transaction is completed.");
+                }
+            });
 
-            @Override
-            public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-                LogUtil.logInfo(TAG, "Updating likes count transaction is completed.");
-            }
-        });
-
-    }
-*/
+        }
+    */
     public Task<Void> removeImage(String imageTitle) {
         StorageReference storageRef = storage.getReferenceFromUrl("gs://social.appspot.com");
         StorageReference desertRef = storageRef.child("images/" + imageTitle);
@@ -410,25 +420,26 @@ public class DatabaseHelper {
     }
 
     public void createFeedback(Message feedback, final OnTaskCompleteListener onTaskCompleteListener) {
-            FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-            DatabaseReference mFeedbacksReference = database.getReference().child("feedbacks");
-            String feedbackId = mFeedbacksReference.push().getKey();
-            feedback.setId(feedbackId);
-            if (firebaseUser != null) {
-                feedback.setSenderId(firebaseUser.getUid());
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        DatabaseReference mFeedbacksReference = database.getReference().child("feedbacks");
+        String feedbackId = mFeedbacksReference.push().getKey();
+        feedback.setId(feedbackId);
+        if (firebaseUser != null) {
+            feedback.setSenderId(firebaseUser.getUid());
+        }
+        analytics.logFeedback();
+        mFeedbacksReference.child(feedbackId).setValue(feedback, new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                if (onTaskCompleteListener != null) {
+                    onTaskCompleteListener.onTaskComplete(true);
+                }
             }
-            analytics.logFeedback();
-            mFeedbacksReference.child(feedbackId).setValue(feedback, new DatabaseReference.CompletionListener() {
-                @Override
-                public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                    if (onTaskCompleteListener != null) {
-                        onTaskCompleteListener.onTaskComplete(true);
-                    }
-                }});
+        });
     }
 
     public void createFlag(Flag flag, final OnTaskCompleteListener onTaskCompleteListener) {
-        DatabaseReference flagReference = database.getReference().child("flags/"+flag.getFlaggedUser());
+        DatabaseReference flagReference = database.getReference().child("flags/" + flag.getFlaggedUser());
         String flagId = flagReference.push().getKey();
         analytics.logFeedback();
         flagReference.child(flagId).setValue(flag, new DatabaseReference.CompletionListener() {
@@ -437,7 +448,8 @@ public class DatabaseHelper {
                 if (onTaskCompleteListener != null) {
                     onTaskCompleteListener.onTaskComplete(true);
                 }
-            }});
+            }
+        });
     }
 
     public void blockUser(String blockUserId, String reason, final OnTaskCompleteListener onTaskCompleteListener) {
@@ -446,7 +458,7 @@ public class DatabaseHelper {
             onTaskCompleteListener.onTaskComplete(false);
             return;
         }
-        DatabaseReference blockReference = database.getReference().child("block-users/"+blockUserId+"/"+authorId);
+        DatabaseReference blockReference = database.getReference().child("block-users/" + blockUserId + "/" + authorId);
         Map children = new HashMap();
         children.put("reason", reason);
         blockReference.updateChildren(children, new DatabaseReference.CompletionListener() {
@@ -455,7 +467,8 @@ public class DatabaseHelper {
                 if (onTaskCompleteListener != null) {
                     onTaskCompleteListener.onTaskComplete(true);
                 }
-            }});
+            }
+        });
     }
 
     public void createComment(Comment comment, final String postId, final OnTaskCompleteListener onTaskCompleteListener) {
@@ -551,6 +564,27 @@ public class DatabaseHelper {
         });
     }
 
+    public void decrementRatingsCount(String postId) {
+        DatabaseReference ratingRef = database.getReference("posts").child(postId).child("ratingsCount");
+        ratingRef.runTransaction(new Transaction.Handler() {
+            @NonNull
+            @Override
+            public Transaction.Result doTransaction(@NonNull MutableData mutableData) {
+                Integer currentRatingCount = mutableData.getValue(Integer.class);
+                if(currentRatingCount!=null && currentRatingCount>0){
+                    mutableData.setValue(currentRatingCount-1);
+                }
+
+                return Transaction.success(mutableData);
+            }
+
+            @Override
+            public void onComplete(@Nullable DatabaseError databaseError, boolean b, @Nullable DataSnapshot dataSnapshot) {
+
+            }
+        });
+    }
+
     public void decrementCommentsCount(String postId, final OnTaskCompleteListener onTaskCompleteListener) {
         DatabaseReference postRef = database.getReference("posts/" + postId + "/commentsCount");
         postRef.runTransaction(new Transaction.Handler() {
@@ -573,13 +607,13 @@ public class DatabaseHelper {
         });
     }
 
-    public Task<Void> removeComment(String commentId,  String postId) {
+    public Task<Void> removeComment(String commentId, String postId) {
         DatabaseReference databaseReference = database.getReference();
         DatabaseReference postRef = databaseReference.child("post-comments").child(postId).child(commentId);
         return postRef.removeValue();
     }
 
-    public void removeMessage(String messageId,  String userId, final OnTaskCompleteListener onTaskCompleteListener) {
+    public void removeMessage(String messageId, String userId, final OnTaskCompleteListener onTaskCompleteListener) {
         DatabaseReference databaseReference = database.getReference();
         DatabaseReference removeAttributetRef = databaseReference.child("user-messages").child(userId).child(messageId).child("removed");
         removeAttributetRef.setValue(true, new DatabaseReference.CompletionListener() {
@@ -612,7 +646,6 @@ public class DatabaseHelper {
     }
 
 
-
     public void onNewLikeAddedListener(ChildEventListener childEventListener) {
         DatabaseReference mLikesReference = database.getReference().child("post-likes");
         mLikesReference.addChildEventListener(childEventListener);
@@ -629,16 +662,20 @@ public class DatabaseHelper {
             }
 
             @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+            }
 
             @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {}
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+            }
 
             @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+            }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {}
+            public void onCancelled(DatabaseError databaseError) {
+            }
         });
         activeChildListeners.put(childEventListener, mPointsReference);
         return childEventListener;
@@ -667,8 +704,8 @@ public class DatabaseHelper {
         try {
             String authorId = firebaseAuth.getCurrentUser().getUid();
             DatabaseReference mLikesReference = database.getReference().child("post-ratings")
-                                                        .child(postId).child(authorId)
-                                                        .child(ratingId).child("detailedText");
+                    .child(postId).child(authorId)
+                    .child(ratingId).child("detailedText");
             mLikesReference.setValue(text, new DatabaseReference.CompletionListener() {
                 @Override
                 public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
@@ -692,6 +729,35 @@ public class DatabaseHelper {
         databaseReference.setValue(notification);
     }
 
+    public void sendNotification(Notification notification, String userID) {
+
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference databaseReference = database.getReference("user-notifications").child(userID);
+
+        String childNode = databaseReference.push().getKey();
+        long createdDate = Calendar.getInstance().getTimeInMillis();
+
+        notification.setCreatedDate(createdDate);
+        notification.setId(childNode);
+
+        databaseReference.child(childNode).setValue(notification);
+        analytics.logFeedbackRequestNotification();
+    }
+    public void sendRequestNotification(RequestFeedback requestFeedback, String userID) {
+
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference databaseReference = database.getReference("request-feedback").child(userID);
+
+        String childNode = databaseReference.push().getKey();
+        long createdDate = Calendar.getInstance().getTimeInMillis();
+
+        requestFeedback.setTimestamp(createdDate);
+        requestFeedback.setFeedbackid(childNode);
+
+        databaseReference.child(childNode).setValue(requestFeedback);
+        analytics.logFeedbackRequestNotification();
+    }
+
     public void incrementWatchersCount(String postId) {
         DatabaseReference postRef = database.getReference("posts/" + postId + "/watchersCount");
         postRef.runTransaction(new Transaction.Handler() {
@@ -712,7 +778,7 @@ public class DatabaseHelper {
                 LogUtil.logInfo(TAG, "Updating Watchers count transaction is completed.");
             }
         });
-     }
+    }
 
     public void decrementUserPoints(String userId) {
         DatabaseReference pointRef = database.getReference("profiles/" + userId + "/points");
@@ -735,11 +801,11 @@ public class DatabaseHelper {
         });
     }
 
-     public void resetUnseenNotificationCount() {
-         String userId = firebaseAuth.getCurrentUser().getUid();
-         DatabaseReference unseenCountRef = database.getReference("profiles/" + userId + "/unseen");
-         unseenCountRef.setValue(0);
-     }
+    public void resetUnseenNotificationCount() {
+        String userId = firebaseAuth.getCurrentUser().getUid();
+        DatabaseReference unseenCountRef = database.getReference("profiles/" + userId + "/unseen");
+        unseenCountRef.setValue(0);
+    }
 
     public void removeRating(final String postId, final Rating rating) {
         if (rating.getId() == null) return;
@@ -750,9 +816,18 @@ public class DatabaseHelper {
 
     public void markRatingViewed(String postId, Rating rating) {
         DatabaseReference ratingViewedRef = database.getReference().child("post-ratings")
-                                        .child(postId).child(rating.getAuthorId())
-                                        .child(rating.getId()).child("viewedByPostAuthor");
+                .child(postId).child(rating.getAuthorId())
+                .child(rating.getId()).child("viewedByPostAuthor");
         ratingViewedRef.setValue(Boolean.TRUE);
+    }
+
+    public void hideRating(String postId, Rating rating, float value){
+        DatabaseReference ref = database.getReference().child(POST_RATINGS_DB_KEY)
+                .child(postId).child(rating.getAuthorId())
+                .child(rating.getId());
+
+        ref.child("ratingRemoved").setValue(Boolean.TRUE);
+        ref.child("rating").setValue(value);
     }
 
     public UploadTask uploadImage(Uri uri, String imageTitle) {
@@ -799,8 +874,9 @@ public class DatabaseHelper {
                     Rating rating = snapshot.getValue(Rating.class);
                     ratedPosts.add(rating.getPostId());
                 }
-                getPosts(onDataChangedListener, date, ratedPosts,null);
+                getPosts(onDataChangedListener, date, ratedPosts, null);
             }
+
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 LogUtil.logError(TAG, "getRatingListByUser(), onCancelled", new Exception(databaseError.getMessage()));
@@ -920,21 +996,21 @@ public class DatabaseHelper {
         });
     }
 
-    public void getProfilesByRank(final OnProfileListChangedListener<Profile> onDataChangedListener, int rank) {
+    public void getProfilesByRank(final OnProfileListChangedListener<Profile> onDataChangedListener, int rank, String queryParameter) {
         DatabaseReference databaseReference = database.getReference("profiles");
         Query profileQuery;
         if (rank == 0) {
-            profileQuery = databaseReference.limitToFirst(Constants.Post.POST_AMOUNT_ON_PAGE).startAt(1).orderByChild("rank");
+            profileQuery = databaseReference.limitToFirst(Constants.Post.POST_AMOUNT_ON_PAGE).startAt(1).orderByChild(queryParameter);
         } else {
-            profileQuery = databaseReference.limitToFirst(Constants.Post.POST_AMOUNT_ON_PAGE).startAt(rank).orderByChild("rank");
+            profileQuery = databaseReference.limitToFirst(Constants.Post.POST_AMOUNT_ON_PAGE).startAt(rank).orderByChild(queryParameter);
         }
 
         profileQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                ProfileListResult result = parseProfileList(dataSnapshot);
+                ProfileListResult result = parseProfileList(dataSnapshot, queryParameter);
                 if (result.getProfiles().isEmpty() && result.isMoreDataAvailable()) {
-                    getProfilesByRank(onDataChangedListener, result.getLastItemRank() + 1);
+                    getProfilesByRank(onDataChangedListener, result.getLastItemRank() + 1, queryParameter);
                 } else {
                     onDataChangedListener.onListChanged(result);
                 }
@@ -949,10 +1025,9 @@ public class DatabaseHelper {
     }
 
     public void getPostListByUser(final OnDataChangedListener<Post> onDataChangedListener, String userId) {
-        DatabaseReference databaseReference = database.getReference("posts");
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("posts");
         Query postsQuery;
         postsQuery = databaseReference.orderByChild("authorId").equalTo(userId);
-
 //        postsQuery.keepSynced(true);
         postsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -1023,7 +1098,7 @@ public class DatabaseHelper {
         });
     }
 
-    private PostListResult parseAppendPostList(Map<String, Object> objectMap, List<String> filterPosts,  PostListResult resultAll) {
+    private PostListResult parseAppendPostList(Map<String, Object> objectMap, List<String> filterPosts, PostListResult resultAll) {
         PostListResult result = parsePostList(objectMap, filterPosts, false);
         if (resultAll == null) return result;
         resultAll.getPosts().addAll(result.getPosts());
@@ -1032,7 +1107,7 @@ public class DatabaseHelper {
         return resultAll;
     }
 
-    private PostListResult parsePostList(Map<String, Object> objectMap, List<String> filterPosts,  boolean sortByComment) {
+    private PostListResult parsePostList(Map<String, Object> objectMap, List<String> filterPosts, boolean sortByComment) {
         PostListResult result = new PostListResult();
         List<Post> list = new ArrayList<Post>();
         boolean isMoreDataAvailable = true;
@@ -1139,7 +1214,7 @@ public class DatabaseHelper {
         return result;
     }
 
-    private ProfileListResult parseProfileList(DataSnapshot dataSnapshot) {
+    private ProfileListResult parseProfileList(DataSnapshot dataSnapshot, String queryParameter) {
         ProfileListResult result = new ProfileListResult();
         List<Profile> list = new ArrayList<Profile>();
         boolean isMoreDataAvailable = true;
@@ -1148,15 +1223,26 @@ public class DatabaseHelper {
         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
             Profile profile = snapshot.getValue(Profile.class);
             list.add(profile);
-            if (lastItemRank == 0 || lastItemRank < profile.getRank()) {
-                lastItemRank = profile.getRank();
+            if (queryParameter.equalsIgnoreCase("rank")) {
+                if (lastItemRank == 0 || lastItemRank < profile.getRank()) {
+                    lastItemRank = profile.getRank();
+                }
+            }
+            else
+            {
+                if (lastItemRank == 0 || lastItemRank < profile.getWeeklyRank()) {
+                    lastItemRank = profile.getWeeklyRank();
+                }
             }
         }
 
         Collections.sort(list, new Comparator<Profile>() {
             @Override
             public int compare(Profile lhs, Profile rhs) {
-                return ((Integer) lhs.getRank()).compareTo(rhs.getRank());
+                if (queryParameter.equalsIgnoreCase("rank"))
+                    return ((Integer) lhs.getRank()).compareTo(rhs.getRank());
+                else
+                    return ((Integer) lhs.getWeeklyRank()).compareTo(rhs.getWeeklyRank());
             }
         });
 
@@ -1219,12 +1305,43 @@ public class DatabaseHelper {
         return result;
     }
 
+    private ItemListResult parseCommentsList(DataSnapshot dataSnapshot) {
+        ItemListResult result = new ItemListResult();
+        List<UserComment> list = new ArrayList<UserComment>();
+        boolean isMoreDataAvailable = true;
+        long lastItemCreatedDate = 0;
+        isMoreDataAvailable = Constants.Post.POST_AMOUNT_ON_PAGE == dataSnapshot.getChildrenCount();
+        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+            UserComment userComment = snapshot.getValue(UserComment.class);
+            System.out.println("DataSnapshot" +snapshot);
+            System.out.println("UserComment"+userComment.getText());
+            if (userComment.getText() == null) {
+                userComment.setText(" ");
+            }
+            list.add(userComment);
+            if (lastItemCreatedDate == 0 || lastItemCreatedDate > userComment.getCreatedDate()) {
+                lastItemCreatedDate = userComment.getCreatedDate();
+            }
+        }
+
+        Collections.sort(list, new Comparator<UserComment>() {
+            @Override
+            public int compare(UserComment lhs, UserComment rhs) {
+                return ((Long) rhs.getCreatedDate()).compareTo(lhs.getCreatedDate());
+            }
+        });
+        result.setItems(list);
+        result.setLastItemCreatedDate(lastItemCreatedDate);
+        result.setMoreDataAvailable(isMoreDataAvailable);
+        return result;
+    }
+
 
     public void getProfileSingleValue(String id, final OnObjectChangedListener<Profile> listener) {
         DatabaseReference databaseReference = getDatabaseReference().child("profiles").child(id);
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Profile profile = dataSnapshot.getValue(Profile.class);
                 listener.onObjectChanged(profile);
             }
@@ -1303,6 +1420,32 @@ public class DatabaseHelper {
 
         activeListeners.put(valueEventListener, databaseReference);
         return valueEventListener;
+    }
+
+    public void getUserCommentsList(final OnObjectChangedListener<ItemListResult> onDataChangedListener, long date, final String userId) {
+        DatabaseReference databaseReference = database.getReference("user-comments").child(userId);
+        Query userCommentsQuery;
+        if (date == 0) {
+            userCommentsQuery = databaseReference.limitToLast(Constants.Post.POST_AMOUNT_ON_PAGE).orderByChild("createdDate");
+        } else {
+            userCommentsQuery = databaseReference.limitToLast(Constants.Post.POST_AMOUNT_ON_PAGE).endAt(date).orderByChild("createdDate");
+        }
+        userCommentsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ItemListResult result = parseCommentsList(dataSnapshot);
+                if (result.getItems().isEmpty() && result.isMoreDataAvailable()) {
+                    getUserCommentsList(onDataChangedListener, result.getLastItemCreatedDate() - 1, userId);
+                } else {
+                    onDataChangedListener.onObjectChanged(result);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                LogUtil.logError(TAG, "getRatingListByUser(), onCancelled", new Exception(databaseError.getMessage()));
+            }
+        });
     }
 
     public ValueEventListener getBlockedByList(String userId, final OnDataChangedListener<String> onDataChangedListener) {
@@ -1487,7 +1630,6 @@ public class DatabaseHelper {
     }
 
 
-
     public ValueEventListener getCurrentUserRating(String postId, String userId, final OnObjectChangedListener<Rating> listener) {
         DatabaseReference databaseReference = database.getReference("post-ratings").child(postId).child(userId);
         ValueEventListener valueEventListener = databaseReference.addValueEventListener(new ValueEventListener() {
@@ -1541,9 +1683,9 @@ public class DatabaseHelper {
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                    Rating rating = dataSnapshot.getValue(Rating.class);
-                    listener.onObjectChanged(rating);
-                    return;
+                Rating rating = dataSnapshot.getValue(Rating.class);
+                listener.onObjectChanged(rating);
+                return;
             }
 
             @Override
@@ -1616,7 +1758,7 @@ public class DatabaseHelper {
     }
 
     public void toggleBoughtFeedback(final String postId) {
-        DatabaseReference mBoughtFeedbacksRef = database.getReference("bought-feedbacks/"+postId+"/resolved");
+        DatabaseReference mBoughtFeedbacksRef = database.getReference("bought-feedbacks/" + postId + "/resolved");
         mBoughtFeedbacksRef.runTransaction(new Transaction.Handler() {
             @Override
             public Transaction.Result doTransaction(MutableData mutableData) {
@@ -1640,7 +1782,7 @@ public class DatabaseHelper {
     public void createBoughtFeedback(final String postId, final OnTaskCompleteListener onTaskCompleteListener) {
         try {
             String authorId = firebaseAuth.getCurrentUser().getUid();
-            DatabaseReference mBoughtFeedbacksReference = database.getReference("bought-feedbacks/"+postId);
+            DatabaseReference mBoughtFeedbacksReference = database.getReference("bought-feedbacks/" + postId);
             BoughtFeedback boughtFeedback = new BoughtFeedback(postId, authorId);
             mBoughtFeedbacksReference.setValue(boughtFeedback, new DatabaseReference.CompletionListener() {
                 @Override
@@ -1688,4 +1830,6 @@ public class DatabaseHelper {
         activeListeners.put(valueEventListener, databaseReference);
         return valueEventListener;
     }
+
+
 }

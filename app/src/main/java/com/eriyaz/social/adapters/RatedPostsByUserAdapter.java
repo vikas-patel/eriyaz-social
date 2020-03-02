@@ -95,7 +95,7 @@ public class RatedPostsByUserAdapter extends BaseItemsAdapter implements Profile
                     item.setLength(post.getAudioDuration());
                     item.setFilePath(post.getImagePath());
                     PlaybackFragment playbackFragment =
-                            new PlaybackFragment().newInstance(item, post, rating, authorName);
+                            new PlaybackFragment().newInstance(item, post, rating, authorName,false);
                     FragmentTransaction transaction = activity.getSupportFragmentManager()
                             .beginTransaction();
                     playbackFragment.show(transaction, "dialog_playback");
