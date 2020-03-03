@@ -814,44 +814,44 @@ exports.addRatingPoints = functions.database.ref('/post-ratings/{postId}/{author
     return updateUserRatingPoints(ratingAuthorId, point);
 });
 
-exports.updateFriendConnectionRating = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onCreate(event => {
-    const ratingAuthorId = event.params.authorId;
-    const postId = event.params.postId;
-    var point = 1;
-    const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
+// exports.updateFriendConnectionRating = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onCreate(event => {
+//     const ratingAuthorId = event.params.authorId;
+//     const postId = event.params.postId;
+//     var point = 1;
+//     const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
 
-    return getPostTask.then(post => {
-        var postAuthorId = post.val().authorId;
-        if (ratingAuthorId == postAuthorId) {
-            return console.log('User rated own post');
-        }
-        const friend1Task = updateFriendConnection(ratingAuthorId, postAuthorId, point);
-        const friend2Task = updateFriendConnection(postAuthorId, ratingAuthorId, point);
-        return Promise.all([friend1Task, friend2Task]).then(results => {
-            console.log("friend connection tasks on rating completed");
-        });
-    });
-});
+//     return getPostTask.then(post => {
+//         var postAuthorId = post.val().authorId;
+//         if (ratingAuthorId == postAuthorId) {
+//             return console.log('User rated own post');
+//         }
+//         const friend1Task = updateFriendConnection(ratingAuthorId, postAuthorId, point);
+//         const friend2Task = updateFriendConnection(postAuthorId, ratingAuthorId, point);
+//         return Promise.all([friend1Task, friend2Task]).then(results => {
+//             console.log("friend connection tasks on rating completed");
+//         });
+//     });
+// });
 
-exports.updateFriendConnectionComment = functions.database.ref('/post-comments/{postId}/{commentId}/authorId').onCreate(event => {
-    const commentAuthorId = event.data.val();
-    const postId = event.params.postId;
-    const points = 2;
+// exports.updateFriendConnectionComment = functions.database.ref('/post-comments/{postId}/{commentId}/authorId').onCreate(event => {
+//     const commentAuthorId = event.data.val();
+//     const postId = event.params.postId;
+//     const points = 2;
 
-    const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
+//     const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
 
-    return getPostTask.then(post => {
-        var postAuthorId = post.val().authorId;
-        if (commentAuthorId == postAuthorId) {
-            return console.log('User commented on own post');
-        }
-        const friend1Task = updateFriendConnection(commentAuthorId, postAuthorId, points);
-        const friend2Task = updateFriendConnection(postAuthorId, commentAuthorId, points);
-        return Promise.all([friend1Task, friend2Task]).then(results => {
-            console.log("friend connection tasks on comment completed");
-        });
-    });
-});
+//     return getPostTask.then(post => {
+//         var postAuthorId = post.val().authorId;
+//         if (commentAuthorId == postAuthorId) {
+//             return console.log('User commented on own post');
+//         }
+//         const friend1Task = updateFriendConnection(commentAuthorId, postAuthorId, points);
+//         const friend2Task = updateFriendConnection(postAuthorId, commentAuthorId, points);
+//         return Promise.all([friend1Task, friend2Task]).then(results => {
+//             console.log("friend connection tasks on comment completed");
+//         });
+//     });
+// });
 
 exports.deleteRatingPoints = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onDelete(event => {
     const ratingAuthorId = event.params.authorId;
