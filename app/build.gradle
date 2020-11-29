@@ -34,12 +34,12 @@ android {
         }
 
     }
-    compileSdkVersion 27
+    compileSdkVersion 29
     buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId "com.eriyaz.social"
         minSdkVersion 16
-        targetSdkVersion 27
+        targetSdkVersion 29
         //Update remote config as well
         versionCode 56
         versionName "4.2"
