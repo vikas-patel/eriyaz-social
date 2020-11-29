@@ -19,8 +19,14 @@ package com.eriyaz.social.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.eriyaz.social.fragments.EmailPasswordFragment;
 import com.facebook.AccessToken;
@@ -71,6 +77,8 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
 
     private CallbackManager mCallbackManager;
     private String profilePhotoUrlLarge;
+
+    private TextView tosTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -155,6 +163,25 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                 emailPasswordFragment.show(getSupportFragmentManager(), EmailPasswordFragment.TAG);
             }
         });
+
+
+        tosTextView = findViewById(R.id.tos_tv);
+        String text = "By selecting one of the Account Creation Options, you agree to RateMySinging's Terms of Service and Privacy Policy";
+
+        SpannableString spannableString = new SpannableString(text);
+
+        ClickableSpan clickableSpan1 = new ClickableSpan() {
+            @Override
+            public void onClick(@NonNull View view) {
+                tosTextView.invalidate();
+                startActivity(new Intent(LoginActivity.this, TnCActivity.class));
+            }
+        };
+
+        spannableString.setSpan(clickableSpan1, text.indexOf('T'), text.lastIndexOf('y')+1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        tosTextView.setText(spannableString);
+        tosTextView.setMovementMethod(LinkMovementMethod.getInstance());
     }
 
     @Override

@@ -159,6 +159,7 @@
 
     <!-- Strings related to login -->
 
+    <string name="privacy_policy_login_screen">By selecting one of the Account Creation Options, you agree to Rate My Singing\'s Terms of Service and Privacy Policy </string>
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="permission_rationale">"Contacts permissions are needed for providing email
@@ -463,6 +464,10 @@
 <p>This document is published and shall be construed in accordance with the provisions of the Information Technology (reasonable security practices and procedures and sensitive personal data of information) rules, 2011 under Information Technology Act, 2000; that require publishing of the Privacy Policy for collection, use, storage and transfer of sensitive personal data or information.</p>
 <p>Please read this Privacy Policy carefully by using the Website, you indicate that you understand, agree and consent to this Privacy Policy. If you do not agree with the terms of this Privacy Policy, please do not use this Website.</p>
 <p>By providing us your Information or by making use of the facilities provided by the Website, You hereby consent to the collection, storage, processing and transfer of any or all of Your Personal Information and Non-Personal Information by us as specified under this Privacy Policy. You further agree that such collection, use, storage and transfer of Your Information shall not cause any loss or wrongful gain to you or any other person.</p>
+
+<p><strong>OBJECTIONABLE CONTENT </strong></p>
+<p> You agree not to Post any User Content that could be interpreted in RateMySinging’s sole discretion to be (i) abusive, bullying, defamatory, harassing, harmful, hateful, inaccurate, infringing, libelous, objectionable, obscene, offensive, pornographic, shocking, threatening, unlawful, violent, or vulgar, (ii) in violation of any applicable laws, (iii) putting other Users’ data privacy and security at risk; (iv) promoting any product, good or service; (v) promoting bigotry, discrimination, hatred, intolerance, or racism; or (vi) inciting violence (collectively, "Objectionable Content"). The Posting of any Objectionable Content may subject you to third-party claims and none of the rights granted to you in these Terms may be raised as a defense against any third-party claims arising from your Posting of Objectionable Content. RateMySinging in its sole discretion may take any actions it deems necessary and/or appropriate against any User who Posts Objectionable Content, including, without limitation, warning the User, suspending or terminating the User’s Account, removing all of the User’s User Content, and/or reporting the User to law enforcement authorities, either directly or indirectly. </p>
+
 <p><strong>USER INFORMATION </strong></p>
 <p>To avail certain services on our Websites, users are required to provide certain information for the registration process namely: - a) your name, b) email address, c) sex, d) age, e) PIN code, f) credit card or debit card details g) medical records and history h) sexual orientation, i) biometric information, j) password etc., and / or your occupation, interests, and the like. The Information as supplied by the users enables us to improve our sites and provide you the most user-friendly experience.</p>
 
