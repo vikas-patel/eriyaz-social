@@ -41,12 +41,12 @@ const mailTransport = nodemailer.createTransport({
   },
 });
 
-exports.pushNotificationRatings = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onCreate(event => {
+exports.pushNotificationRatings = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onCreate((snapshot, context) => {
 
     console.log('New rating was added');
 
-    const ratingAuthorId = event.params.authorId;
-    const postId = event.params.postId;
+    const ratingAuthorId = context.params.authorId;
+    const postId = context.params.postId;
 
     // Get rated post.
     const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
@@ -227,11 +227,11 @@ function sendChatPushNotification(senderId, receiverId, body, clickActivity, ext
     });
 }
 
-exports.pushNotificationComments = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
+exports.pushNotificationComments = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate((snapshot, context) => {
 
-    const commentId = event.params.commentId;
-    const postId = event.params.postId;
-    const comment = event.data.val();
+    const commentId = context.params.commentId;
+    const postId = context.params.postId;
+    const comment = snapshot.val();
 
     console.log('New comment was added, id: ', postId);
 
@@ -301,8 +301,8 @@ exports.pushNotificationComments = functions.database.ref('/post-comments/{postI
     })
 });
 
-exports.pushNotificationPostNew = functions.database.ref('/posts/{postId}').onCreate(event => {
-    const postId = event.params.postId;
+exports.pushNotificationPostNew = functions.database.ref('/posts/{postId}').onCreate((snapshot, context) => {
+    const postId = context.params.postId;
     console.log('New post was created');
 
     // Get post authorID.
@@ -415,9 +415,9 @@ exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{aut
    });
 });
 
-exports.updatePostBoughtFeedbackStatus = functions.database.ref('/bought-feedbacks/{postId}').onWrite(event => {
-    const postId = event.params.postId;
-    const feedback = event.data.val();
+exports.updatePostBoughtFeedbackStatus = functions.database.ref('/bought-feedbacks/{postId}').onWrite((change, context) => {
+    const postId = context.params.postId;
+    const feedback = change.after.val();
     if (feedback.paymentStatus != "TXN_SUCCESS" && feedback.paymentStatus != "PENDING") {
         console.log("paymentStatus is ", feedback, ". So just exit.");
         return 0;
@@ -444,9 +444,9 @@ exports.updatePostBoughtFeedbackStatus = functions.database.ref('/bought-feedbac
     });
 });
 
-exports.pushNotificationNewBoughtFeedback = functions.database.ref('/bought-feedbacks/{postId}').onCreate(event => {
-    const postId = event.params.postId;
-    const feedback = event.data.val();
+exports.pushNotificationNewBoughtFeedback = functions.database.ref('/bought-feedbacks/{postId}').onCreate((snapshot, context) => {
+    const postId = context.params.postId;
+    const feedback = snapshot.val();
     // Get Admin users
     const profileRef = admin.database().ref(`/profiles`);
     const profileQuery = profileRef.orderByChild('admin').equalTo(true).once('value');
@@ -466,10 +466,10 @@ exports.pushNotificationNewBoughtFeedback = functions.database.ref('/bought-feed
 
 
 
-exports.pushNotificationRequestFeedback = functions.database.ref('/request-feedback/{userID}/{feedbackId}').onCreate(event => {
-    const feedbackId = event.params.feedbackId;
-    const userid = event.params.userID;
-    const value = event.data.val();
+exports.pushNotificationRequestFeedback = functions.database.ref('/request-feedback/{userID}/{feedbackId}').onCreate((snapshot, context) => {
+    const feedbackId = context.params.feedbackId;
+    const userid = context.params.userID;
+    const value = snapshot.val();
     var msg=' has requested you to give feedback on song ';
     console.log(`feedback request by ${userid}`);
     return admin.database().ref(`/posts/${value.postid}`).once('value').then(function(postSnap) {
@@ -480,10 +480,10 @@ exports.pushNotificationRequestFeedback = functions.database.ref('/request-feedb
 });
 
 
-exports.userNotificationRequestFeedback = functions.database.ref('/request-feedback/{userID}/{feedbackId}').onCreate(event => {
-    const feedbackId = event.params.feedbackId;
-    const userid = event.params.userID;
-    const value = event.data.val();
+exports.userNotificationRequestFeedback = functions.database.ref('/request-feedback/{userID}/{feedbackId}').onCreate((snapshot, context) => {
+    const feedbackId = context.params.feedbackId;
+    const userid = context.params.userID;
+    const value = snapshot.val();
     var msg='';
     const promises = [];
 
@@ -509,8 +509,8 @@ exports.userNotificationRequestFeedback = functions.database.ref('/request-feedb
 });
 
 
-exports.updatePostLastCommentDate = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
-    const postId = event.params.postId;
+exports.updatePostLastCommentDate = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate((snapshot, context) => {
+    const postId = context.params.postId;
     console.log('updating post last comment date ', postId);
     const postRef = admin.database().ref(`/posts/${postId}`);
     return postRef.transaction(current => {
@@ -525,12 +525,12 @@ exports.updatePostLastCommentDate = functions.database.ref('/post-comments/{post
     });
 });
 
-exports.rewardReputationPoints = functions.database.ref('/post-comments/{postId}/{commentId}/reputationPoints').onCreate(event => {
-    const newPoints = event.data.val();
+exports.rewardReputationPoints = functions.database.ref('/post-comments/{postId}/{commentId}/reputationPoints').onCreate((snapshot, context) => {
+    const newPoints = snapshot.val();
     if (!newPoints) return 0;
-    const commentId = event.params.commentId;
-    const postId = event.params.postId;
-    const commentRef = event.data.ref.parent;
+    const commentId = context.params.commentId;
+    const postId = context.params.postId;
+    const commentRef = snapshot.ref.parent;
 
     return commentRef.once('value').then(snapshot => {
         let comment = snapshot.val();
@@ -539,12 +539,12 @@ exports.rewardReputationPoints = functions.database.ref('/post-comments/{postId}
     });
 });
 
-exports.rewardReputationPointsUpdate = functions.database.ref('/post-comments/{postId}/{commentId}/reputationPoints').onUpdate(event => {
-    const commentId = event.params.commentId;
-    const postId = event.params.postId;
-    const commentRef = event.data.ref.parent;
-    const newPoints = event.data.val();
-    const previousPoints = event.data.previous.val();
+exports.rewardReputationPointsUpdate = functions.database.ref('/post-comments/{postId}/{commentId}/reputationPoints').onUpdate((change, context) => {
+    const commentId = context.params.commentId;
+    const postId = context.params.postId;
+    const commentRef = change.after.ref.parent;
+    const newPoints = change.after.val();
+    const previousPoints = change.before.val();
     // don't show notification if points decremented
     if (newPoints <= previousPoints) return;
     return commentRef.once('value').then(snapshot => {
@@ -554,13 +554,13 @@ exports.rewardReputationPointsUpdate = functions.database.ref('/post-comments/{p
     });
 });
 
-exports.rewardUserPoints = functions.database.ref('/post-comments/{postId}/{commentId}/userRewardPoints').onCreate(event => {
+exports.rewardUserPoints = functions.database.ref('/post-comments/{postId}/{commentId}/userRewardPoints').onCreate((snapshot, context) => {
 
-  const newPoints = event.data.val();
+  const newPoints = snapshot.val();
   if(newPoints==0 || newPoints==-2) return 0;
-  const commentId = event.params.commentId
-  const postId = event.params.postId
-  const commentRef = event.data.ref.parent
+  const commentId = context.params.commentId
+  const postId = context.params.postId
+  const commentRef = snapshot.ref.parent
 
   const postAuthorIdRef = admin.database().ref(`/posts/${postId}/authorId`).once('value');
 
@@ -598,13 +598,13 @@ exports.rewardUserPoints = functions.database.ref('/post-comments/{postId}/{comm
 
 });
 
-exports.rewardUserPointsUpdate = functions.database.ref('/post-comments/{postId}/{commentId}/userRewardPoints').onUpdate(event => {
+exports.rewardUserPointsUpdate = functions.database.ref('/post-comments/{postId}/{commentId}/userRewardPoints').onUpdate((change, context) => {
 
-  const commentId = event.params.commentId
-  const postId = event.params.postId
-  const commentRef = event.data.ref.parent
-  const newPoints = event.data.val()
-  const previousPoints = event.data.previous.val()
+  const commentId = context.params.commentId
+  const postId = context.params.postId
+  const commentRef = change.after.ref.parent
+  const newPoints = change.after.val()
+  const previousPoints = change.before.val()
 
   //don't show notification if points decremented
   if(newPoints<= previousPoints) return;
@@ -644,11 +644,11 @@ exports.rewardUserPointsUpdate = functions.database.ref('/post-comments/{postId}
 
 });
 
-exports.detailedFeedbackPoints = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
-    const commentId = event.params.commentId;
-    const comment = event.data.val();
+exports.detailedFeedbackPoints = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate((snapshot, context) => {
+    const commentId = context.params.commentId;
+    const comment = snapshot.val();
     const commentAuthorId = comment.authorId;
-    const commentListRef = event.data.ref.parent;
+    const commentListRef = snapshot.ref.parent;
     const comment_points = 1;
     if (!comment.detailedFeedback) return 0;
     console.log("reward extra points for detailed feedback");
@@ -681,18 +681,18 @@ exports.detailedFeedbackPoints = functions.database.ref('/post-comments/{postId}
     });
 });
 
-exports.ratingDetailedTextPoints = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}/detailedText').onCreate(event => {
+exports.ratingDetailedTextPoints = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}/detailedText').onCreate((snapshot, context) => {
     console.log("rating detailedText set");
-    const ratingId = event.params.ratingId;
-    const detailedText = event.data.val();
-    const authorId = event.params.authorId;
-    const commentListRef = event.data.ref.parent;
+    const ratingId = context.params.ratingId;
+    const detailedText = snapshot.val();
+    const authorId = context.params.authorId;
+    const commentListRef = snapshot.ref.parent;
     const comment_points = 1;
     if (!detailedText) {
         console.log("empty detailed text")
         return;
     }
-    const ratingRef = event.data.ref.parent;
+    const ratingRef = snapshot.ref.parent;
     return ratingRef.once('value').then(snapshot => {
         var rating = snapshot.val();
         if (rating.rating <= 5 || rating.rating > 15) {
@@ -715,9 +715,9 @@ exports.ratingDetailedTextPoints = functions.database.ref('/post-ratings/{postId
 
 // Two different fuctions for post add and remove, because there were too many post update request
 // and firebase has restriction on frequency of function calls.
-exports.postAddedPoints = functions.database.ref('/posts/{postId}').onCreate(event => {
-    const postId = event.params.postId;
-    const post = event.data.val();
+exports.postAddedPoints = functions.database.ref('/posts/{postId}').onCreate((snapshot, context) => {
+    const postId = context.params.postId;
+    const post = snapshot.val();
     const postAuthorId = post.authorId;
     var post_points = 3;
     console.log('Post created. ', postId);
@@ -807,9 +807,9 @@ function updateFriendConnection(friend1, friend2, points) {
 //     return updateUserRatingPoints(ratingAuthorId, point);
 // });
 
-exports.addRatingPoints = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onCreate(event => {
-    const ratingAuthorId = event.params.authorId;
-    const postId = event.params.postId;
+exports.addRatingPoints = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onCreate((snapshot, context) => {
+    const ratingAuthorId = context.params.authorId;
+    const postId = context.params.postId;
     var point = 1;
     return updateUserRatingPoints(ratingAuthorId, point);
 });
@@ -853,11 +853,11 @@ exports.addRatingPoints = functions.database.ref('/post-ratings/{postId}/{author
 //     });
 // });
 
-exports.deleteRatingPoints = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onDelete(event => {
-    const ratingAuthorId = event.params.authorId;
-    const postId = event.params.postId;
+exports.deleteRatingPoints = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onDelete((change, context) => {
+    const ratingAuthorId = context.params.authorId;
+    const postId = context.params.postId;
     var point = -1;
-    const rating = event.data.previous.val();
+    const rating = change.before.val();
     if (rating.detailedText && rating.rating > 5 && rating.rating <= 15) {
         point = -2;
     }
@@ -1002,20 +1002,20 @@ function addCommentLikeUser(commentId, profile) {
     });
 }
 
-exports.deleteCommentLikes = functions.database.ref('/comment-likes/{authorId}/{postId}/{commentId}').onDelete(event => {
-    const likeAuthorId = event.params.authorId;
-    const commentId = event.params.commentId;
+exports.deleteCommentLikes = functions.database.ref('/comment-likes/{authorId}/{postId}/{commentId}').onDelete((change, context) => {
+    const likeAuthorId = context.params.authorId;
+    const commentId = context.params.commentId;
     console.log("delete comment like", commentId, likeAuthorId);
     const likeUserRef = admin.database().ref(`/like-user/${commentId}/${likeAuthorId}`);
     return likeUserRef.remove();
 });
 
-exports.appNotificationLikes = functions.database.ref('/comment-likes/{authorId}/{postId}/{commentId}').onCreate(event => {
+exports.appNotificationLikes = functions.database.ref('/comment-likes/{authorId}/{postId}/{commentId}').onCreate((snapshot, context) => {
     console.log('App notification for new like');
 
-    const likeAuthorId = event.params.authorId;
-    const postId = event.params.postId;
-    const commentId = event.params.commentId;
+    const likeAuthorId = context.params.authorId;
+    const postId = context.params.postId;
+    const commentId = context.params.commentId;
 
     // Get liked comment  /post-comments/{postId}/{commentId}
     return admin.database().ref(`/post-comments/${postId}/${commentId}`).once('value').then(comment => {
@@ -1059,11 +1059,11 @@ exports.appNotificationLikes = functions.database.ref('/comment-likes/{authorId}
     });
 });
 
-exports.appNotificationRatings = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onCreate(event => {
+exports.appNotificationRatings = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onCreate((snapshot, context) => {
     console.log('App notification for new rating');
 
-    const ratingAuthorId = event.params.authorId;
-    const postId = event.params.postId;
+    const ratingAuthorId = context.params.authorId;
+    const postId = context.params.postId;
 
     // Get rated post.
     const getPostTask = admin.database().ref(`/posts/${postId}`).once('value');
@@ -1107,12 +1107,12 @@ exports.appNotificationRatings = functions.database.ref('/post-ratings/{postId}/
     });
 });
 
-exports.appNotificationComments = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
+exports.appNotificationComments = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate((snapshot, context) => {
     console.log('App notification for new comment');
 
-    const commentId = event.params.commentId;
-    const postId = event.params.postId;
-    const comment = event.data.val();
+    const commentId = context.params.commentId;
+    const postId = context.params.postId;
+    const comment = snapshot.val();
     const commentAuthorId = comment.authorId;
 
     // Get rated post.
@@ -1214,12 +1214,12 @@ function avgRatingLastX(raterId, rating) {
 }
 
 
-exports.duplicateUserRating = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}/normalizedRating').onWrite(event => {
+exports.duplicateUserRating = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}/normalizedRating').onWrite((change, context) => {
     console.log('Duplicate user rating');
-    const ratingAuthorId = event.params.authorId;
-    const ratingId = event.params.ratingId;
-    const postId = event.params.postId;
-    return event.data.ref.parent.once("value").then(ratingSnap => {
+    const ratingAuthorId = context.params.authorId;
+    const ratingId = context.params.ratingId;
+    const postId = context.params.postId;
+    return change.after.ref.parent.once("value").then(ratingSnap => {
         const rating = ratingSnap.val();
         if (rating != null) rating.postId = postId;
         const userRatingRef = admin.database().ref(`/user-ratings/${ratingAuthorId}/${ratingId}`);
@@ -1227,11 +1227,11 @@ exports.duplicateUserRating = functions.database.ref('/post-ratings/{postId}/{au
     });
 });
 
-exports.enqueueSupportingRatingTask = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onCreate(event => {
+exports.enqueueSupportingRatingTask = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}').onCreate((snapshot, context) => {
     console.log('enqueue supporting rating tasks');
-    const ratingAuthorId = event.params.authorId;
-    const rating = event.data.val();
-    const postId = event.params.postId;
+    const ratingAuthorId = context.params.authorId;
+    const rating = snapshot.val();
+    const postId = context.params.postId;
 
     if (supportingAuthorIds) {
         return enqueueSupportRating(ratingAuthorId, rating, postId);
@@ -1280,9 +1280,9 @@ function randomGroup(size, range) {
     return arr;
 }
 
-exports.voiceCommentAppUpdateNotification = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
-    const postId = event.params.postId;
-    const comment = event.data.val();
+exports.voiceCommentAppUpdateNotification = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate((snapshot, context) => {
+    const postId = context.params.postId;
+    const comment = snapshot.val();
     const commentAuthorId = comment.authorId;
     if (!comment.audioPath) {
         console.log("comment has no audio");
@@ -1311,12 +1311,12 @@ function notifyAppUpdate(featureVersion, postAuthorId, msg) {
     });
 }
 
-exports.appNotificationFlag = functions.database.ref('/flags/{flaggedUser}/{flagId}').onCreate(event => {
+exports.appNotificationFlag = functions.database.ref('/flags/{flaggedUser}/{flagId}').onCreate((snapshot, context) => {
     console.log('App notification for new flag');
 
-    const flagId = event.params.flagId;
-    const flag = event.data.val();
-    const flaggedUser = event.params.flaggedUser;
+    const flagId = context.params.flagId;
+    const flag = snapshot.val();
+    const flaggedUser = context.params.flaggedUser;
     const flaggedBy = flag.flaggedBy;
     var reason = flag.reason;
 
@@ -1355,12 +1355,12 @@ function sendComplainAppNotification(flaggedUser, reason) {
     });
 }
 
-exports.appNotificationBlock = functions.database.ref('/block-users/{blockedUser}/{blockedBy}').onCreate(event => {
+exports.appNotificationBlock = functions.database.ref('/block-users/{blockedUser}/{blockedBy}').onCreate((snapshot, context) => {
     console.log('App notification for new block');
 
-    const blockedBy = event.params.blockedBy;
-    const blockedUser = event.params.blockedUser;
-    const reason = event.data.val().reason;
+    const blockedBy = context.params.blockedBy;
+    const blockedUser = context.params.blockedUser;
+    const reason = snapshot.val().reason;
     return admin.database().ref(`profiles/${blockedBy}`).once('value').then(function(profileSnap) {
         var profile = profileSnap.val();
         const msg = `${profile.username} has blocked you. You cannot rate, comment or message him/her in future.`;
@@ -1372,13 +1372,13 @@ exports.appNotificationBlock = functions.database.ref('/block-users/{blockedUser
     });
 });
 
-exports.appNotificationCommentConversation = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate(event => {
+exports.appNotificationCommentConversation = functions.database.ref('/post-comments/{postId}/{commentId}').onCreate((snapshot, context) => {
     console.log('App notification for new comment in conversation');
 
-    const postCommentRef = event.data.ref.parent;
-    const commentId = event.params.commentId;
-    const postId = event.params.postId;
-    const comment = event.data.val();
+    const postCommentRef = snapshot.ref.parent;
+    const commentId = context.params.commentId;
+    const postId = context.params.postId;
+    const comment = snapshot.val();
     const commentAuthorId = comment.authorId;
 
     // Get commented post.
@@ -1434,14 +1434,14 @@ exports.appNotificationCommentConversation = functions.database.ref('/post-comme
     });
 });
 
-exports.appNotificationMessages = functions.database.ref('/user-messages/{userId}/{messageId}').onCreate(event => {
+exports.appNotificationMessages = functions.database.ref('/user-messages/{userId}/{messageId}').onCreate((snapshot, context) => {
     console.log('App notification for new message');
 
-    const messageId = event.params.messageId;
-    const userId = event.params.userId;
-    const message = event.data.val();
+    const messageId = context.params.messageId;
+    const userId = context.params.userId;
+    const message = snapshot.val();
     const messageAuthorId = message.senderId;
-    const messageListRef = event.data.ref.parent;
+    const messageListRef = snapshot.ref.parent;
     const parentMessageId = message.parentId;
 
     if (parentMessageId == null) {
@@ -1620,12 +1620,12 @@ function sendUserMessage(authorId, fromUserId, msg) {
     });
 }
 
-exports.appNotificationFeedbackConversation = functions.database.ref('/feedbacks/{feedbackId}').onCreate(event => {
+exports.appNotificationFeedbackConversation = functions.database.ref('/feedbacks/{feedbackId}').onCreate((snapshot, context) => {
     console.log('App notification for new feedback in conversation');
 
-    const feedbackListRef = event.data.ref.parent;
-    const feedbackId = event.params.feedbackId;
-    const feedback = event.data.val();
+    const feedbackListRef = snapshot.ref.parent;
+    const feedbackId = context.params.feedbackId;
+    const feedback = snapshot.val();
     const feedbackAuthorId = feedback.senderId;
     const parentFeedbackId = feedback.parentId;
 
@@ -1687,8 +1687,8 @@ exports.appNotificationFeedbackConversation = functions.database.ref('/feedbacks
     });
 });
 
-exports.incrementUserUnseenNotification = functions.database.ref('/user-notifications/{authorId}/{notificationId}/message').onWrite(event => {
-    const authorId = event.params.authorId;
+exports.incrementUserUnseenNotification = functions.database.ref('/user-notifications/{authorId}/{notificationId}/message').onWrite((change, context) => {
+    const authorId = context.params.authorId;
     const authorProfileUnseenRef = admin.database().ref(`/profiles/${authorId}/unseen`);
     return authorProfileUnseenRef.transaction(current => {
           return (current || 0) + 1;
@@ -1836,10 +1836,10 @@ function createOrUpdateBoughtFeedback(postId, authorId, paymentStatus) {
     });
 }
 
-exports.restoreReputationPoints = functions.database.ref('/profiles/{uid}/reputationPoints').onDelete(event => {
-    var uid = event.params.uid;
+exports.restoreReputationPoints = functions.database.ref('/profiles/{uid}/reputationPoints').onDelete((change, context) => {
+    var uid = context.params.uid;
     console.log("restore lost reputation points", uid);
-    const previousPoints = event.data.previous.val();
+    const previousPoints = change.before.val();
     if (!previousPoints) return console.log("exit: previous reputationPoints null");
     const profileReputationPointsRef = admin.database().ref(`profiles/${uid}/reputationPoints`);
     return profileReputationPointsRef.transaction(current => {
@@ -1849,9 +1849,9 @@ exports.restoreReputationPoints = functions.database.ref('/profiles/{uid}/reputa
     });
 });
 
-exports.grantSignupReward = functions.database.ref('/profiles/{uid}/id').onCreate(event => {
+exports.grantSignupReward = functions.database.ref('/profiles/{uid}/id').onCreate((snapshot, context) => {
     console.log("new user signed in");
-    var uid = event.params.uid;
+    var uid = context.params.uid;
     return admin.database().ref(`profiles/${uid}`).once('value').then(function(profileSnap) {
           var profile = profileSnap.val();
           console.log("referred_by", profile.referred_by);
@@ -1876,16 +1876,16 @@ exports.grantSignupReward = functions.database.ref('/profiles/{uid}/id').onCreat
 
 // Firebase function that will be triggered when a new comment is added in /post-comments.
 // The new comment is copied into /user-comments
-exports.duplicateUserComments = functions.database.ref('/post-comments/{postId}/{commentId}').onWrite(event => {
+exports.duplicateUserComments = functions.database.ref('/post-comments/{postId}/{commentId}').onWrite((change, context) => {
 
     // Exit when the data is deleted.
-    if (!event.data.exists()) {
+    if (!change.after.exists()) {
         return 0;
     }
 
-    const commentId = event.params.commentId;
-    const postId = event.params.postId;
-    const comment = event.data.val();
+    const commentId = context.params.commentId;
+    const postId = context.params.postId;
+    const comment = change.after.val();
 
     var text, audioPath, audioTitle, createdDate;
     var postTitle='';
@@ -1942,9 +1942,9 @@ exports.duplicateUserComments = functions.database.ref('/post-comments/{postId}/
 });
 
 // Update postTitle in /user-comments when a post is deleted
-exports.deletePostTitle = functions.database.ref('/posts/{postId}').onDelete(event => {
-    const postId = event.params.postId;
-    const post = event.data.previous.val();
+exports.deletePostTitle = functions.database.ref('/posts/{postId}').onDelete((change, context) => {
+    const postId = context.params.postId;
+    const post = change.before.val();
     const authorId = post.authorId;
     const postAuthorId = 0;
     const postCommentId = 0;
