@@ -368,13 +368,13 @@ function sendEmail(subject, body) {
 }
 
 // Keeps track of the length of the 'likes' child list in a separate property.
-exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}/normalizedRating').onWrite(event => {
-    if (event.data.exists() && !event.data.previous.exists() && event.data.val() == 0) {
+exports.updatePostCounters = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}/normalizedRating').onWrite((change, context) => {
+    if (change.after.exists() && !change.before.exists() && change.after.val() == 0) {
         console.log("ignore: normalizedRating hasn't set yet.");
         return 0;
     }
-    const postRatingRef = event.data.ref.parent.parent.parent;
-    const postId = event.params.postId;
+    const postRatingRef = change.after.ref.parent.parent.parent;
+    const postId = context.params.postId;
     console.log('updating post counters ', postId);
 
     return postRatingRef.once('value').then(snapshot => {
@@ -1157,17 +1157,17 @@ exports.appNotificationComments = functions.database.ref('/post-comments/{postId
     })
 });
 
-exports.normalizeRating = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}/rating').onWrite(event => {
+exports.normalizeRating = functions.database.ref('/post-ratings/{postId}/{authorId}/{ratingId}/rating').onWrite((change, context) => {
     console.log("calculate normalizeRating");
     // todo: exit for delete
-    if (!event.data.exists()) {
+    if (!change.after.exists()) {
         console.log("exit: rating removed");
         return 0;
     }
-    const raterId = event.params.authorId;
-    const postId = event.params.postId;
-    const rating = event.data.val();
-    const ratingId = event.params.ratingId;
+    const raterId = context.params.authorId;
+    const postId = context.params.postId;
+    const rating = change.after.val();
+    const ratingId = context.params.ratingId;
     const benchmarkRating = 10;
     return avgRatingLastX(raterId, rating).then(avgRating => {
         console.log("avgRating", avgRating);
