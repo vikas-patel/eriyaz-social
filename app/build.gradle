@@ -29,7 +29,7 @@ android {
         release {
             keyAlias 'key0'
             keyPassword 'Test!234'
-            storeFile file('/home/vikas/repos/social-app-android/eriyaz-social.jks')
+            storeFile file('C:/Users/zaman/Documents/Eriyaz/GITHUB/eriyaz-social.jks')
             storePassword 'Test!234'
         }
 
@@ -41,8 +41,8 @@ android {
         minSdkVersion 16
         targetSdkVersion 29
         //Update remote config as well
-        versionCode 56
-        versionName "4.2"
+        versionCode 58
+        versionName "4.3"
         multiDexEnabled true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
